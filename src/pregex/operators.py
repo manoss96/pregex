@@ -1,16 +1,15 @@
-from abc import ABC
-from pregex.pre import Pregex
-from pregex.exceptions import LessThanTwoArgumentsException
+import pregex.pre as _pre
+import pregex.exceptions as _exceptions
 
 
-class __Operator(Pregex, ABC):
+class __Operator(_pre.Pregex):
     '''
     Every "Operator" class must inherit from this class.
     '''
 
-    def __init__(self, pres: tuple[str or Pregex], transform) -> Pregex:
+    def __init__(self, pres: tuple[str or _pre.Pregex], transform) -> _pre.Pregex:
         if len(pres) < 2:
-            raise LessThanTwoArgumentsException()
+            raise _exceptions.LessThanTwoArgumentsException()
         result = __class__._to_pregex(pres[0])
         for pre in pres[1:]:
             result = transform(result, pre)
@@ -22,7 +21,7 @@ class Concat(__Operator):
     Matches the concatenation of the provided patterns.
     '''
 
-    def __init__(self, *pres: str or Pregex) -> Pregex:
+    def __init__(self, *pres: str or _pre.Pregex) -> _pre.Pregex:
         '''
         Matches the concatenation of the provided patterns.
 
@@ -40,7 +39,7 @@ class Either(__Operator):
         the left-most pattern and continuing on to the right until a match occurs.
     '''
     
-    def __init__(self, *pres: str or Pregex):
+    def __init__(self, *pres: str or _pre.Pregex):
         '''
         Matches either one of the provided patterns.
 

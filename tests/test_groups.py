@@ -1,4 +1,5 @@
 import unittest
+from pregex.pre import Pregex
 from pregex.groups import *
 from pregex.tokens import Backslash, Literal
 from pregex.exceptions import NonStringArgumentException, InvalidCapturingGroupNameException

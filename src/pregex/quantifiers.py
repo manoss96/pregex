@@ -1,15 +1,16 @@
-from pregex.pre import Pregex
-from pregex.assertions import MatchAtStart, MatchAtLineStart, MatchAtEnd, MatchAtLineEnd
-from pregex.exceptions import NotQuantifiableException
+import pregex.pre as _pre
+import pregex.assertions as _assertions
+import pregex.exceptions as _exceptions
 
 
-class __Quantifier(Pregex):
+class __Quantifier(_pre.Pregex):
     '''
     Every "Quantifier" class must inherit from this class.
     '''
-    def __init__(self, pre: str or Pregex, is_greedy: bool, transform) -> '__Quantifier':
-        if isinstance(pre, (MatchAtStart, MatchAtLineStart, MatchAtEnd, MatchAtLineEnd)):
-            raise NotQuantifiableException(pre)
+    def __init__(self, pre: str or _pre.Pregex, is_greedy: bool, transform) -> '__Quantifier':
+        if isinstance(pre, (_assertions.MatchAtStart, _assertions.MatchAtLineStart,
+            _assertions.MatchAtEnd, _assertions.MatchAtLineEnd)):
+            raise _exceptions.NotQuantifiableException(pre)
         pre = transform(__class__._to_pregex(pre), is_greedy)
         super().__init__(str(pre), pre._get_group_on_concat(), pre._get_group_on_quantify())
 
@@ -19,7 +20,7 @@ class Optional(__Quantifier):
     Matches the provided pattern zero or one times.
     '''
 
-    def __init__(self, pre: str or Pregex, is_greedy: bool = True) -> Pregex:
+    def __init__(self, pre: str or _pre.Pregex, is_greedy: bool = True) -> _pre.Pregex:
         '''
         Matches the provided pattern zero or one times.
 
@@ -37,7 +38,7 @@ class Indefinite(__Quantifier):
     Matches the provided pattern zero or more times.
     '''
 
-    def __init__(self, pre: str or Pregex, is_greedy: bool = True) -> Pregex:
+    def __init__(self, pre: str or _pre.Pregex, is_greedy: bool = True) -> _pre.Pregex:
         '''
         Matches the provided pattern zero or more times.
 
@@ -55,7 +56,7 @@ class Enforced(__Quantifier):
     Matches the provided pattern one or more times.
     '''
 
-    def __init__(self, pre: str or Pregex, is_greedy: bool = True) -> Pregex:
+    def __init__(self, pre: str or _pre.Pregex, is_greedy: bool = True) -> _pre.Pregex:
         '''
         Matches the provided pattern one or more times.
 
@@ -73,7 +74,7 @@ class Exactly(__Quantifier):
     Matches the provided pattern an exact number of times.
     '''
 
-    def __init__(self, pre: str or Pregex, n: int) -> Pregex:
+    def __init__(self, pre: str or _pre.Pregex, n: int) -> _pre.Pregex:
         '''
         Matches the provided pattern an exact number of times.
 
@@ -89,7 +90,7 @@ class AtLeast(__Quantifier):
     Matches the provided pattern a minimum number of times.
     '''
 
-    def __init__(self, pre: str or Pregex, n: int, is_greedy: bool = True) -> Pregex:
+    def __init__(self, pre: str or _pre.Pregex, n: int, is_greedy: bool = True) -> _pre.Pregex:
         '''
         Matches the provided pattern a minimum number of times.
 
@@ -108,7 +109,7 @@ class AtMost(__Quantifier):
     Matches the provided pattern a maximum number of times.
     '''
 
-    def __init__(self, pre: str or Pregex, n: int, is_greedy: bool = True) -> Pregex:
+    def __init__(self, pre: str or _pre.Pregex, n: int, is_greedy: bool = True) -> _pre.Pregex:
         '''
         Matches the provided pattern a maximum number of times.
 
@@ -127,7 +128,7 @@ class AtLeastAtMost(__Quantifier):
     Matches the provided expression between a minimum and a maximum number of times.
     '''
 
-    def __init__(self, pre: str or Pregex, min: int, max: int, is_greedy: bool = True) -> Pregex:
+    def __init__(self, pre: str or _pre.Pregex, min: int, max: int, is_greedy: bool = True) -> _pre.Pregex:
         '''
         Matches the provided expression between a minimum and a maximum number of times.
 

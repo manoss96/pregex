@@ -1,21 +1,21 @@
-from pregex.pre import Pregex
+import pregex.pre as _pre
 
-class __Anchor(Pregex):
+class __Anchor(_pre.Pregex):
     '''
     Every "Anchor" class must inherit from this class.
     '''
 
-    def __init__(self, pre: str or Pregex, transform):
+    def __init__(self, pre: str or _pre.Pregex, transform):
         pre = __class__._to_pregex(pre)
         super().__init__(transform(pre), group_on_concat=False)
 
 
-class __Lookaround(Pregex):
+class __Lookaround(_pre.Pregex):
     '''
     Every "Lookaround" class must inherit from this class.
     '''
 
-    def __init__(self, pre1: str or Pregex, pre2: str or Pregex, transform):
+    def __init__(self, pre1: str or _pre.Pregex, pre2: str or _pre.Pregex, transform):
         pre1 = __class__._to_pregex(pre1)
         super().__init__(transform(pre1, pre2), group_on_concat=False, group_on_quantify=True)
 
@@ -25,7 +25,7 @@ class MatchAtStart(__Anchor):
     Matches the provided pattern only if said pattern is at the start of the string.
     '''
 
-    def __init__(self, pre: str or Pregex):
+    def __init__(self, pre: str or _pre.Pregex):
         '''
         Matches the provided pattern only if said pattern is at the start of the string.
 
@@ -39,7 +39,7 @@ class MatchAtEnd(__Anchor):
     Matches the provided pattern only if said pattern is at the end of the string.
     '''
 
-    def __init__(self, pre: str or Pregex):
+    def __init__(self, pre: str or _pre.Pregex):
         '''
         Matches the provided pattern only if said pattern is at the end of the string.
 
@@ -55,7 +55,7 @@ class MatchAtLineStart(__Anchor):
     NOTE: Uses meta character "^" since the "MULTILINE" flag is considered on.
     '''
 
-    def __init__(self, pre: str or Pregex):
+    def __init__(self, pre: str or _pre.Pregex):
         '''
         Matches the provided pattern only if said pattern is at the end of the string.
 
@@ -73,7 +73,7 @@ class MatchAtLineEnd(__Anchor):
     NOTE: Uses meta character "$" since the "MULTILINE" flag is considered on.
     '''
 
-    def __init__(self, pre: str or Pregex):
+    def __init__(self, pre: str or _pre.Pregex):
         '''
         Matches the provided pattern only if said pattern is at the end of a line.
 
@@ -90,7 +90,7 @@ class MatchAtWordBoundary(__Anchor):
     a word boundary on both its sides.
     '''
 
-    def __init__(self, pre: str or Pregex):
+    def __init__(self, pre: str or _pre.Pregex):
         '''
         Matches the provided pattern only if said pattern has \
         a word boundary on both its sides.
@@ -105,7 +105,7 @@ class MatchAtLeftWordBoundary(__Anchor):
     a word boundary on its left side.
     '''
 
-    def __init__(self, pre: str or Pregex):
+    def __init__(self, pre: str or _pre.Pregex):
         '''
         Matches the provided pattern only if said pattern has \
         a word boundary on its left side.
@@ -121,7 +121,7 @@ class MatchAtRightWordBoundary(__Anchor):
     a word boundary on its right side.
     '''
 
-    def __init__(self, pre: str or Pregex):
+    def __init__(self, pre: str or _pre.Pregex):
         '''
         Matches the provided pattern only if said pattern has \
         a word boundary on its right side.
@@ -137,7 +137,7 @@ class FollowedBy(__Lookaround):
     without the latter being included into the match.
     '''
 
-    def __init__(self, pre1: str or Pregex, pre2: str or Pregex):
+    def __init__(self, pre1: str or _pre.Pregex, pre2: str or _pre.Pregex):
         '''
         Matches pattern 'pre1' only if it is followed by pattern 'pre2', \
         without the latter being included into the match.
@@ -154,7 +154,7 @@ class NotFollowedBy(__Lookaround):
     without the latter being included into the match.
     '''
 
-    def __init__(self, pre1: str or Pregex, pre2: str or Pregex):
+    def __init__(self, pre1: str or _pre.Pregex, pre2: str or _pre.Pregex):
         '''
         Matches pattern 'pre1' only if it is not followed by pattern 'pre2', \
         without the latter being included into the match.
@@ -171,7 +171,7 @@ class PrecededBy(__Lookaround):
     without the latter being included into the match.
     '''
 
-    def __init__(self, pre1: str or Pregex, pre2: str or Pregex):
+    def __init__(self, pre1: str or _pre.Pregex, pre2: str or _pre.Pregex):
         '''
         Matches pattern 'pre1' only if it is preceded by pattern 'pre2', \
         without the latter being included into the match.
@@ -188,7 +188,7 @@ class NotPrecededBy(__Lookaround):
     without the latter being included into the match.
     '''
 
-    def __init__(self, pre1: str or Pregex, pre2: str or Pregex):
+    def __init__(self, pre1: str or _pre.Pregex, pre2: str or _pre.Pregex):
         '''
         Matches pattern 'pre1' only if it is not preceded by pattern 'pre2', \
         without the latter being included into the match.

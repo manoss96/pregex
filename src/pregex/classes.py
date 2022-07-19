@@ -1,12 +1,11 @@
-import re
-from string import whitespace
-from pregex.pre import Pregex
-from pregex.tokens import Token
-from pregex.exceptions import InvalidRangeException, NeitherStringNorTokenException, \
-    MultiCharTokenException, CannotBeNegatedException, CannotBeCombinedException
+import re as _re
+import pregex.pre as _pre
+import pregex.tokens as _tokens
+import pregex.exceptions as _exceptions
+from string import whitespace as _whitespace
 
 
-class __Class(Pregex):
+class __Class(_pre.Pregex):
     '''
     Any "Class" class must inherit from this class.
 
@@ -33,19 +32,19 @@ class __Class(Pregex):
 
     def __or__(self, pre: '__Class') -> '__Class':
         if (not issubclass(pre.__class__, __class__)) or isinstance(pre, _NegatedClass):
-            raise CannotBeCombinedException(self, pre)
+            raise _exceptions.CannotBeCombinedException(self, pre)
         return __class__.__or(self, pre)
 
     def __ror__(self, pre: '__Class') -> '__Class':
         if (not issubclass(pre.__class__, __class__)) or isinstance(pre, _NegatedClass):
-            raise CannotBeCombinedException(pre, self)
+            raise _exceptions.CannotBeCombinedException(pre, self)
         return __class__.__or(pre, self)
 
     def __or(pre1: '__Class', pre2: '__Class') -> '__Class':
         # Create pattern for matching possible classes.
         pattern = r".\-.|\\?[^\[\]]"
-        classes = set(re.findall(pattern, str(pre1)))\
-            .union(set(re.findall(pattern, str(pre2))))
+        classes = set(_re.findall(pattern, str(pre1)))\
+            .union(set(_re.findall(pattern, str(pre2))))
         return Any() if isinstance(pre1, Any) or isinstance(pre2, Any) \
             else __class__(f"[{''.join(classes)}]")
 
@@ -63,19 +62,19 @@ class _NegatedClass(__Class):
 
     def __or__(self, pre: '_NegatedClass') -> '_NegatedClass':
         if (not issubclass(pre.__class__, __class__)) or isinstance(pre, super().__class__):
-            raise CannotBeCombinedException(self, pre)
+            raise _exceptions.CannotBeCombinedException(self, pre)
         return __class__.__or(self, pre)
 
     def __ror__(self, pre: '_NegatedClass') -> '_NegatedClass':
         if (not issubclass(pre.__class__, __class__)) or isinstance(pre, super().__class__):
-            raise CannotBeCombinedException(self, pre)
+            raise _exceptions.CannotBeCombinedException(self, pre)
         return __class__.__or(pre, self)
 
     def __or(pre1: '_NegatedClass', pre2: '_NegatedClass') -> '_NegatedClass':
         # Create pattern for matching possible classes.
         pattern = r".\-.|\\?[^\^\[\]]"
-        classes = set(re.findall(pattern, str(pre1)))\
-            .union(set(re.findall(pattern, str(pre2))))
+        classes = set(_re.findall(pattern, str(pre1)))\
+            .union(set(_re.findall(pattern, str(pre2))))
         return __class__(f"[^{''.join(classes)}]")
 
 
@@ -95,16 +94,16 @@ class Any(__Class):
         super().__init__('.')
 
     def __invert__(self) -> None:
-        raise CannotBeNegatedException()
+        raise _exceptions.CannotBeNegatedException()
 
     def __or__(self, pre: '__Class') -> 'Any':
         if (not issubclass(pre.__class__, __class__.__base__)) or isinstance(pre, _NegatedClass):
-            raise CannotBeCombinedException(self, pre)
+            raise _exceptions.CannotBeCombinedException(self, pre)
         return Any()
 
     def __ror__(self, pre: '__Class') -> 'Any':
         if (not issubclass(pre.__class__, __class__.__base__)) or isinstance(pre, _NegatedClass):
-            raise CannotBeCombinedException(self, pre)
+            raise _exceptions.CannotBeCombinedException(self, pre)
         return Any()
 
 
@@ -190,7 +189,7 @@ class AnyWhitespace(__Class):
         '''
         Matches any whitespace character.
         '''
-        super().__init__(f'[{whitespace}]')
+        super().__init__(f'[{_whitespace}]')
 
 
 class AnyWithinRange(__Class):
@@ -200,7 +199,7 @@ class AnyWithinRange(__Class):
 
     def __init__(self, start, end) -> 'AnyWithinRange':
         if (type(start) != type(end)) or start >= end:
-            raise InvalidRangeException(start, end)
+            raise _exceptions.InvalidRangeException(start, end)
         super().__init__(f"[{start}-{end}]")
 
 
@@ -209,7 +208,7 @@ class AnyFrom(__Class):
     Matches any one of the provided characters.
     '''
 
-    def __init__(self, *chars: str or Token) -> 'AnyFrom':
+    def __init__(self, *chars: str or _tokens.Token) -> 'AnyFrom':
         '''
         Matches any one of the provided characters.
 
@@ -218,9 +217,9 @@ class AnyFrom(__Class):
             "Token".
         '''
         for c in chars:
-            if not issubclass(c.__class__, (str, Token)):
-                raise NeitherStringNorTokenException()
+            if not issubclass(c.__class__, (str, _tokens.Token)):
+                raise _exceptions.NeitherStringNorTokenException()
             if len(str(c).replace("\\", "")) > 1:
-                raise MultiCharTokenException(str(c))
-        chars = tuple(str(Pregex(pre)._literal()) if isinstance(pre, str) else str(pre) for pre in chars)
+                raise _exceptions.MultiCharTokenException(str(c))
+        chars = tuple(str(_pre.Pregex(pre)._literal()) if isinstance(pre, str) else str(pre) for pre in chars)
         super().__init__(f"[{''.join(chars)}]")

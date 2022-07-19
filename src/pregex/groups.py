@@ -1,14 +1,13 @@
 import re
-from abc import ABC
-from pregex.pre import Pregex
-from pregex.exceptions import InvalidCapturingGroupNameException, NonStringArgumentException
+import pregex.pre as _pre
+import pregex.exceptions as _exceptions
 
 
-class __Group(Pregex, ABC):
+class __Group(_pre.Pregex):
     '''
     Every "Group" class must inherit from this class.
     '''
-    def __init__(self, pre: str or Pregex, transform) -> Pregex:
+    def __init__(self, pre: str or _pre.Pregex, transform) -> _pre.Pregex:
         pre = transform(__class__._to_pregex(pre))
         super().__init__(str(pre), pre._get_group_on_concat(), pre._get_group_on_quantify())
 
@@ -24,7 +23,7 @@ class CapturingGroup(__Group):
         - Creating a named capturing group out of a named capturing group, changes the group's name.
     '''
 
-    def __init__(self, pre: str or Pregex, name: str = ''):
+    def __init__(self, pre: str or _pre.Pregex, name: str = ''):
         '''
         Creates a capturing group out of the provided pattern.
 
@@ -50,7 +49,7 @@ class NonCapturingGroup(__Group):
         - Creating a non-capturing group out of a capturing group converts it to a non-capturing group.
     '''
 
-    def __init__(self, pre: str or Pregex):
+    def __init__(self, pre: str or _pre.Pregex):
         '''
         Creates a non-capturing group out of the provided pattern.
 
@@ -63,7 +62,7 @@ class NonCapturingGroup(__Group):
         super().__init__(pre, lambda pre: pre._non_capturing_group())
 
 
-class Backreference(Pregex):
+class Backreference(_pre.Pregex):
     '''
     Creates a backreference to some previously declared named capturing group.\
     A backreference matches the same text as the text that was most recently \
@@ -78,7 +77,7 @@ class Backreference(Pregex):
     '''
     def __init__(self, name: str):
         if not isinstance(name, str):
-            raise NonStringArgumentException()
+            raise _exceptions.NonStringArgumentException()
         if re.fullmatch("[A-Za-z_][A-Za-z_0-9]*", name) is None:
-            raise InvalidCapturingGroupNameException(name)
+            raise _exceptions.InvalidCapturingGroupNameException(name)
         super().__init__(f"(?P={name})", group_on_concat=False, group_on_quantify=False)

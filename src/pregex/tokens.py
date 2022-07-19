@@ -1,9 +1,8 @@
-from abc import ABC
-from pregex.pre import Pregex
-from pregex.exceptions import NonStringArgumentException
+import pregex.pre as _pre
+import pregex.exceptions as _exceptions
 
 
-class Token(Pregex, ABC):
+class Token(_pre.Pregex):
     '''
     All tokens must inherit from this class.
     '''
@@ -24,7 +23,7 @@ class Literal(Token):
         :param str s: The string that is to be matched.
         '''
         if not isinstance(s, str):
-            raise NonStringArgumentException()
+            raise _exceptions.NonStringArgumentException()
         literal = __class__._to_pregex(s)
         super().__init__(
             str(literal),

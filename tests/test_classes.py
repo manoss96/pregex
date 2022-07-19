@@ -1,4 +1,5 @@
 import unittest
+from pregex.pre import Pregex
 from pregex.classes import *
 from string import whitespace
 from itertools import permutations
