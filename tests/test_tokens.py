@@ -1,0 +1,93 @@
+import unittest
+from pregex.tokens import *
+from pregex.exceptions import NonStringArgumentException
+
+
+class TestLiteral(unittest.TestCase):
+    
+    def test_literal_on_len_1_str(self):
+        s = "s"
+        self.assertEqual(str(Literal(s)), s)
+
+    def test_literal_on_len_n_str(self):
+        s = "test"
+        self.assertEqual(str(Literal(s)), s)
+
+    def test_literal_on_escape(self):
+        for c in ('\\', '^', '$', '(', ')', '[', ']', '{', '}', '<', '>', '?', '+', '*', '.', '|', '-', '!', '=', ':', '/'):
+            self.assertEqual(str(Literal(c)), f"\{c}")
+
+    def test_literal_on_non_string_argument(self):
+        for val in [1, 1.3, True]:
+            self.assertRaises(NonStringArgumentException, Literal, val)
+
+    def test_literal_on_match(self):
+        text = ":\z^l"
+        self.assertTrue(Literal(text).get_matches(f"text{text}text") == [text])
+
+
+class TestWhitespace(unittest.TestCase):
+
+    def test_space(self):
+        self.assertEqual(str(Space()), r" ")
+
+    def test_space_on_match(self):
+        self.assertTrue(Space().get_matches(r"text ext") == [" "])
+
+
+class TestBackslash(unittest.TestCase):
+
+    def test_backslash(self):
+        self.assertEqual(str(Backslash()), r"\\")
+
+    def test_backslash_on_match(self):
+        self.assertTrue(Backslash().get_matches(r"text\text") == ["\\"])
+
+
+class TestNewline(unittest.TestCase):
+
+    def test_newline(self):
+        self.assertEqual(str(Newline()), r"\n")
+
+    def test_newline_on_match(self):
+        self.assertTrue(Newline().get_matches("text\ntext") == ["\n"])
+
+
+class TestCarriageReturn(unittest.TestCase):
+
+    def test_carriage_return(self):
+        self.assertEqual(str(CarriageReturn()), r"\r")
+
+    def test_carriage_return_on_match(self):
+        self.assertTrue(CarriageReturn().get_matches("text\rtext") == ["\r"])
+
+
+class TestFormFeed(unittest.TestCase):
+
+    def test_form_feed(self):
+        self.assertEqual(str(FormFeed()), r"\f")
+
+    def test_form_feed_on_match(self):
+        self.assertTrue(FormFeed().get_matches("text\ftext") == ["\f"])
+
+
+class TestTab(unittest.TestCase):
+
+    def test_tab(self):
+        self.assertEqual(str(Tab()), r"\t")
+
+    def test_tab_on_match(self):
+        self.assertTrue(Tab().get_matches("text\ttext") == ["\t"])
+
+
+class TestVerticalTab(unittest.TestCase):
+
+    def test_vertical_tab(self):
+        self.assertEqual(str(VerticalTab()), r"\v")
+
+    def test_vertical_tab_on_match(self):
+        self.assertTrue(VerticalTab().get_matches("text\vtext") == ["\v"])
+
+
+if __name__=="__main__":
+    unittest.main()

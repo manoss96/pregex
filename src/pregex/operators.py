@@ -1,0 +1,50 @@
+from abc import ABC
+from pregex.pre import Pregex
+from pregex.exceptions import LessThanTwoArgumentsException
+
+
+class __Operator(Pregex, ABC):
+    '''
+    Every "Operator" class must inherit from this class.
+    '''
+
+    def __init__(self, pres: tuple[str or Pregex], transform) -> Pregex:
+        if len(pres) < 2:
+            raise LessThanTwoArgumentsException()
+        result = __class__._to_pregex(pres[0])
+        for pre in pres[1:]:
+            result = transform(result, pre)
+        super().__init__(str(result), result._get_group_on_concat(), result._get_group_on_quantify())
+
+
+class Concat(__Operator):
+    '''
+    Matches the concatenation of the provided patterns.
+    '''
+
+    def __init__(self, *pres: str or Pregex) -> Pregex:
+        '''
+        Matches the concatenation of the provided patterns.
+
+        :param Pregex | str *pres: Two or more patterns that are to be concatenated.
+        '''
+        super().__init__(pres, lambda pre1, pre2: pre1._concat(pre2))
+
+
+class Either(__Operator):
+    '''
+    Matches either one of the provided patterns.
+
+    NOTE: One should be aware that "Either" is eager, meaning that the regex engine will \
+        stop the moment it matches either one of the alternatives, starting from \
+        the left-most pattern and continuing on to the right until a match occurs.
+    '''
+    
+    def __init__(self, *pres: str or Pregex):
+        '''
+        Matches either one of the provided patterns.
+
+        :param Pregex | str *pres: Two or more patterns that constitute the \
+            operator's alternatives.
+        '''
+        super().__init__(pres, lambda pre1, pre2: pre1._either(pre2))
