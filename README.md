@@ -4,7 +4,7 @@
 
 ## PRegEx - Programmable Regular Expressions
 
-PRegEx is a Python module that can be used in order to construct regular expression patterns in a more human-friendly way.
+PRegEx is a Python module that can be used in order to construct Regular Expression patterns in a more human-friendly way.
 
 <!-- Installation -->
 ### Installation
@@ -19,7 +19,7 @@ pip install pregex
 <!-- USAGE EXAMPLES -->
 ### Usage
 
-In PRegEx, everything is a Programmable Regular Expression, or "Pregex" for short. This makes it easy for simple Pregex instances to be combined into more complex ones! Within the code snippet below, we construct a Pregex instance that will match any URL that ends with either ".com", ".org" or ".io" as well as any IP address for which a 4-digit port number is specified. Furthermore, in the case of a URL it's domain name will be captured separately as well.
+In PRegEx, everything is a Programmable Regular Expression, or "Pregex" for short. This makes it easy for simple Pregex instances to be combined into more complex ones! Within the code snippet below, we construct a Pregex instance that will match any URL that ends with either ".com" or ".org" as well as any IP address for which a 4-digit port number is specified. Furthermore, in the case that a match is a URL it's domain name will be separately captured as well.
 
 ```python
 from pregex.classes import AnyFrom, AnyDigit, AnyWhitespace
@@ -49,7 +49,7 @@ We can then easily fetch the resulting Pregex instance's underlying RegEx patter
 regex = pre.get_pattern()
 ```
 
-This is the regex pattern that the above method returns. Yikes!
+This is the RegEx pattern that the above method returns. Yikes!
 ```python
 (?:https?\:\/\/)?(?:www\.)?(?:[0-9\.]+\:[0-9]{4}|([^\r\:\n\x0c\\ \t\x0b]+)(?:\.com|\.org))
 ```
