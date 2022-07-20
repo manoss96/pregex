@@ -33,14 +33,13 @@ pre: Pregex = \
         Optional("http" + Optional('s') + "://") + \
         Optional("www.") + \
         Either(
-            Enforced(AnyDigit() | AnyFrom(".")) +
-            ":" + 
-            4 * AnyDigit(),
-            
             CapturingGroup(
                 Enforced(~ (AnyWhitespace() | AnyFrom(":", Backslash())))
             ) +
-            Either(".com", ".org")
+            Either(".com", ".org"),
+
+            4 * (AtLeastAtMost(AnyDigit(), 1, 3) + Optional(".")) +
+            ":" + 4 * AnyDigit() 
         )
 ```
 
@@ -51,7 +50,7 @@ regex = pre.get_pattern()
 
 This is the RegEx pattern that the above method returns. Yikes!
 ```python
-(?:https?\:\/\/)?(?:www\.)?(?:[0-9\.]+\:[0-9]{4}|([^\r\:\n\x0c\\ \t\x0b]+)(?:\.com|\.org))
+(?:https?\:\/\/)?(?:www\.)?(?:([^ \:\t\x0b\n\\\r\x0c]+)(?:\.com|\.org)|(?:[0-9]{1,3}\.?){4}\:[0-9]{4})
 ```
 
 Besides from having access to its underlying pattern, we can use a Pregex instance to find matches within a string. Consider for example the following piece of text:
