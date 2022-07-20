@@ -1,12 +1,12 @@
 [project]
 name = "pregex"
-version = "1.0.1"
+version = "1.0.2"
 authors = [
   { name="Emmanouil Stoumpos", email="manosstoumpos@gmail.com" },
 ]
 description = "PRegEx - Programmable Regular Expressions"
 readme = "README.md"
-license = { file="LICENSE" }
+license = "MIT"
 requires-python = ">=3.9"
 classifiers = [
     "Programming Language :: Python :: 3",

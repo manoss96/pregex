@@ -1,7 +1,6 @@
-from pregex import assertions
-from pregex import classes
-from pregex import groups
-from pregex import operators
-from pregex import pre
-from pregex import quantifiers
-from pregex import tokens
+from pregex import assertions as asr
+from pregex import classes as cl
+from pregex import groups as gr
+from pregex import operators as op
+from pregex import quantifiers as qu
+from pregex import tokens as tk
