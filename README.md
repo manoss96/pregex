@@ -49,7 +49,7 @@ We can then easily fetch the resulting Pregex instance's underlying RegEx patter
 regex = pre.get_pattern()
 ```
 
-This is what that the above method returns. Yikes!
+This is the pattern that is returned by the above method. Yikes!
 ```python
 (?:https?\:\/\/)?(?:www\.)?(?:([^\\\s\:]+)(?:\.com|\.org)|(?:[\d]{1,3}\.){3}[\d]{1,3}\:[\d]{4})
 ```
