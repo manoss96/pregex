@@ -26,9 +26,9 @@ class Optional(__Quantifier):
 
         :param Pregex | str pre: The pattern that is to be matched, provided either as a string \
             or wrapped within a "Pregex" subtype instance.
-        :param bool is_greedy: Indicates whether to declare this quantifier as lazy. \
+        :param bool is_greedy: Indicates whether to declare this quantifier as greedy. \
             When declared as such, the regex engine will try to match \
-            the expression as few times as possible.
+            the expression as many times as possible.
         '''
         super().__init__(pre, is_greedy, lambda pre, is_greedy: pre._optional(is_greedy))
 
@@ -44,14 +44,14 @@ class Indefinite(__Quantifier):
 
         :param Pregex | str pre: The pattern that is to be matched, provided either as a string \
             or wrapped within a "Pregex" subtype instance.
-        :param bool is_greedy: Indicates whether to declare this quantifier as lazy. \
+        :param bool is_greedy: Indicates whether to declare this quantifier as greedy. \
             When declared as such, the regex engine will try to match \
-            the expression as few times as possible.
+            the expression as many times as possible.
         '''
         super().__init__(pre, is_greedy, lambda pre, is_greedy: pre._indefinite(is_greedy))
 
 
-class Enforced(__Quantifier):
+class AtLeastOnce(__Quantifier):
     '''
     Matches the provided pattern one or more times.
     '''
@@ -62,11 +62,11 @@ class Enforced(__Quantifier):
 
         :param Pregex | str pre: The pattern that is to be matched, provided either as a string \
             or wrapped within a "Pregex" subtype instance.
-        :param bool is_greedy: Indicates whether to declare this quantifier as lazy. \
+        :param bool is_greedy: Indicates whether to declare this quantifier as greedy. \
             When declared as such, the regex engine will try to match \
-            the expression as few times as possible.
+            the expression as many times as possible.
         '''
-        super().__init__(pre, is_greedy, lambda pre, is_greedy: pre._enforced(is_greedy))
+        super().__init__(pre, is_greedy, lambda pre, is_greedy: pre._at_least_once(is_greedy))
 
 
 class Exactly(__Quantifier):
@@ -97,9 +97,9 @@ class AtLeast(__Quantifier):
         :param Pregex | str pre: The pattern that is to be matched, provided either as a string \
             or wrapped within a "Pregex" subtype instance.
         :param int n: The minimum number of times that the provided pattern is to be matched.
-        :param bool is_greedy: Indicates whether to declare this quantifier as lazy. \
+        :param bool is_greedy: Indicates whether to declare this quantifier as greedy. \
             When declared as such, the regex engine will try to match \
-            the expression as few times as possible.
+            the expression as many times as possible.
         '''
         super().__init__(pre, is_greedy, lambda pre, is_greedy: pre._at_least(n, is_greedy))
 
@@ -116,9 +116,9 @@ class AtMost(__Quantifier):
         :param Pregex | str pre: The pattern that is to be matched, provided either as a string \
             or wrapped within a "Pregex" subtype instance.
         :param int n: The maximum number of times that the provided pattern is to be matched.
-        :param bool is_greedy: Indicates whether to declare this quantifier as lazy. \
+        :param bool is_greedy: Indicates whether to declare this quantifier as greedy. \
             When declared as such, the regex engine will try to match \
-            the expression as few times as possible.
+            the expression as many times as possible.
         '''
         super().__init__(pre, is_greedy, lambda pre, is_greedy: pre._at_most(n, is_greedy))
 
@@ -136,8 +136,8 @@ class AtLeastAtMost(__Quantifier):
             or wrapped within a "Pregex" subtype instance.
         :param min: The minimum number of times that the provided pattern is to be matched.
         :param max: The maximum number of times that the provided pattern is to be matched.
-        :param bool is_greedy: Indicates whether to declare this quantifier as lazy. \
+        :param bool is_greedy: Indicates whether to declare this quantifier as greedy. \
             When declared as such, the regex engine will try to match \
-            the expression as few times as possible.
+            the expression as many times as possible.
         '''
         super().__init__(pre, is_greedy, lambda pre, is_greedy: pre._at_least_at_most(min, max, is_greedy))

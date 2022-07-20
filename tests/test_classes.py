@@ -8,26 +8,30 @@ from pregex.exceptions import NeitherStringNorTokenException, MultiCharTokenExce
     CannotBeCombinedException, InvalidRangeException
 
 
+def get_permutations(*classes: str):
+    return set(f"[{''.join(p)}]" for p in permutations(classes))
+
+def get_negated_permutations(*classes: str):
+    return set(f"[^{''.join(p)}]" for p in permutations(classes))
+
+
 class Test__AnyClass(unittest.TestCase):
 
-    def get_permutations(*classes: str):
-        return set(f"[{''.join(p)}]" for p in permutations(classes))
-    
     def test_any_class_bitwise_or(self):
         self.assertTrue(str(AnyLowercaseLetter() | AnyDigit()) \
-            in __class__.get_permutations("a-z", "0-9"))
+            in get_permutations("a-z", "\d"))
         self.assertTrue(str(AnyFrom("a", "b") | AnyFrom("c", "d")) \
-            in __class__.get_permutations("a", "b", "c", "d"))
+            in get_permutations("a", "b", "c", "d"))
 
     def test_any_class_bitwise_or_with_subset(self):
         self.assertTrue(str(AnyLetter() | AnyLowercaseLetter()) \
-            in __class__.get_permutations("a-z", "A-Z"))
+            in get_permutations("a-z", "A-Z"))
         self.assertTrue(str(AnyFrom("a", "b", "c") | AnyFrom("a", "b")) \
-            in __class__.get_permutations("a", "b", "c"))
+            in get_permutations("a", "b", "c"))
 
     def test_any_class_bitwise_or_with_intersection(self):
         self.assertTrue(str(AnyFrom("a", "b") | AnyFrom("b", "c")) \
-            in __class__.get_permutations("a", "b", "c"))
+            in get_permutations("a", "b", "c"))
 
     def test_any_class_bitwise_or_on_cannot_be_combined_exception(self):
         any_letter, any_except_digit = AnyLetter(), ~AnyDigit()
@@ -36,25 +40,22 @@ class Test__AnyClass(unittest.TestCase):
 
 
 class Test_NegatedClass(unittest.TestCase):
-
-    def get_permutations(*classes: str):
-        return set(f"[^{''.join(p)}]" for p in permutations(classes))
     
     def test_any_except_class_bitwise_or(self):
         self.assertTrue(str(~AnyLowercaseLetter() | ~AnyDigit()) \
-            in __class__.get_permutations("a-z", "0-9"))
+            in get_negated_permutations("a-z", "\d"))
         self.assertTrue(str(~AnyFrom("a", "b") | ~AnyFrom("c", "d")) \
-            in __class__.get_permutations("a", "b", "c", "d"))
+            in get_negated_permutations("a", "b", "c", "d"))
 
     def test_any_except_class_bitwise_or_with_subset(self):
         self.assertTrue(str(~AnyLetter() | ~AnyLowercaseLetter()) \
-            in __class__.get_permutations("a-z", "A-Z"))
+            in get_negated_permutations("a-z", "A-Z"))
         self.assertTrue(str(~AnyFrom("a", "b", "c") | ~AnyFrom("a", "b")) \
-            in __class__.get_permutations("a", "b", "c"))
+            in get_negated_permutations("a", "b", "c"))
 
     def test_any_except_class_bitwise_or_with_intersection(self):
         self.assertTrue(str(~AnyFrom("a", "b") | ~AnyFrom("b", "c")) \
-            in __class__.get_permutations("a", "b", "c"))
+            in get_negated_permutations("a", "b", "c"))
 
     def test_any_except_class_bitwise_or_on_cannot_be_combined_exception(self):
         any_except_letter, any_digit = ~AnyLetter(), AnyDigit()
@@ -96,13 +97,23 @@ class TestAnyUppercaseLetter(unittest.TestCase):
 class TestAnyDigit(unittest.TestCase):
 
     def test_any_digit(self):
-        self.assertEqual(str(AnyDigit()), "[0-9]")
+        self.assertEqual(str(AnyDigit()), "[\d]")
 
 
 class TestAnyWordChar(unittest.TestCase):
 
     def test_any_word_char(self):
-        self.assertEqual(str(AnyWordChar()), "[a-zA-Z0-9_]")
+        self.assertEqual(str(AnyWordChar()), "[\w]")
+
+    def test_any_word_char_combine_with_subsets(self):
+        self.assertEqual(str(AnyWordChar() | (AnyLetter() | AnyDigit())), "[\w]")
+        self.assertEqual(str(AnyWordChar() | AnyLetter()), "[\w]")
+        self.assertEqual(str(AnyWordChar() | AnyLowercaseLetter()), "[\w]")
+        self.assertEqual(str(AnyWordChar() | AnyUppercaseLetter()), "[\w]")
+        self.assertEqual(str(AnyWordChar() | AnyDigit()), "[\w]")
+
+    def test_any_word_char_result_from_subsets(self):
+        self.assertEqual(str(AnyLetter() | (AnyDigit() | AnyFrom("_"))), "[\w]")
 
 
 class TestAnyPunctuationChar(unittest.TestCase):
@@ -114,7 +125,13 @@ class TestAnyPunctuationChar(unittest.TestCase):
 class TestAnyWhitespace(unittest.TestCase):
 
     def test_any_whitespace(self):
-        self.assertEqual(str(AnyWhitespace()), f"[{whitespace}]")
+        self.assertEqual(str(AnyWhitespace()), "[\s]")
+
+    def test_any_whitespace_combine_with_subsets(self):
+        self.assertEqual(str(AnyWhitespace() | AnyFrom(" ", "\r")), "[\s]")
+
+    def test_any_whitespace_result_from_subsets(self):
+        self.assertEqual(str(AnyFrom(' ', '\t', '\n', '\r', '\x0b') | AnyFrom('\x0c')), "[\s]")
 
 
 class TestAnyWithinRange(unittest.TestCase):
@@ -164,13 +181,13 @@ class TestNegatedAnyUppercaseLetter(unittest.TestCase):
 class TestNegatedAnyDigit(unittest.TestCase):
 
     def test_any_except_digit(self):
-        self.assertEqual(str(~AnyDigit()), "[^0-9]")
+        self.assertEqual(str(~AnyDigit()), "[^\d]")
 
 
 class TestNegatedAnyWordChar(unittest.TestCase):
 
     def test_any_except_word_char(self):
-        self.assertEqual(str(~AnyWordChar()), "[^a-zA-Z0-9_]")
+        self.assertEqual(str(~AnyWordChar()), "[^\w]")
 
 
 class TestNegatedAnyPunctuationChar(unittest.TestCase):
@@ -182,7 +199,7 @@ class TestNegatedAnyPunctuationChar(unittest.TestCase):
 class TestNegatedAnyWhitespace(unittest.TestCase):
 
     def test_any_except_whitespace(self):
-        self.assertEqual(str(~AnyWhitespace()), f"[^{whitespace}]")
+        self.assertEqual(str(~AnyWhitespace()), f"[^\s]")
 
 
 class TestNegatedAnyWithinRange(unittest.TestCase):

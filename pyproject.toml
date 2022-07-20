@@ -1,6 +1,6 @@
 [project]
 name = "pregex"
-version = "1.0.2"
+version = "1.0.3"
 authors = [
   { name="Emmanouil Stoumpos", email="manosstoumpos@gmail.com" },
 ]

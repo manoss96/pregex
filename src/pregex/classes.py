@@ -24,6 +24,36 @@ class __Class(_pre.Pregex):
     by negating "AnyLowercaseLetter()":
         - ~ AnyLowercaseLetter()
     '''
+
+    '''
+    This map is used to transform shorthand character classes \
+    into their more verbose form, in order to effectively \
+    combine this type of classes.
+    '''
+    __shorthand_map: dict[str, str] = {
+        "\w" : "a-zA-Z0-9_",
+        "\d" : "0-9",
+        "\s" : _whitespace
+    }
+
+    '''
+    This method searches the provided set for subsets of character classes that \
+    correspond to a shorthand charater class, and if it finds any, it replaces \
+    them with said character class, returning the resulting set at the end.
+
+    :param set[str] classes: The set containing the classes as strings.
+    '''
+    def __inverse_shorthand_map(classes: set[str]) -> set[str]:
+        word_set, digit_set = {'a-z', 'A-Z', '0-9', '_'}, {'0-9'}
+        whitespace_set = {' ', '\t', '\n', '\r', '\x0b', '\x0c'}
+        if classes.issuperset(word_set):
+            classes = classes.difference(word_set).union({'\w'})
+        elif classes.issuperset(digit_set):
+            classes = classes.difference(digit_set).union({'\d'})
+        if classes.issuperset(whitespace_set):
+            classes = classes.difference(whitespace_set).union({'\s'})
+        return classes
+
     def __init__(self, pattern: str) -> '__Class':
         super().__init__(pattern, group_on_concat=False, group_on_quantify=False)
 
@@ -41,12 +71,16 @@ class __Class(_pre.Pregex):
         return __class__.__or(pre, self)
 
     def __or(pre1: '__Class', pre2: '__Class') -> '__Class':
+        if isinstance(pre1, Any) or isinstance(pre2, Any):
+            return Any()
+        p1, p2 = str(pre1), str(pre2)
+        s_map = pre1.__shorthand_map
+        for s_key in s_map:
+            p1, p2 = p1.replace(s_key, s_map[s_key]), p2.replace(s_key, s_map[s_key])
         # Create pattern for matching possible classes.
         pattern = r".\-.|\\?[^\[\]]"
-        classes = set(_re.findall(pattern, str(pre1)))\
-            .union(set(_re.findall(pattern, str(pre2))))
-        return Any() if isinstance(pre1, Any) or isinstance(pre2, Any) \
-            else __class__(f"[{''.join(classes)}]")
+        classes = set(_re.findall(pattern, p1)).union(set(_re.findall(pattern, p2)))
+        return  __class__(f"[{''.join(__class__.__inverse_shorthand_map(classes))}]")
 
 
 class _NegatedClass(__Class):
@@ -152,7 +186,7 @@ class AnyDigit(__Class):
         '''
         Matches any numeric character.
         '''
-        super().__init__('[0-9]')
+        super().__init__(r'[\d]')
 
 
 class AnyWordChar(__Class):
@@ -165,7 +199,7 @@ class AnyWordChar(__Class):
         '''
         Matches any alphanumeric character plus "_".
         '''
-        super().__init__('[a-zA-Z0-9_]')
+        super().__init__(r'[\w]')
 
 
 class AnyPunctuationChar(__Class):
@@ -189,7 +223,7 @@ class AnyWhitespace(__Class):
         '''
         Matches any whitespace character.
         '''
-        super().__init__(f'[{_whitespace}]')
+        super().__init__(fr'[\s]')
 
 
 class AnyWithinRange(__Class):

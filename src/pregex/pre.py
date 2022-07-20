@@ -306,7 +306,7 @@ class Pregex():
     def _indefinite(self, is_greedy: bool = True) -> 'Pregex':
         return Pregex(f"{self._quantify_conditional_group()}*{'' if is_greedy else '?'}", False, True)
 
-    def _enforced(self, is_greedy: bool = True) -> 'Pregex':
+    def _at_least_once(self, is_greedy: bool = True) -> 'Pregex':
         return Pregex(f"{self._quantify_conditional_group()}+{'' if is_greedy else '?'}", False, True)
 
     def _exactly(self, n: int) -> 'Pregex':
@@ -327,7 +327,7 @@ class Pregex():
         elif n == 0:
             return self._indefinite(is_greedy)
         elif n == 1:
-            return self._enforced(is_greedy)
+            return self._at_least_once(is_greedy)
         else:
             return Pregex(f"{self._quantify_conditional_group()}{{{n},}}{'' if is_greedy else '?'}", False, True)
 
