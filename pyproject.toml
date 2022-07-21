@@ -1,10 +1,11 @@
 [project]
 name = "pregex"
-version = "1.0.3"
+version = "1.0.4"
 authors = [
-  { name="Emmanouil Stoumpos", email="manosstoumpos@gmail.com" },
+  { name="Emmanouil Stoumpos <manosstoumpos@gmail.com>" },
 ]
 description = "PRegEx - Programmable Regular Expressions"
+keywords = ["regex"]
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.9"

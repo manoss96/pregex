@@ -37,17 +37,35 @@ class Pregex():
         '''
         Returns the expression's pattern as its string representation.
 
-        :param bool include_falgs: Indicates whether to display the RegEx flags along with the pattern.
+        :param bool include_falgs: Indicates whether to display the RegEx flags \
+            along with the pattern. Defaults to 'False'.
 
         NOTE: This method is to be preferred over str() when one needs to display the pattern.
         '''
         pattern = repr(self)
         return f"/{pattern}/gms" if include_flags else pattern
 
+    def get_compiled_pattern(self, discard_after: bool = True) -> _re.Pattern:
+        '''
+        Returns the expression's compiled pattern as a 're.Pattern' instance. \
+        
+        :param bool discard_after: Indicates whether the compiled pattern is to be \
+            discarded after this method, or to be held so that any further attempt \
+            at matching a string will use the compiled pattern instead of the regular one. \
+            Defaults to 'True'.
+        '''
+        if self.__compiled is None:
+            self.compile()
+        compiled = self.__compiled
+        if discard_after:
+            self.__compiled = None
+        return compiled
+
     def compile(self) -> None:
         '''
-        Compiles the underlying RegEx pattern. After invoking this method, \
-        any attempt at matching a string will use the compiled RegEx pattern.
+        Compiles the underlying RegEx pattern. After invoking this method, any \
+        further attempt at matching a string will use the compiled RegEx pattern \
+        instead of the regular one.
         '''
         self.__compiled = _re.compile(self.__pattern, flags=self.__flags)
 
@@ -58,7 +76,7 @@ class Pregex():
         :param str text: The piece of text that is to be matched.
         '''
         return bool(_re.search(self.__pattern, text) if self.__compiled is None \
-            else self.__compiled.search(text, flags=self.__flags))
+            else self.__compiled.search(text))
 
     def is_exact_match(self, text: str) -> bool:
         '''
@@ -71,7 +89,7 @@ class Pregex():
 
     def iterate_matches(self, text: str) -> _Iterator[str]:
         '''
-        Generates any possible matches with 'text' one by one.
+        Generates any possible matches with 'text'.
 
         :param str text: The piece of text that is to be matched.
         '''
@@ -80,8 +98,8 @@ class Pregex():
 
     def iterate_matches_and_pos(self, text: str) -> _Iterator[tuple[str, int, int]]:
         '''
-        Generates any possible matches with 'text' one by one, \
-        along with their exact position within the text.
+        Generates any possible matches with 'text' along with their \
+        exact position within the text.
 
         :param str text: The piece of text that is to be matched.
         '''
@@ -90,8 +108,10 @@ class Pregex():
 
     def iterate_groups(self, text: str, include_empty: bool = True) -> _Iterator[tuple[str]]:
         '''
-        Generates any tuples of captured groups that may have occured \
-        due to this pattern matching with 'text' one by one.
+        Generates tuples, one tuple per match, where each tuple contains \
+        all of its corresponding match's captured groups. In case there exists \
+        a capturing group within the pattern that has not been captured by a match, \
+        then that group's corresponding value will be 'None'.
 
         :param str text: The piece of text that is to be matched.
         :param bool include_empty: Indicates whether to include empty groups into the results.
@@ -102,9 +122,11 @@ class Pregex():
 
     def iterate_groups_and_pos(self, text: str, include_empty: bool = True) -> _Iterator[list[tuple[str, int, int]]]:
         '''
-        Generates any tuples of captured groups that may have occured \
-        due to this pattern matching with 'text' one by one, along with \
-        their exact position within the text.
+        Generates lists of tuples, one list per match, where each tuple contains one \
+        of its corresponding match's captured groups along with its exact position \
+        within the text. In case there exists a capturing group within the pattern that \
+        has not been captured by a match, then that group's corresponding tuple will be \
+        '(None, -1, -1)'.
 
         :param str text: The piece of text that is to be matched.
         :param bool include_empty: Indicates whether to include empty groups into the results.
@@ -136,8 +158,10 @@ class Pregex():
 
     def get_groups(self, text: str, include_empty: bool = True) -> list[tuple[str]]:
         '''
-        Returns a list containing tuples of any captured groups that may \
-        have occured due to this pattern matching with 'text'.
+        Returns a list of tuples, one tuple per match, where each tuple contains \
+        all of its corresponding match's captured groups. In case there exists \
+        a capturing group within the pattern that has not been captured by a match, \
+        then that group's corresponding value will be 'None'.
 
         :param str text: The piece of text that is to be matched.
         :param bool include_empty: Indicates whether to include empty groups into the results.
@@ -146,9 +170,11 @@ class Pregex():
 
     def get_groups_and_pos(self, text: str, include_empty: bool = True) -> list[list[tuple[str, int, int]]]:
         '''
-        Returns a list containing tuples of any captured groups that may \
-        have occured due to this pattern matching with 'text', along with \
-        their exact position within the text.
+        Returns a list containing lists of tuples, one list per match, where each \
+        tuple contains one of its corresponding match's captured groups along with \
+        its exact position within the text. In case there exists a capturing group \
+        within the pattern that has not been captured by a match, then that group's \
+        corresponding tuple will be '(None, -1, -1)'.
 
         :param str text: The piece of text that is to be matched.
         :param bool include_empty: Indicates whether to include empty groups into the results.
@@ -159,7 +185,7 @@ class Pregex():
         '''
         Substitutes all or some of the matches within "text" for "repl" \
         and returns the resulting string. If there are no matches, returns \
-        string "text" exactly as provided.
+        parameter "text" exactly as provided.
 
         :param str s: The string that is to be matched and modified.
         :param str repl: The string that is to replace any matches.
@@ -173,9 +199,9 @@ class Pregex():
 
     def split_by_match(self, text: str) -> list[str]:
         '''
-        Splits the provided text based on any possible matches \
-        and returns it as a list containing each individual part \
-        of the text after the split.
+        Splits the provided text based on any possible matches with this \
+        pattern and returns the result as a list containing each individual \
+        part of the text after the split.
 
         :param str text: The piece of text that is to be matched and split.
         '''
@@ -191,10 +217,11 @@ class Pregex():
     def split_by_group(self, text: str, include_empty: bool = True) -> list[str]:
         '''
         Splits the provided text based on any possible captured groups \
-        and returns it as a list containing each individual part \
-        of the text after the split.
+        that may have occured due to matches with thin pattern, and returns \
+        the result as a list containing each individual part of the text after the split.
 
         :param str text: The piece of text that is to be matched and split.
+        :param bool include_empty: Indicates whether to split at empty groups as well.
         '''
         split_list, index = list(), 0
         for groups in self.iterate_groups_and_pos(text, include_empty):

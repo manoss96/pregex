@@ -72,7 +72,7 @@ Likewise, we can invoke the instance's "get_groups" method to get any captured g
 ```python
 groups = pre.get_groups(text)
 ```
-As expected, there were only two captured groups as the first match is not a URL and therefore there did not exist a domain name to capture.
+As expected, there were only two captured groups as the first match is not a URL and therefore it did not contain a domain name to be captured.
 ```python
 [(None,), ('wikipedia',), ('youtube',)]
 ```

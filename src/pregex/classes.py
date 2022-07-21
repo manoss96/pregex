@@ -44,7 +44,8 @@ class __Class(_pre.Pregex):
     :param set[str] classes: The set containing the classes as strings.
     '''
     def __inverse_shorthand_map(classes: set[str]) -> set[str]:
-        word_set, digit_set = {'a-z', 'A-Z', '0-9', '_'}, {'0-9'}
+        word_set = {'a-z', 'A-Z', '0-9', '_'}
+        digit_set = {'0-9'}
         whitespace_set = {' ', '\t', '\n', '\r', '\x0b', '\x0c'}
         if classes.issuperset(word_set):
             classes = classes.difference(word_set).union({'\w'})
@@ -54,91 +55,58 @@ class __Class(_pre.Pregex):
             classes = classes.difference(whitespace_set).union({'\s'})
         return classes
 
-    def __init__(self, pattern: str) -> '__Class':
+    def __init__(self, pattern: str, is_negated: bool) -> '__Class':
         super().__init__(pattern, group_on_concat=False, group_on_quantify=False)
+        self.__is_negated = is_negated
 
-    def __invert__(self) -> '_NegatedClass':
-        return _NegatedClass(f"[^{str(self).lstrip('[').rstrip(']')}]")
+    def __invert__(self) -> '__Class':
+        s, rs = '' if self.__is_negated else '^', '^' if self.__is_negated else ''
+        return __class__(f"[{s}{str(self).lstrip('[' + rs).rstrip(']')}]", not self.__is_negated)
 
     def __or__(self, pre: '__Class') -> '__Class':
-        if (not issubclass(pre.__class__, __class__)) or isinstance(pre, _NegatedClass):
-            raise _exceptions.CannotBeCombinedException(self, pre)
+        if not issubclass(pre.__class__, __class__):
+            raise _exceptions.CannotBeCombinedException(self, pre, False)
         return __class__.__or(self, pre)
 
     def __ror__(self, pre: '__Class') -> '__Class':
-        if (not issubclass(pre.__class__, __class__)) or isinstance(pre, _NegatedClass):
-            raise _exceptions.CannotBeCombinedException(pre, self)
+        if not issubclass(pre.__class__, __class__):
+            raise _exceptions.CannotBeCombinedException(pre, self, False)
         return __class__.__or(pre, self)
 
     def __or(pre1: '__Class', pre2: '__Class') -> '__Class':
+        if  pre1.__is_negated != pre2.__is_negated:
+            raise _exceptions.CannotBeCombinedException(pre1, pre2, True)
         if isinstance(pre1, Any) or isinstance(pre2, Any):
             return Any()
-        p1, p2 = str(pre1), str(pre2)
+        start_1, start_2 = 2 if pre1.__is_negated else 1, 2 if pre2.__is_negated else 1
+        p1, p2 = str(pre1)[start_1:-1], str(pre2)[start_2:-1]
         s_map = pre1.__shorthand_map
         for s_key in s_map:
             p1, p2 = p1.replace(s_key, s_map[s_key]), p2.replace(s_key, s_map[s_key])
         # Create pattern for matching possible classes.
-        pattern = r".\-.|\\?[^\[\]]"
-        classes = set(_re.findall(pattern, p1)).union(set(_re.findall(pattern, p2)))
-        return  __class__(f"[{''.join(__class__.__inverse_shorthand_map(classes))}]")
-
-
-class _NegatedClass(__Class):
-    '''
-    Any direct "__Class" instance that is negated though the use of  \
-    the overloaded bitwise NOT operator "~" is of this type.
-    '''
-    def __init__(self, pattern: str) -> '_NegatedClass':
-        super().__init__(pattern)
-
-    def __invert__(self) -> '__Class':
-        return super().__init__(f"[{str(self).lstrip('[^').rstrip(']')}]")
-
-    def __or__(self, pre: '_NegatedClass') -> '_NegatedClass':
-        if (not issubclass(pre.__class__, __class__)) or isinstance(pre, super().__class__):
-            raise _exceptions.CannotBeCombinedException(self, pre)
-        return __class__.__or(self, pre)
-
-    def __ror__(self, pre: '_NegatedClass') -> '_NegatedClass':
-        if (not issubclass(pre.__class__, __class__)) or isinstance(pre, super().__class__):
-            raise _exceptions.CannotBeCombinedException(self, pre)
-        return __class__.__or(pre, self)
-
-    def __or(pre1: '_NegatedClass', pre2: '_NegatedClass') -> '_NegatedClass':
-        # Create pattern for matching possible classes.
-        pattern = r".\-.|\\?[^\^\[\]]"
-        classes = set(_re.findall(pattern, str(pre1)))\
-            .union(set(_re.findall(pattern, str(pre2))))
-        return __class__(f"[^{''.join(classes)}]")
+        pattern = "[A-Za-z0-9]-[A-Za-z0-9]|\\\\?."
+        classes = set(_re.findall(pattern, p1, flags=_re.DOTALL)) \
+            .union(set(_re.findall(pattern, p2, flags=_re.DOTALL)))
+        return  __class__(
+            f"[{'^' if pre1.__is_negated else ''}{''.join(__class__.__inverse_shorthand_map(classes))}]",
+            pre1.__is_negated)
 
 
 class Any(__Class):
     '''
     Matches any possible character, including the newline character. \
-    In order to match every character except for the newline character,
+    In order to match every character except for the newline character, \
     one can use "~AnyFrom(pregex.tokens.Newline())".
     '''
 
     def __init__(self) -> 'Any':
         '''
         Matches any possible character, including the newline character. \
-        In order to match every character except for the newline character,
-        one can use "~AnyFrom(pregex.tokens.Newline())".
+        In order to match every character except for the newline character, \
+        one can use "AnyButFrom(pregex.tokens.Newline())" or \
+        "~AnyFrom(pregex.tokens.Newline())".
         '''
-        super().__init__('.')
-
-    def __invert__(self) -> None:
-        raise _exceptions.CannotBeNegatedException()
-
-    def __or__(self, pre: '__Class') -> 'Any':
-        if (not issubclass(pre.__class__, __class__.__base__)) or isinstance(pre, _NegatedClass):
-            raise _exceptions.CannotBeCombinedException(self, pre)
-        return Any()
-
-    def __ror__(self, pre: '__Class') -> 'Any':
-        if (not issubclass(pre.__class__, __class__.__base__)) or isinstance(pre, _NegatedClass):
-            raise _exceptions.CannotBeCombinedException(self, pre)
-        return Any()
+        super().__init__('.', False)
 
 
 class AnyLetter(__Class):
@@ -150,7 +118,19 @@ class AnyLetter(__Class):
         '''
         Matches any alphabetic character.
         '''
-        super().__init__('[a-zA-Z]')
+        super().__init__('[a-zA-Z]', False)
+
+
+class AnyButLetter(__Class):
+    '''
+    Matches any character except for alphabetic characters.
+    '''
+
+    def __init__(self) -> 'AnyButLetter':
+        '''
+        Matches any character except for alphabetic characters.
+        '''
+        super().__init__('[^a-zA-Z]', True)
 
 
 class AnyLowercaseLetter(__Class):
@@ -162,7 +142,20 @@ class AnyLowercaseLetter(__Class):
         '''
         Matches any lowercase alphabetic character.
         '''
-        super().__init__('[a-z]')
+        super().__init__('[a-z]', False)
+
+
+
+class AnyButLowercaseLetter(__Class):
+    '''
+    Matches any character except for lowercase alphabetic characters.
+    '''
+
+    def __init__(self) -> 'AnyButLowercaseLetter':
+        '''
+        Matches any character except for lowercase alphabetic characters.
+        '''
+        super().__init__('[^a-z]', True)
 
     
 class AnyUppercaseLetter(__Class):
@@ -174,7 +167,19 @@ class AnyUppercaseLetter(__Class):
         '''
         Matches any uppercase alphabetic character.
         '''
-        super().__init__('[A-Z]')
+        super().__init__('[A-Z]', False)
+
+
+class AnyButUppercaseLetter(__Class):
+    '''
+    Matches any character except for uppercase alphabetic characters.
+    '''
+
+    def __init__(self) -> 'AnyButUppercaseLetter':
+        '''
+        Matches any character except for uppercase alphabetic characters.
+        '''
+        super().__init__('[^A-Z]', True)
 
 
 class AnyDigit(__Class):
@@ -186,7 +191,19 @@ class AnyDigit(__Class):
         '''
         Matches any numeric character.
         '''
-        super().__init__(r'[\d]')
+        super().__init__('[\d]', False)
+
+
+class AnyButDigit(__Class):
+    '''
+    Matches any character except for numeric characters.
+    '''
+
+    def __init__(self) -> 'AnyButDigit':
+        '''
+        Matches any character except for numeric characters.
+        '''
+        super().__init__('[^\d]', True)
 
 
 class AnyWordChar(__Class):
@@ -199,19 +216,43 @@ class AnyWordChar(__Class):
         '''
         Matches any alphanumeric character plus "_".
         '''
-        super().__init__(r'[\w]')
+        super().__init__('[\w]', False)
 
 
-class AnyPunctuationChar(__Class):
+class AnyButWordChar(__Class):
+    '''
+    Matches any character except for alphanumeric characters plus "_".
+    '''
+
+    def __init__(self) -> 'AnyButWordChar':
+        '''
+        Matches any character except for alphanumeric characters plus "_".
+        '''
+        super().__init__('[^\w]', True)
+
+
+class AnyPunctuation(__Class):
     '''
     Matches any puncutation character.
     '''
 
-    def __init__(self) -> 'AnyPunctuationChar':
+    def __init__(self) -> 'AnyPunctuation':
         '''
         Matches any puncutation character.
         '''
-        super().__init__('[!"#$%&\'()*+,.\/:;<=>?@\^_`{|}~\-]')
+        super().__init__('[\^\-\[\]!"#$%&\'()*+,./:;<=>?@_`{|}~\\\\]', False)
+
+
+class AnyButPunctuation(__Class):
+    '''
+    Matches any character except for punctuation characters.
+    '''
+
+    def __init__(self) -> 'AnyButPunctuation':
+        '''
+        Matches any character except for punctuation characters.
+        '''
+        super().__init__('[^\^\-\[\]!"#$%&\'()*+,./:;<=>?@_`{|}~\\\\]', True)
 
 
 class AnyWhitespace(__Class):
@@ -223,7 +264,19 @@ class AnyWhitespace(__Class):
         '''
         Matches any whitespace character.
         '''
-        super().__init__(fr'[\s]')
+        super().__init__('[\s]', False)
+
+
+class AnyButWhitespace(__Class):
+    '''
+    Matches any character except for whitespace characters.
+    '''
+
+    def __init__(self) -> 'AnyButWhitespace':
+        '''
+        Matches any character except for whitespace characters.
+        '''
+        super().__init__('[^\s]', True)
 
 
 class AnyWithinRange(__Class):
@@ -231,10 +284,33 @@ class AnyWithinRange(__Class):
     Matches any character within the provided range.
     '''
 
-    def __init__(self, start, end) -> 'AnyWithinRange':
+    def __init__(self, start: str or int, end: str or int) -> 'AnyWithinRange':
+        '''
+        Matches any character within the provided range.
+
+        :param str | int start: The first character within the range.
+        :param str | int end: The last character within the range.
+        '''
         if (type(start) != type(end)) or start >= end:
             raise _exceptions.InvalidRangeException(start, end)
-        super().__init__(f"[{start}-{end}]")
+        super().__init__(f"[{start}-{end}]", False)
+
+
+class AnyButWithinRange(__Class):
+    '''
+    Matches any character except for all characters within the provided range.
+    '''
+
+    def __init__(self, start: str or int, end: str or int) -> 'AnyButWithinRange':
+        '''
+        Matches any character except for all characters within the provided range.
+
+        :param str | int start: The first character within the range.
+        :param str | int end: The last character within the range.
+        '''
+        if (type(start) != type(end)) or start >= end:
+            raise _exceptions.InvalidRangeException(start, end)
+        super().__init__(f"[^{start}-{end}]", True)      
 
 
 class AnyFrom(__Class):
@@ -256,4 +332,26 @@ class AnyFrom(__Class):
             if len(str(c).replace("\\", "")) > 1:
                 raise _exceptions.MultiCharTokenException(str(c))
         chars = tuple(str(_pre.Pregex(pre)._literal()) if isinstance(pre, str) else str(pre) for pre in chars)
-        super().__init__(f"[{''.join(chars)}]")
+        super().__init__(f"[{''.join(chars)}]", False)
+
+
+class AnyButFrom(__Class):
+    '''
+    Matches any character except for the provided characters.
+    '''
+
+    def __init__(self, *chars: str or _tokens.Token) -> 'AnyButFrom':
+        '''
+        Matches any character except for the provided characters.
+
+        :param Pregex | str *chars: One or more characters to match from. Each character must be \
+            a string of length one, provided either as is or wrapped within an instance of type \
+            "Token".
+        '''
+        for c in chars:
+            if not issubclass(c.__class__, (str, _tokens.Token)):
+                raise _exceptions.NeitherStringNorTokenException()
+            if len(str(c).replace("\\", "")) > 1:
+                raise _exceptions.MultiCharTokenException(str(c))
+        chars = tuple(str(_pre.Pregex(pre)._literal()) if isinstance(pre, str) else str(pre) for pre in chars)
+        super().__init__(f"[^{''.join(chars)}]", True)

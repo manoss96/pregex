@@ -1,3 +1,4 @@
+import re
 import unittest
 from pregex.pre import Pregex
 from pregex.tokens import Literal
@@ -12,6 +13,8 @@ class TestPregex(unittest.TestCase):
 
     pre1 = Pregex(PATTERN, False, True)
     pre2 = Pregex(PATTERN, True, False)
+    # pre2 is compiled.
+    pre2.compile()
 
     MATCHES = ["A0z", "_9", "z9z", "B0c"]
     MATCHES_AND_POS = [("A0z", 0, 3), ("_9", 8, 10), ("z9z", 11, 14), ("B0c", 19, 22)]
@@ -44,45 +47,59 @@ class TestPregex(unittest.TestCase):
         self.assertEqual(self.pre1.get_pattern(include_flags=False), self.PATTERN)
         self.assertEqual(self.pre1.get_pattern(include_flags=True), f"/{self.PATTERN}/gms")
 
+    def test_pregex_on_get_compiled_pattern(self):
+        flags = re.MULTILINE | re.DOTALL
+        self.assertEqual(self.pre1.get_compiled_pattern(), re.compile(self.PATTERN, flags))
+
     def test_pregex_on_has_match(self):
         self.assertEqual(self.pre1.has_match(self.TEXT), True)
         self.assertEqual(self.pre1.has_match("ab"), False)
+        self.assertEqual(self.pre2.has_match(self.TEXT), True)
 
     def test_pregex_on_is_exact_match(self):
         self.assertEqual(self.pre1.is_exact_match("A0a"), True)
         self.assertEqual(self.pre1.is_exact_match("A0ab"), False)
         self.assertEqual(self.pre1.is_exact_match("aA0a"), False)
+        self.assertEqual(self.pre2.is_exact_match("A0a"), True)
     
     def test_pregex_on_iterate_matches(self):
         self.assertEqual([match for match in self.pre1.iterate_matches(self.TEXT)], self.MATCHES)
+        self.assertEqual([match for match in self.pre2.iterate_matches(self.TEXT)], self.MATCHES)
 
     def test_pregex_on_iterate_matches_and_pos(self):
         self.assertEqual([tup for tup in self.pre1.iterate_matches_and_pos(self.TEXT)], self.MATCHES_AND_POS)
+        self.assertEqual([tup for tup in self.pre2.iterate_matches_and_pos(self.TEXT)], self.MATCHES_AND_POS)
 
     def test_pregex_on_iterate_groups(self):
         self.assertEqual([group_tup for group_tup in self.pre1.iterate_groups(self.TEXT)], self.GROUPS)
         self.assertEqual([group_tup for group_tup in self.pre1.iterate_groups(self.TEXT, include_empty=False)],
             self.GROUPS_WITHOUT_EMPTY)
+        self.assertEqual([group_tup for group_tup in self.pre2.iterate_groups(self.TEXT)], self.GROUPS)
 
     def test_pregex_on_iterate_groups_and_pos(self):
         self.assertEqual([group_list for group_list in self.pre1.iterate_groups_and_pos(self.TEXT)], self.GROUPS_AND_POS)
         self.assertEqual([group_list for group_list in self.pre1.iterate_groups_and_pos(self.TEXT, include_empty=False)],
             self.GROUPS_AND_POS_WITHOUT_EMPTY)
+        self.assertEqual([group_list for group_list in self.pre2.iterate_groups_and_pos(self.TEXT)], self.GROUPS_AND_POS)
 
     def test_pregex_on_get_matches(self):
         self.assertEqual(self.pre1.get_matches(self.TEXT), self.MATCHES)
+        self.assertEqual(self.pre2.get_matches(self.TEXT), self.MATCHES)
 
     def test_pregex_on_get_matches_and_pos(self):
         self.assertEqual(self.pre1.get_matches_and_pos(self.TEXT), self.MATCHES_AND_POS)
+        self.assertEqual(self.pre2.get_matches_and_pos(self.TEXT), self.MATCHES_AND_POS)
 
     def test_pregex_on_get_groups(self):
         self.assertEqual(self.pre1.get_groups(self.TEXT), self.GROUPS)
         self.assertEqual(self.pre1.get_groups(self.TEXT, include_empty=False), self.GROUPS_WITHOUT_EMPTY)
+        self.assertEqual(self.pre2.get_groups(self.TEXT, include_empty=False), self.GROUPS_WITHOUT_EMPTY)
 
     def test_pregex_on_replace(self):
         repl = "bb"
         self.assertEqual(self.pre1.replace(self.TEXT, repl), "bb aaa bb bb 99a bb")
         self.assertEqual(self.pre1.replace(self.TEXT, repl, count=1), "bb aaa _9 z9z 99a B0c")
+        self.assertEqual(self.pre2.replace(self.TEXT, repl, count=1), "bb aaa _9 z9z 99a B0c")
         self.assertRaises(NegativeArgumentException, self.pre1.replace, self.TEXT, repl, -1)
 
     def test_pregex_on_split_by_match(self):

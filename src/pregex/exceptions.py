@@ -113,8 +113,10 @@ class CannotBeCombinedException(Exception):
     either with a negated class or an object of different type.
     '''
 
-    def __init__(self, pre1, pre2):
-        super().__init__(f"Objects of type {type(pre1)} and {type(pre2)} cannot be combined.")
+    def __init__(self, pre1, pre2, are_both_classes: bool):
+        m = f"Classes and negated classes cannot be combined together." if are_both_classes \
+            else f"Objects of type {type(pre1)} and {type(pre2)} cannot be combined."
+        super().__init__(m)
 
 
 class InvalidRangeException(Exception):
