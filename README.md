@@ -76,9 +76,11 @@ As expected, there were only two captured groups as the first match is not a URL
 ```python
 [(None,), ('wikipedia',), ('youtube',)]
 ```
+You can learn more about how PRegEx works by visiting the [PRegEx Documentation Page][docs-url].
 
 <!-- MARKDOWN LINKS & IMAGES -->
 [python-shield]: https://img.shields.io/badge/python-3.9-blue
 [python-url]: https://www.python.org/downloads/release/python-390/
 [license-shield]: https://img.shields.io/badge/license-MIT-brightgreen
 [license-url]: https://github.com/werden-wissen/pregex/blob/master/LICENSE.txt
+[docs-url]: https://pregex.readthedocs.io/en/latest/
