@@ -12,7 +12,7 @@ class __Operator(_pre.Pregex):
             raise _exceptions.LessThanTwoArgumentsException()
         result = __class__._to_pregex(pres[0])
         for pre in pres[1:]:
-            result = transform(result, pre)
+            result = transform(result, __class__._to_pregex(pre))
         super().__init__(str(result), result._get_group_on_concat(), result._get_group_on_quantify())
 
 

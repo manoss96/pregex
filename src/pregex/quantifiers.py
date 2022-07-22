@@ -28,7 +28,7 @@ class Optional(__Quantifier):
             or wrapped within a "Pregex" subtype instance.
         :param bool is_greedy: Indicates whether to declare this quantifier as greedy. \
             When declared as such, the regex engine will try to match \
-            the expression as many times as possible.
+            the expression as many times as possible. Defaults to 'True'.
         '''
         super().__init__(pre, is_greedy, lambda pre, is_greedy: pre._optional(is_greedy))
 
@@ -46,7 +46,7 @@ class Indefinite(__Quantifier):
             or wrapped within a "Pregex" subtype instance.
         :param bool is_greedy: Indicates whether to declare this quantifier as greedy. \
             When declared as such, the regex engine will try to match \
-            the expression as many times as possible.
+            the expression as many times as possible. Defaults to 'True'.
         '''
         super().__init__(pre, is_greedy, lambda pre, is_greedy: pre._indefinite(is_greedy))
 
@@ -64,7 +64,7 @@ class AtLeastOnce(__Quantifier):
             or wrapped within a "Pregex" subtype instance.
         :param bool is_greedy: Indicates whether to declare this quantifier as greedy. \
             When declared as such, the regex engine will try to match \
-            the expression as many times as possible.
+            the expression as many times as possible. Defaults to 'True'.
         '''
         super().__init__(pre, is_greedy, lambda pre, is_greedy: pre._at_least_once(is_greedy))
 
@@ -80,7 +80,7 @@ class Exactly(__Quantifier):
 
         :param Pregex | str pre: The pattern that is to be matched, provided either as a string \
             or wrapped within a "Pregex" subtype instance.
-        :param int n: The number of times that the provided expression is to be matched.
+        :param int n: The exact number of times that the provided pattern is to be matched.
         '''
         super().__init__(pre, False, lambda pre, _: pre._exactly(n))
 
@@ -99,7 +99,7 @@ class AtLeast(__Quantifier):
         :param int n: The minimum number of times that the provided pattern is to be matched.
         :param bool is_greedy: Indicates whether to declare this quantifier as greedy. \
             When declared as such, the regex engine will try to match \
-            the expression as many times as possible.
+            the expression as many times as possible. Defaults to 'True'.
         '''
         super().__init__(pre, is_greedy, lambda pre, is_greedy: pre._at_least(n, is_greedy))
 
@@ -118,7 +118,7 @@ class AtMost(__Quantifier):
         :param int n: The maximum number of times that the provided pattern is to be matched.
         :param bool is_greedy: Indicates whether to declare this quantifier as greedy. \
             When declared as such, the regex engine will try to match \
-            the expression as many times as possible.
+            the expression as many times as possible. Defaults to 'True'.
         '''
         super().__init__(pre, is_greedy, lambda pre, is_greedy: pre._at_most(n, is_greedy))
 
@@ -134,10 +134,10 @@ class AtLeastAtMost(__Quantifier):
 
         :param Pregex | str pre: The pattern that is to be matched, provided either as a string \
             or wrapped within a "Pregex" subtype instance.
-        :param min: The minimum number of times that the provided pattern is to be matched.
-        :param max: The maximum number of times that the provided pattern is to be matched.
+        :param int min: The minimum number of times that the provided pattern is to be matched.
+        :param int max: The maximum number of times that the provided pattern is to be matched.
         :param bool is_greedy: Indicates whether to declare this quantifier as greedy. \
             When declared as such, the regex engine will try to match \
-            the expression as many times as possible.
+            the expression as many times as possible. Defaults to 'True'.
         '''
         super().__init__(pre, is_greedy, lambda pre, is_greedy: pre._at_least_at_most(min, max, is_greedy))

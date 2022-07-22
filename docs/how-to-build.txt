@@ -1,0 +1,4 @@
+1. cd to this directory, namely "docs".
+2. Make sure "build" is empty.
+3. Run sphinx-apidoc -f -o source/docstring/ ../src/pregex/
+4. Run ./make html

@@ -28,7 +28,8 @@ class CapturingGroup(__Group):
         Creates a capturing group out of the provided pattern.
 
         :param Pregex | str pre: The pattern out of which the capturing group is created.
-        :param str name: The name that is assigned to the captured group for backreference purposes.
+        :param str name: The name that is assigned to the captured group for backreference purposes. \
+            A value of "''" indicates that no name is to be assigned to the group. Defaults to "''".
 
         NOTE:
             - Creating a capturing group out of a capturing group does nothing to it.
@@ -66,16 +67,16 @@ class Backreference(_pre.Pregex):
     '''
     Creates a backreference to some previously declared named capturing group.\
     A backreference matches the same text as the text that was most recently \
-    matched by the captured group with the same name.
-
-    Consider for example the pattern "(?<g1>[A-Za-z])[0-9]\k<g1>{2}" which\
-    contains a capturing group named "g1", along with a (quantified) backreference\
-    "\k<g1>{2}". Here are some examples that will match this pattern and some that won't:
-
-    - MATCHES: ["a0aa", "B5BB", "Y7YY"]
-    - NON-MATCHES: ["aaaa", "a0bb", "a0ab"], 
+    matched by the captured group with the specified name.
     '''
     def __init__(self, name: str):
+        '''
+        Creates a backreference to some previously declared named capturing group.\
+        A backreference matches the same text as the text that was most recently \
+        matched by the captured group with the specified name.
+
+        :param str name: The name of the referenced capturing group.
+        '''
         if not isinstance(name, str):
             raise _exceptions.NonStringArgumentException()
         if re.fullmatch("[A-Za-z_][A-Za-z_0-9]*", name) is None:

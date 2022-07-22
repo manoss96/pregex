@@ -36,6 +36,11 @@ class MultiCharTokenException(Exception):
     '''
 
     def __init__(self, token: str):
+        '''
+        The class' constructor.
+
+        :param str token: The string because of which this exception was thrown.
+        '''
         super().__init__(f"Token \"{token}\" must be composed from a single character.")
 
 
@@ -45,6 +50,11 @@ class NegativeArgumentException(Exception):
     '''
 
     def __init__(self, n: int):
+        '''
+        The class' constructor.
+
+        param int n: The integer because of which this exception was thrown.
+        '''
         super().__init__(f"Argument of value \"{n}\" is less than zero.")
 
 
@@ -55,6 +65,11 @@ class NonPositiveArgumentException(Exception):
     '''
 
     def __init__(self, n: int):
+        '''
+        The class' constructor.
+
+        param int n: The integer because of which this exception was thrown.
+        '''
         super().__init__(f"Argument of value \"{n}\" is non-positive.")
 
 
@@ -65,6 +80,12 @@ class MinGreaterThanMaxException(Exception):
     '''
 
     def __init__(self, min: int, max: int):
+        '''
+        The class' constructor.
+
+        param int min: The integer because of which this exception was thrown.
+        param int max: The integer because of which this exception was thrown.
+        '''
         super().__init__(f"Minimum value \"{min}\" is greater than maximum value \"{max}\.")
 
 
@@ -95,6 +116,11 @@ class NonIntegerArgumentException(Exception):
     '''
 
     def __init__(self, arg):
+        '''
+        The class' constructor.
+
+        param Any arg: The unknown type argument because of which this exception was thrown.
+        '''
         super().__init__(f"Argument \"{arg}\" is not an integer.")
 
 
@@ -114,6 +140,13 @@ class CannotBeCombinedException(Exception):
     '''
 
     def __init__(self, pre1, pre2, are_both_classes: bool):
+        '''
+        The class' constructor.
+
+        param Pregex pre1: The "Pregex" instance because of which this exception was thrown.
+        param Pregex pre2: The "Pregex" instance because of which this exception was thrown.
+        param bool are_both_classes: Indicates whether both "Pregex" instances are of type "__Class".
+        '''
         m = f"Classes and negated classes cannot be combined together." if are_both_classes \
             else f"Objects of type {type(pre1)} and {type(pre2)} cannot be combined."
         super().__init__(m)
@@ -126,6 +159,12 @@ class InvalidRangeException(Exception):
     '''
 
     def __init__(self, start, end):
+        '''
+        The class' constructor.
+
+        param int start: The integer because of which this exception was thrown.
+        param int end: The integer because of which this exception was thrown.
+        '''
         super().__init__(f"Range \"[{start}-{end}]\" is not a valid range.")
 
 
@@ -136,6 +175,11 @@ class NotQuantifiableException(Exception):
     '''
 
     def __init__(self, pre):
+        '''
+        The class' constructor.
+
+        param __Anchor pre: The "__Anchor" instance because of which this exception was thrown.
+        '''
         super().__init__(f"Instance of type {type(pre)} is not quantifiable.")
 
 

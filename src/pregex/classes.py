@@ -96,15 +96,14 @@ class Any(__Class):
     '''
     Matches any possible character, including the newline character. \
     In order to match every character except for the newline character, \
-    one can use "~AnyFrom(pregex.tokens.Newline())".
+    one can use "~AnyFrom('\\n')" or "AnyButFrom('\\n')".
     '''
 
     def __init__(self) -> 'Any':
         '''
         Matches any possible character, including the newline character. \
         In order to match every character except for the newline character, \
-        one can use "AnyButFrom(pregex.tokens.Newline())" or \
-        "~AnyFrom(pregex.tokens.Newline())".
+        one can use "~AnyFrom('\\n')" or "AnyButFrom('\\n')".
         '''
         super().__init__('.', False)
 
@@ -123,12 +122,14 @@ class AnyLetter(__Class):
 
 class AnyButLetter(__Class):
     '''
-    Matches any character except for alphabetic characters.
+    Matches any character except for alphabetic characters. \
+    Equivalent to "~AnyLetter()".
     '''
 
     def __init__(self) -> 'AnyButLetter':
         '''
-        Matches any character except for alphabetic characters.
+        Matches any character except for alphabetic characters. \
+        Equivalent to "~AnyLetter()".
         '''
         super().__init__('[^a-zA-Z]', True)
 
@@ -148,12 +149,14 @@ class AnyLowercaseLetter(__Class):
 
 class AnyButLowercaseLetter(__Class):
     '''
-    Matches any character except for lowercase alphabetic characters.
+    Matches any character except for lowercase alphabetic characters. \
+    Equivalent to "~AnyLowercaseLetter()".
     '''
 
     def __init__(self) -> 'AnyButLowercaseLetter':
         '''
-        Matches any character except for lowercase alphabetic characters.
+        Matches any character except for lowercase alphabetic characters. \
+        Equivalent to "~AnyLowercaseLetter()".
         '''
         super().__init__('[^a-z]', True)
 
@@ -172,12 +175,14 @@ class AnyUppercaseLetter(__Class):
 
 class AnyButUppercaseLetter(__Class):
     '''
-    Matches any character except for uppercase alphabetic characters.
+    Matches any character except for uppercase alphabetic characters. \
+    Equivalent to "~AnyUppercaseLetter()".
     '''
 
     def __init__(self) -> 'AnyButUppercaseLetter':
         '''
-        Matches any character except for uppercase alphabetic characters.
+        Matches any character except for uppercase alphabetic characters. \
+        Equivalent to "~AnyUppercaseLetter()".
         '''
         super().__init__('[^A-Z]', True)
 
@@ -196,37 +201,43 @@ class AnyDigit(__Class):
 
 class AnyButDigit(__Class):
     '''
-    Matches any character except for numeric characters.
+    Matches any character except for numeric characters. \
+    Equivalent to "~AnyDigit()".
     '''
 
     def __init__(self) -> 'AnyButDigit':
         '''
-        Matches any character except for numeric characters.
+        Matches any character except for numeric characters. \
+        Equivalent to "~AnyDigit()".
         '''
         super().__init__('[^\d]', True)
 
 
 class AnyWordChar(__Class):
     '''
-    Matches any alphanumeric character plus "_".
+    Matches any alphanumeric character plus "_". \
+    Equivalent to "AnyLetter() | AnyDigit() | AnyFrom('_')"
     '''
 
     def __init__(self) -> 'AnyWordChar':
 
         '''
-        Matches any alphanumeric character plus "_".
+        Matches any alphanumeric character plus "_". \
+        Equivalent to "AnyLetter() | AnyDigit() | AnyFrom('_')"
         '''
         super().__init__('[\w]', False)
 
 
 class AnyButWordChar(__Class):
     '''
-    Matches any character except for alphanumeric characters plus "_".
+    Matches any character except for alphanumeric characters plus "_". \
+    Equivalent to "~AnyWordChar()".
     '''
 
     def __init__(self) -> 'AnyButWordChar':
         '''
-        Matches any character except for alphanumeric characters plus "_".
+        Matches any character except for alphanumeric characters plus "_".. \
+        Equivalent to "~AnyWordChar()".
         '''
         super().__init__('[^\w]', True)
 
@@ -245,12 +256,14 @@ class AnyPunctuation(__Class):
 
 class AnyButPunctuation(__Class):
     '''
-    Matches any character except for punctuation characters.
+    Matches any character except for punctuation characters. \
+    Equivalent to "~AnyPuncutation()".
     '''
 
     def __init__(self) -> 'AnyButPunctuation':
         '''
-        Matches any character except for punctuation characters.
+        Matches any character except for punctuation characters. \
+        Equivalent to "~AnyPunctuation()".
         '''
         super().__init__('[^\^\-\[\]!"#$%&\'()*+,./:;<=>?@_`{|}~\\\\]', True)
 
@@ -269,12 +282,14 @@ class AnyWhitespace(__Class):
 
 class AnyButWhitespace(__Class):
     '''
-    Matches any character except for whitespace characters.
+    Matches any character except for whitespace characters. \
+    Equivalent to "~AnyWhitespace()".
     '''
 
     def __init__(self) -> 'AnyButWhitespace':
         '''
-        Matches any character except for whitespace characters.
+        Matches any character except for whitespace characters. \
+        Equivalent to "~AnyWhitespace()".
         '''
         super().__init__('[^\s]', True)
 
@@ -298,12 +313,14 @@ class AnyWithinRange(__Class):
 
 class AnyButWithinRange(__Class):
     '''
-    Matches any character except for all characters within the provided range.
+    Matches any character except for all characters within the provided range. \
+    Equivalent to "~AnyWithinRange()".
     '''
 
     def __init__(self, start: str or int, end: str or int) -> 'AnyButWithinRange':
         '''
-        Matches any character except for all characters within the provided range.
+        Matches any character except for all characters within the provided range. \
+         Equivalent to "~AnyWithinRange()".
 
         :param str | int start: The first character within the range.
         :param str | int end: The last character within the range.
@@ -337,15 +354,17 @@ class AnyFrom(__Class):
 
 class AnyButFrom(__Class):
     '''
-    Matches any character except for the provided characters.
+    Matches any character except for the provided characters. \
+    Equivalent to "~AnyFrom()".
     '''
 
     def __init__(self, *chars: str or _tokens.Token) -> 'AnyButFrom':
         '''
-        Matches any character except for the provided characters.
+        Matches any character except for the provided characters. \
+        Equivalent to "~AnyFrom()".
 
         :param Pregex | str *chars: One or more characters to match from. Each character must be \
-            a string of length one, provided either as is or wrapped within an instance of type \
+            a string of length one, provided either as is or wrapped within an instance of class \
             "Token".
         '''
         for c in chars:
