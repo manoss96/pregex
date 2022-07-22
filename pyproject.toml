@@ -8,6 +8,7 @@ description = "PRegEx - Programmable Regular Expressions"
 keywords = ["regex"]
 readme = "README.md"
 license = {text = "MIT"}
+documentation = https://pregex.readthedocs.io/en/latest/index.html
 requires-python = ">=3.9"
 classifiers = [
     "Programming Language :: Python :: 3",
