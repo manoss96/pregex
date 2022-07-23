@@ -22,15 +22,18 @@ A character class can be either one of the following two types:
 
 	2. **Negated class**: This type of class represents the "[^...]" pattern, 
 	   which can be translated as "match every character except for those 
-	   defined within the brackets". You can tell regular classes by their name, 
+	   defined within the brackets". You can tell negated classes by their name, 
 	   which follows the "AnyBut*" pattern.
 
 **Combining Classes**
 
-Classes of the same type can be combined together to form supersets of their characters.
-This be easily done though the use of the bitwise OR operator "|". For example:
+Classes of the same type can be combined together in order to get the union of
+the sets of characters they represent. This can be easily done though the use 
+of the bitwise OR operator "|". For example:
 
 .. code-block:: python
+   
+   from pregex.classes import AnyDigit, AnyLowercaseLetter
 
    pre = AnyDigit() | AnyLowercaseLetter()
    print(pre.get_pattern()) # This will print "[0-9a-z]"
@@ -39,6 +42,8 @@ The same goes for negated classes as well:
 
 .. code-block:: python
 
+   from pregex.classes import AnyButDigit, AnyButLowercaseLetter
+
    pre = AnyButDigit() | AnyButLowercaseLetter()
    print(pre.get_pattern()) # This will print "[^0-9a-z]"
 
@@ -46,6 +51,8 @@ However, combining a regular and a negated class together will throw a
 "CannotBeCombinedException":
 
 .. code-block:: python
+
+   from pregex.classes import AnyDigit, AnyButLowercaseLetter
 
    pre = AnyDigit() | AnyButLowercaseLetter() # This is not OK!
 
@@ -57,6 +64,8 @@ bitwise NOT operator "~":
 
 .. code-block:: python
 
+   from pregex.classes import AnyDigit
+
    pre = ~ AnyDigit()
    print(pre.get_pattern()) # This will print "[^0-9]"
 
@@ -65,11 +74,14 @@ this as it doesn't help much in making the code any more easy to read.
 
 .. code-block:: python
 
+   from pregex.classes import AnyButDigit
+
    pre = ~ AnyButDigit()
    print(pre.get_pattern()) # This will print "[0-9]"
 
-Therefore, either negating a regular class through "~" or using its negated
-class equivalent "AnyBut*" is entirely the same and just a matter of choice.
+Therefore, in order to create a negated class one can either negate a regular "Any*"
+class by placing "~" in front of it, or use its "AnyBut*" negated class equivalent.
+The result is entirely the same and which one you'll choose is just a matter of choice.
 
 .. automodule:: pregex.classes
    :members:
@@ -96,6 +108,9 @@ you'll probably just need the latter, as pattern concatenation is recommended
 that is done via the overloaded addition operator "+".
 
 .. code-block:: python
+
+   from pregex.classes import AnyDigit
+   from pregex.operators import Concat
 
    pre = AnyDigit()
    s = "text"
