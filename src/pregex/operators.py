@@ -7,7 +7,7 @@ class __Operator(_pre.Pregex):
     Every "Operator" class must inherit from this class.
     '''
 
-    def __init__(self, pres: tuple[str or _pre.Pregex], transform) -> _pre.Pregex:
+    def __init__(self, pres: tuple[_pre.Pregex or str], transform) -> _pre.Pregex:
         if len(pres) < 2:
             raise _exceptions.LessThanTwoArgumentsException()
         result = __class__._to_pregex(pres[0])
@@ -19,9 +19,11 @@ class __Operator(_pre.Pregex):
 class Concat(__Operator):
     '''
     Matches the concatenation of the provided patterns.
+
+    :param Pregex | str *pres: Two or more patterns that are to be concatenated.
     '''
 
-    def __init__(self, *pres: str or _pre.Pregex) -> _pre.Pregex:
+    def __init__(self, *pres: _pre.Pregex or str) -> _pre.Pregex:
         '''
         Matches the concatenation of the provided patterns.
 
@@ -34,12 +36,15 @@ class Either(__Operator):
     '''
     Matches either one of the provided patterns.
 
+    :param Pregex | str *pres: Two or more patterns that constitute the \
+        operator's alternatives.
+
     NOTE: One should be aware that "Either" is eager, meaning that the regex engine will \
         stop the moment it matches either one of the alternatives, starting from \
         the left-most pattern and continuing on to the right until a match occurs.
     '''
     
-    def __init__(self, *pres: str or _pre.Pregex):
+    def __init__(self, *pres: _pre.Pregex or str):
         '''
         Matches either one of the provided patterns.
 

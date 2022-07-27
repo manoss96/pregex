@@ -7,7 +7,7 @@ class __Group(_pre.Pregex):
     '''
     Every "Group" class must inherit from this class.
     '''
-    def __init__(self, pre: str or _pre.Pregex, transform) -> _pre.Pregex:
+    def __init__(self, pre: _pre.Pregex or str, transform) -> _pre.Pregex:
         pre = transform(__class__._to_pregex(pre))
         super().__init__(str(pre), pre._get_group_on_concat(), pre._get_group_on_quantify())
 
@@ -16,6 +16,10 @@ class CapturingGroup(__Group):
     '''
     Creates a capturing group out of the provided pattern.
 
+    :param Pregex | str pre: The pattern out of which the capturing group is created.
+    :param str name: The name that is assigned to the captured group for backreference purposes. \
+        A value of "''" indicates that no name is to be assigned to the group. Defaults to "''".
+
     NOTE:
         - Creating a capturing group out of a capturing group does nothing to it.
         - Creating a capturing group out of a non-capturing group converts it to a capturing group.
@@ -23,7 +27,7 @@ class CapturingGroup(__Group):
         - Creating a named capturing group out of a named capturing group, changes the group's name.
     '''
 
-    def __init__(self, pre: str or _pre.Pregex, name: str = ''):
+    def __init__(self, pre: _pre.Pregex or str, name: str = ''):
         '''
         Creates a capturing group out of the provided pattern.
 
@@ -45,12 +49,14 @@ class NonCapturingGroup(__Group):
     '''
     Creates a non-capturing group out of the provided pattern.
 
+    :param Pregex | str pre: The expression out of which the non-capturing group is created.
+
     NOTE:
         - Creating a non-capturing group out of a non-capturing group does nothing to it.
         - Creating a non-capturing group out of a capturing group converts it to a non-capturing group.
     '''
 
-    def __init__(self, pre: str or _pre.Pregex):
+    def __init__(self, pre: _pre.Pregex or str):
         '''
         Creates a non-capturing group out of the provided pattern.
 
@@ -68,6 +74,8 @@ class Backreference(_pre.Pregex):
     Creates a backreference to some previously declared named capturing group.\
     A backreference matches the same text as the text that was most recently \
     matched by the captured group with the specified name.
+
+    :param str name: The name of the referenced capturing group.
     '''
     def __init__(self, name: str):
         '''

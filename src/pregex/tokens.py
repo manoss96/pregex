@@ -14,6 +14,8 @@ class Token(_pre.Pregex):
 class Literal(Token):
     '''
     Matches the provided string as it is.
+
+    :param str s: The string that is to be matched.
     '''
 
     def __init__(self, s: str) -> 'Literal':

@@ -7,7 +7,7 @@ class __Quantifier(_pre.Pregex):
     '''
     Every "Quantifier" class must inherit from this class.
     '''
-    def __init__(self, pre: str or _pre.Pregex, is_greedy: bool, transform) -> '__Quantifier':
+    def __init__(self, pre: _pre.Pregex or str, is_greedy: bool, transform) -> '__Quantifier':
         if isinstance(pre, (_assertions.MatchAtStart, _assertions.MatchAtLineStart,
             _assertions.MatchAtEnd, _assertions.MatchAtLineEnd)):
             raise _exceptions.NotQuantifiableException(pre)
@@ -18,9 +18,15 @@ class __Quantifier(_pre.Pregex):
 class Optional(__Quantifier):
     '''
     Matches the provided pattern zero or one times.
+
+    :param Pregex | str pre: The pattern that is to be matched, provided either as a string \
+        or wrapped within a "Pregex" subtype instance.
+    :param bool is_greedy: Indicates whether to declare this quantifier as greedy. \
+        When declared as such, the regex engine will try to match \
+        the expression as many times as possible. Defaults to 'True'.
     '''
 
-    def __init__(self, pre: str or _pre.Pregex, is_greedy: bool = True) -> _pre.Pregex:
+    def __init__(self, pre: _pre.Pregex or str, is_greedy: bool = True) -> _pre.Pregex:
         '''
         Matches the provided pattern zero or one times.
 
@@ -36,9 +42,15 @@ class Optional(__Quantifier):
 class Indefinite(__Quantifier):
     '''
     Matches the provided pattern zero or more times.
+
+    :param Pregex | str pre: The pattern that is to be matched, provided either as a string \
+        or wrapped within a "Pregex" subtype instance.
+    :param bool is_greedy: Indicates whether to declare this quantifier as greedy. \
+        When declared as such, the regex engine will try to match \
+        the expression as many times as possible. Defaults to 'True'.
     '''
 
-    def __init__(self, pre: str or _pre.Pregex, is_greedy: bool = True) -> _pre.Pregex:
+    def __init__(self, pre: _pre.Pregex or str, is_greedy: bool = True) -> _pre.Pregex:
         '''
         Matches the provided pattern zero or more times.
 
@@ -54,9 +66,15 @@ class Indefinite(__Quantifier):
 class AtLeastOnce(__Quantifier):
     '''
     Matches the provided pattern one or more times.
+
+    :param Pregex | str pre: The pattern that is to be matched, provided either as a string \
+        or wrapped within a "Pregex" subtype instance.
+    :param bool is_greedy: Indicates whether to declare this quantifier as greedy. \
+        When declared as such, the regex engine will try to match \
+        the expression as many times as possible. Defaults to 'True'.
     '''
 
-    def __init__(self, pre: str or _pre.Pregex, is_greedy: bool = True) -> _pre.Pregex:
+    def __init__(self, pre: _pre.Pregex or str, is_greedy: bool = True) -> _pre.Pregex:
         '''
         Matches the provided pattern one or more times.
 
@@ -72,9 +90,13 @@ class AtLeastOnce(__Quantifier):
 class Exactly(__Quantifier):
     '''
     Matches the provided pattern an exact number of times.
+
+    :param Pregex | str pre: The pattern that is to be matched, provided either as a string \
+        or wrapped within a "Pregex" subtype instance.
+    :param int n: The exact number of times that the provided pattern is to be matched.
     '''
 
-    def __init__(self, pre: str or _pre.Pregex, n: int) -> _pre.Pregex:
+    def __init__(self, pre: _pre.Pregex or str, n: int) -> _pre.Pregex:
         '''
         Matches the provided pattern an exact number of times.
 
@@ -88,9 +110,16 @@ class Exactly(__Quantifier):
 class AtLeast(__Quantifier):
     '''
     Matches the provided pattern a minimum number of times.
+
+    :param Pregex | str pre: The pattern that is to be matched, provided either as a string \
+        or wrapped within a "Pregex" subtype instance.
+    :param int n: The minimum number of times that the provided pattern is to be matched.
+    :param bool is_greedy: Indicates whether to declare this quantifier as greedy. \
+        When declared as such, the regex engine will try to match \
+        the expression as many times as possible. Defaults to 'True'.
     '''
 
-    def __init__(self, pre: str or _pre.Pregex, n: int, is_greedy: bool = True) -> _pre.Pregex:
+    def __init__(self, pre: _pre.Pregex or str, n: int, is_greedy: bool = True) -> _pre.Pregex:
         '''
         Matches the provided pattern a minimum number of times.
 
@@ -107,9 +136,16 @@ class AtLeast(__Quantifier):
 class AtMost(__Quantifier):
     '''
     Matches the provided pattern a maximum number of times.
+
+    :param Pregex | str pre: The pattern that is to be matched, provided either as a string \
+        or wrapped within a "Pregex" subtype instance.
+    :param int n: The maximum number of times that the provided pattern is to be matched.
+    :param bool is_greedy: Indicates whether to declare this quantifier as greedy. \
+        When declared as such, the regex engine will try to match \
+        the expression as many times as possible. Defaults to 'True'.
     '''
 
-    def __init__(self, pre: str or _pre.Pregex, n: int, is_greedy: bool = True) -> _pre.Pregex:
+    def __init__(self, pre: _pre.Pregex or str, n: int, is_greedy: bool = True) -> _pre.Pregex:
         '''
         Matches the provided pattern a maximum number of times.
 
@@ -126,9 +162,17 @@ class AtMost(__Quantifier):
 class AtLeastAtMost(__Quantifier):
     '''
     Matches the provided expression between a minimum and a maximum number of times.
+
+    :param Pregex | str pre: The pattern that is to be matched, provided either as a string \
+        or wrapped within a "Pregex" subtype instance.
+    :param int min: The minimum number of times that the provided pattern is to be matched.
+    :param int max: The maximum number of times that the provided pattern is to be matched.
+    :param bool is_greedy: Indicates whether to declare this quantifier as greedy. \
+        When declared as such, the regex engine will try to match \
+        the expression as many times as possible. Defaults to 'True'.
     '''
 
-    def __init__(self, pre: str or _pre.Pregex, min: int, max: int, is_greedy: bool = True) -> _pre.Pregex:
+    def __init__(self, pre: _pre.Pregex or str, min: int, max: int, is_greedy: bool = True) -> _pre.Pregex:
         '''
         Matches the provided expression between a minimum and a maximum number of times.
 
