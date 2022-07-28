@@ -94,7 +94,7 @@ This module contains all necessary classes that are used to construct both types
 of groups, capturing and non-capturing, as well as classes that relate to any
 other group-related concept, such as backreferences. In general, one should not
 have to concern themselves with grouping, as patterns are automatically grouped
-into non-capturing groups whenever this is deemed as necessary. Consider for
+into non-capturing groups whenever this is deemed necessary. Consider for
 instance the code snippet below, where in the first case the "?" quanitifer is
 applied to the pattern directly, whereas in the second case, the pattern is wrapped
 within a non-capturing group:
@@ -106,7 +106,7 @@ within a non-capturing group:
    print(Optional("a").get_pattern()) # This prints "a?"
    print(Optional("aa").get_pattern()) # This prints "(?:aa)?"
 
-Even so, one can also explicitly construct a non-capturing group out of every
+Even so, one can also explicitly construct a non-capturing group out of any
 pattern if one wishes to do so:
 
 .. code-block:: python
@@ -117,13 +117,13 @@ pattern if one wishes to do so:
    print(NonCapturingGroup(Optional("a")).get_pattern()) # This prints "(?:a)?"
 
 You'll find however that "CapturingGroup" is probably the most important class
-of this module, as it is used to create a capturing group out of any pattern,
-so that some specific part of the pattern is captured separately whenever a match
-occurs.
+of this module, as it is used to create a capturing group out of a pattern,
+so that said pattern is also captured separately whenever a match occurs.
 
 .. code-block:: python
 
    from pregex.groups import CapturingGroup
+   from pregex.classes import AnyLetter
 
    pre = AnyLetter() + CapturingGroup(AnyLetter()) + AnyLetter()
 
@@ -173,10 +173,10 @@ pregex.pre
 
 pregex.quantifiers
 -------------------------
-All classes of this module are used in order to declare that a pattern is to be
+All classes of this module are used to declare that a pattern is to be
 repeated a number of times, where each class represents a slightly different
-repetition rule. Out of these classes, you probably can ignore "Exactly" which
-is used in order to dictate that a pattern is to be repeated an exact number of times,
+repetition rule. Out of these classes, one is able to ignore the "Exactly" class
+which dictates that a pattern is to be repeated an exact number of times,
 as this rule can also be expressed via the use of the overloaded multiplication
 operator "*", which produces much simpler and easy to read code:
 
@@ -200,11 +200,13 @@ operator "*", which produces much simpler and easy to read code:
 pregex.tokens
 --------------------
 This module contains a number of classes that represent special characters,
-as for example are the "newline" character, the "carriage return" character,
-etc... In this module one will also find the "Literal" class, which can be used
+such as the "newline" character, the "carriage return" character, etc...
+In this module one will also find the "Literal" class, which can be used
 in order to convert a string into a RegEx pattern. This class wraps the provided
-string, escaping any characters it might contain that require to be escaped
-so that the provided string is a valid RegEx pattern.
+string, escaping any characters it might contain that require to be escaped,
+so that the provided string constitutes a valid RegEx pattern. Consider the
+following example, where the "." in "hello." is automatically escaped so that
+it is not mistaken for the wildcard meta character ".".
 
 .. code-block:: python
 
