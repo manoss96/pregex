@@ -33,6 +33,14 @@ class Test__Class(unittest.TestCase):
         self.assertTrue(str(AnyFrom("a", "b") | AnyFrom("b", "c")) \
             in get_permutations("a", "b", "c"))
 
+    def test_any_class_bitwise_or_with_overlapping_ranges(self):
+        self.assertTrue(str(AnyWithinRange("a", "d") | AnyWithinRange("b", "k")) == "[a-k]")
+        self.assertTrue(str(AnyWithinRange("a", "d") | AnyWithinRange("e", "k")) == "[a-k]")
+        self.assertTrue(str(AnyWithinRange("A", "D") | AnyWithinRange("B", "K")) == "[A-K]")
+        self.assertTrue(str(AnyWithinRange("A", "D") | AnyWithinRange("E", "K")) == "[A-K]")
+        self.assertTrue(str(AnyWithinRange("0", "3") | AnyWithinRange("2", "7")) == "[0-7]")
+        self.assertTrue(str(AnyWithinRange("0", "3") | AnyWithinRange("4", "7")) == "[0-7]")
+
     def test_any_class_bitwise_or_on_cannot_be_combined_exception(self):
         any_letter, any_but_digit = AnyLetter(), ~AnyDigit()
         self.assertRaises(CannotBeCombinedException, any_letter.__or__, any_but_digit)
@@ -56,6 +64,14 @@ class TestNegated__Class(unittest.TestCase):
     def test_any_but_class_bitwise_or_with_intersection(self):
         self.assertTrue(str(~AnyFrom("a", "b") | ~AnyFrom("b", "c")) \
             in get_negated_permutations("a", "b", "c"))
+
+    def test_any_but_class_bitwise_or_with_overlapping_ranges(self):
+        self.assertTrue(str(AnyButWithinRange("a", "d") | AnyButWithinRange("b", "k")) == "[^a-k]")
+        self.assertTrue(str(AnyButWithinRange("a", "d") | AnyButWithinRange("d", "k")) == "[^a-k]")
+        self.assertTrue(str(AnyButWithinRange("A", "D") | AnyButWithinRange("B", "K")) == "[^A-K]")
+        self.assertTrue(str(AnyButWithinRange("A", "D") | AnyButWithinRange("E", "K")) == "[^A-K]")
+        self.assertTrue(str(AnyButWithinRange("0", "3") | AnyButWithinRange("2", "7")) == "[^0-7]")
+        self.assertTrue(str(AnyButWithinRange("0", "3") | AnyButWithinRange("4", "7")) == "[^0-7]")
 
     def test_any_but_class_bitwise_or_on_cannot_be_combined_exception(self):
         any_except_letter, any_digit = ~AnyLetter(), AnyDigit()

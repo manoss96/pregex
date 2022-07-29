@@ -121,7 +121,7 @@ class Pregex():
             yield match.groups() if include_empty else \
                 tuple(group for group in match.groups() if group != '')
 
-    def iterate_groups_and_pos(self, text: str, include_empty: bool = True) -> _Iterator[list[tuple[str, int, int]]]:
+    def iterate_groups_and_pos(self, text: str, include_empty: bool = True, relative_to_match = False) -> _Iterator[list[tuple[str, int, int]]]:
         '''
         Generates lists of tuples, one list per match, where each tuple contains one \
         of its corresponding match's captured groups along with its exact position \
@@ -132,13 +132,18 @@ class Pregex():
         :param str text: The piece of text that is to be matched.
         :param bool include_empty: Indicates whether to include empty groups into the results. \
             Defaults to 'True'.
+        :param bool relative_to_match: If 'True', then each group's position-indices are calculated \
+            relative to the group's corresponding match, not to the whole string. Defaults to 'False'.
         '''
         for match in self.__iterate_match_objects(text):
             groups, counter = list(), 0
             for group in match.groups():
                 counter += 1
                 if include_empty or (group != ''):
-                    groups.append((group, *match.span(counter)))
+                    start, end = match.span(counter)
+                    if relative_to_match and start > -1:
+                        start, end = start - match.start(0), end - match.start(0)
+                    groups.append((group, start, end))
             yield groups
 
     def get_matches(self, text: str) -> list[str]:
@@ -171,7 +176,7 @@ class Pregex():
         '''
         return list(group for group in self.iterate_groups(text, include_empty))
 
-    def get_groups_and_pos(self, text: str, include_empty: bool = True) -> list[list[tuple[str, int, int]]]:
+    def get_groups_and_pos(self, text: str, include_empty: bool = True, relative_to_match = False) -> list[list[tuple[str, int, int]]]:
         '''
         Returns a list containing lists of tuples, one list per match, where each \
         tuple contains one of its corresponding match's captured groups along with \
@@ -182,8 +187,10 @@ class Pregex():
         :param str text: The piece of text that is to be matched.
         :param bool include_empty: Indicates whether to include empty groups into the results. \
             Defaults to 'True'.
+        :param bool relative_to_match: If 'True', then each group's position-indices are calculated \
+            relative to the group's corresponding match, not to the whole string. Defaults to 'False'.
         '''
-        return list(tup for tup in self.iterate_groups_and_pos(text, include_empty))
+        return list(tup for tup in self.iterate_groups_and_pos(text, include_empty, relative_to_match))
 
     def replace(self, text: str, repl: str, count: int = 0) -> str:
         '''

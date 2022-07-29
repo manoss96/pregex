@@ -26,6 +26,12 @@ class TestPregex(unittest.TestCase):
         [("z", 11, 12), ("z", 13, 14)],
         [("B", 19, 20), ("c", 21, 22)]
     ]
+    GROUPS_AND_RELATIVE_POS = [
+        [("A", 0, 1), ("z", 2, 3)],
+        [("_", 0, 1), ('', 2, 2)],
+        [("z", 0, 1), ("z", 2, 3)],
+        [("B", 0, 1), ("c", 2, 3)]
+    ]
 
     GROUPS_WITHOUT_EMPTY = [("A", "z"), tuple("_"), ("z", "z"), ("B", "c")]
     GROUPS_AND_POS_WITHOUT_EMPTY = [
@@ -33,6 +39,12 @@ class TestPregex(unittest.TestCase):
         [("_", 8, 9)],
         [("z", 11, 12), ("z", 13, 14)],
         [("B", 19, 20), ("c", 21, 22)]
+    ]
+    GROUPS_AND_RELATIVE_POS_WITHOUT_EMPTY = [
+        [("A", 0, 1), ("z", 2, 3)],
+        [("_", 0, 1)],
+        [("z", 0, 1), ("z", 2, 3)],
+        [("B", 0, 1), ("c", 2, 3)]
     ]
     
     SPLIT_BY_MATCH = [" aaa ", " ", " 99a "]
@@ -82,6 +94,14 @@ class TestPregex(unittest.TestCase):
             self.GROUPS_AND_POS_WITHOUT_EMPTY)
         self.assertEqual([group_list for group_list in self.pre2.iterate_groups_and_pos(self.TEXT)], self.GROUPS_AND_POS)
 
+    def test_pregex_on_iterate_groups_and_pos_relative_to_match(self):
+        self.assertEqual([group_list for group_list in self.pre1.iterate_groups_and_pos(self.TEXT, relative_to_match=True)],
+            self.GROUPS_AND_RELATIVE_POS)
+        self.assertEqual([group_list for group_list in self.pre1.iterate_groups_and_pos(self.TEXT,
+            include_empty=False, relative_to_match=True)], self.GROUPS_AND_RELATIVE_POS_WITHOUT_EMPTY)
+        self.assertEqual([group_list for group_list in self.pre2.iterate_groups_and_pos(self.TEXT, relative_to_match=True)],
+            self.GROUPS_AND_RELATIVE_POS)
+
     def test_pregex_on_get_matches(self):
         self.assertEqual(self.pre1.get_matches(self.TEXT), self.MATCHES)
         self.assertEqual(self.pre2.get_matches(self.TEXT), self.MATCHES)
@@ -94,6 +114,18 @@ class TestPregex(unittest.TestCase):
         self.assertEqual(self.pre1.get_groups(self.TEXT), self.GROUPS)
         self.assertEqual(self.pre1.get_groups(self.TEXT, include_empty=False), self.GROUPS_WITHOUT_EMPTY)
         self.assertEqual(self.pre2.get_groups(self.TEXT, include_empty=False), self.GROUPS_WITHOUT_EMPTY)
+
+    def test_pregex_on_get_groups_and_pos(self):
+        self.assertEqual(self.pre1.get_groups_and_pos(self.TEXT), self.GROUPS_AND_POS)
+        self.assertEqual(self.pre1.get_groups_and_pos(self.TEXT, include_empty=False), self.GROUPS_AND_POS_WITHOUT_EMPTY)
+        self.assertEqual(self.pre2.get_groups_and_pos(self.TEXT, include_empty=False), self.GROUPS_AND_POS_WITHOUT_EMPTY)
+
+    def test_pregex_on_get_groups_and_relative_pos(self):
+        self.assertEqual(self.pre1.get_groups_and_pos(self.TEXT, relative_to_match=True), self.GROUPS_AND_RELATIVE_POS)
+        self.assertEqual(self.pre1.get_groups_and_pos(self.TEXT, include_empty=False, relative_to_match=True),
+            self.GROUPS_AND_RELATIVE_POS_WITHOUT_EMPTY)
+        self.assertEqual(self.pre2.get_groups_and_pos(self.TEXT, include_empty=False, relative_to_match=True),
+            self.GROUPS_AND_RELATIVE_POS_WITHOUT_EMPTY)
 
     def test_pregex_on_replace(self):
         repl = "bb"

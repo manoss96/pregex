@@ -165,7 +165,7 @@ class InvalidRangeException(Exception):
         param int start: The integer because of which this exception was thrown.
         param int end: The integer because of which this exception was thrown.
         '''
-        super().__init__(f"Range \"[{start}-{end}]\" is not a valid range.")
+        super().__init__(f"\"[{start}-{end}]\" is not a valid range.")
 
 
 class NotQuantifiableException(Exception):

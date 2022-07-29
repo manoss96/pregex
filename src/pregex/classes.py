@@ -1,3 +1,4 @@
+
 import re as _re
 import pregex.pre as _pre
 import pregex.tokens as _tokens
@@ -84,12 +85,50 @@ class __Class(_pre.Pregex):
         for s_key in s_map:
             p1, p2 = p1.replace(s_key, s_map[s_key]), p2.replace(s_key, s_map[s_key])
         # Create pattern for matching possible classes.
-        pattern = "[A-Za-z0-9]-[A-Za-z0-9]|\\\\?."
-        classes = set(_re.findall(pattern, p1, flags=_re.DOTALL)) \
-            .union(set(_re.findall(pattern, p2, flags=_re.DOTALL)))
+        range_pattern, char_pattern = "[A-Za-z0-9]-[A-Za-z0-9]", "\\\\?."
+        ranges = set(_re.findall(range_pattern, p1, flags=_re.DOTALL)) \
+            .union(set(_re.findall(range_pattern, p2, flags=_re.DOTALL)))
+        combined_ranges = __class__.__combine_ranges(ranges)
+        chars = set(_re.findall(char_pattern, _re.sub(r'|'.join(ranges), '', p1), flags=_re.DOTALL)) \
+            .union(set(_re.findall(char_pattern, _re.sub(r'|'.join(ranges), '', p2), flags=_re.DOTALL)))
         return  __class__(
-            f"[{'^' if pre1.__is_negated else ''}{''.join(__class__.__inverse_shorthand_map(classes))}]",
+            f"[{'^' if pre1.__is_negated else ''}{''.join(__class__.__inverse_shorthand_map(combined_ranges.union(chars)))}]",
             pre1.__is_negated)
+
+    def __combine_ranges(ranges: set[str]) -> set[str]:
+
+        def reduce(ranges: list[str]) -> set[str]:
+            if len(ranges) < 2:
+                return set(ranges)
+            
+            ranges = [rng.split('-') for rng in ranges]
+
+            continue_flag = True
+            while continue_flag:
+                set_flag = False
+                for i in range(len(ranges)):
+                    start_i, end_i = ranges[i][0], ranges[i][1]
+                    for j in range(len(ranges)):
+                        if i != j:
+                            start_j, end_j = ranges[j][0], ranges[j][1]
+                            if start_i <= start_j and ord(end_i) + 1 >= ord(start_j):
+                                ranges[i] = start_i, max(end_i, end_j)
+                                set_flag = True
+                        if set_flag:
+                            ranges.pop(j)
+                            break
+                    if set_flag:
+                        break
+                continue_flag = set_flag
+
+            return set(f"{rng[0]}-{rng[1]}" for rng in ranges)
+
+        lower = list(filter(lambda e: e.islower(), ranges))
+        upper = list(filter(lambda e: e.isupper(), ranges.difference(lower)))
+        digit = list(ranges.difference(lower).difference(upper))
+
+        return reduce(lower).union(reduce(upper)).union(reduce(digit))
+
 
 
 class Any(__Class):
@@ -306,7 +345,8 @@ class AnyWithinRange(__Class):
         :param str | int start: The first character within the range.
         :param str | int end: The last character within the range.
         '''
-        if (type(start) != type(end)) or start >= end:
+        start, end = str(start), str(end)
+        if start >= end or (not start.isalnum()) or (not end.isalnum()):
             raise _exceptions.InvalidRangeException(start, end)
         super().__init__(f"[{start}-{end}]", False)
 
@@ -325,7 +365,8 @@ class AnyButWithinRange(__Class):
         :param str | int start: The first character within the range.
         :param str | int end: The last character within the range.
         '''
-        if (type(start) != type(end)) or start >= end:
+        start, end = str(start), str(end)
+        if start >= end or (not start.isalnum()) or (not end.isalnum()):
             raise _exceptions.InvalidRangeException(start, end)
         super().__init__(f"[^{start}-{end}]", True)      
 
