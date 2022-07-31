@@ -13,8 +13,8 @@ Let's face it, although RegEx is without a doubt an extremely useful tool, its s
 For the above reasons, building even a simple RegEx pattern for matching URLs can be quite a painful task for many people. This is where PRegEx comes in! PRegEx, which stands for Programmable Regular Expressions, is a Python package that can be used in order to construct Regular Expression patterns in a more human-friendly way. Through the use of PRegEx, one is able to fully utilize the powerful tool that is RegEx without having to deal with any of its nuisances that seem to drive people crazy! PRegEx achieves that by offering the following:
 
 1. An easy-to-remember syntax that resembles the good ol' imperative way of programming!
-2. Adds modularity to building RegEx patterns, as you can easily break down a complex pattern into simpler sub-patterns which can then be combined together.
-3. No longer having to escaping meta characters such as "." and "*" as this is handled internally by PRegEx!
+2. Adds modularity to building RegEx patterns, as one can easily break down a complex pattern into simpler sub-patterns which can then be combined together.
+3. No longer having to escape meta characters such as "." and "*" as this is handled internally by PRegEx!
 4. Acts as a higher-level API on top of Python's built-in "re" module, providing access to its core functionality while saving you the trouble of having to deal with "re.Match" instances.
 5. No matter how complex the abstraction, it's always just a pure RegEx pattern that sits underneath which you can fetch and use any way you like!
 
