@@ -37,14 +37,14 @@ class __Class(_pre.Pregex):
         "\s" : _whitespace
     }
 
-    '''
-    This method searches the provided set for subsets of character classes that \
-    correspond to a shorthand charater class, and if it finds any, it replaces \
-    them with said character class, returning the resulting set at the end.
-
-    :param set[str] classes: The set containing the classes as strings.
-    '''
     def __inverse_shorthand_map(classes: set[str]) -> set[str]:
+        '''
+        This method searches the provided set for subsets of character classes that \
+        correspond to a shorthand charater class, and if it finds any, it replaces \
+        them with said character class, returning the resulting set at the end.
+
+        :param set[str] classes: The set containing the classes as strings.
+        '''
         word_set = {'a-z', 'A-Z', '0-9', '_'}
         digit_set = {'0-9'}
         whitespace_set = {' ', '\t', '\n', '\r', '\x0b', '\x0c'}
@@ -66,60 +66,200 @@ class __Class(_pre.Pregex):
 
     def __or__(self, pre: '__Class') -> '__Class':
         if not issubclass(pre.__class__, __class__):
-            raise _exceptions.CannotBeCombinedException(self, pre, False)
+            raise _exceptions.CannotBeUnionedException(self, pre, False)
         return __class__.__or(self, pre)
 
     def __ror__(self, pre: '__Class') -> '__Class':
         if not issubclass(pre.__class__, __class__):
-            raise _exceptions.CannotBeCombinedException(pre, self, False)
+            raise _exceptions.CannotBeUnionedException(pre, self, False)
         return __class__.__or(pre, self)
 
     def __or(pre1: '__Class', pre2: '__Class') -> '__Class':
         if  pre1.__is_negated != pre2.__is_negated:
-            raise _exceptions.CannotBeCombinedException(pre1, pre2, True)
+            raise _exceptions.CannotBeUnionedException(pre1, pre2, True)
         if isinstance(pre1, Any) or isinstance(pre2, Any):
             return Any()
-        start_1, start_2 = 2 if pre1.__is_negated else 1, 2 if pre2.__is_negated else 1
-        p1, p2 = str(pre1)[start_1:-1], str(pre2)[start_2:-1]
-        s_map = pre1.__shorthand_map
-        for s_key in s_map:
-            p1, p2 = p1.replace(s_key, s_map[s_key]), p2.replace(s_key, s_map[s_key])
-        # Create pattern for matching possible classes.
-        range_pattern, char_pattern = "[A-Za-z0-9]-[A-Za-z0-9]", "\\\\?."
-        ranges = set(_re.findall(range_pattern, p1, flags=_re.DOTALL)) \
-            .union(set(_re.findall(range_pattern, p2, flags=_re.DOTALL)))
-        combined_ranges = __class__.__combine_ranges(ranges)
-        chars = set(_re.findall(char_pattern, _re.sub(r'|'.join(ranges), '', p1), flags=_re.DOTALL)) \
-            .union(set(_re.findall(char_pattern, _re.sub(r'|'.join(ranges), '', p2), flags=_re.DOTALL)))
+
+        ranges1, chars1 = __class__.__extract_classes(pre1)
+        ranges2, chars2 = __class__.__extract_classes(pre2)
+        ranges, chars = ranges1.union(ranges2), chars1.union(chars2)
+
         return  __class__(
-            f"[{'^' if pre1.__is_negated else ''}{''.join(__class__.__inverse_shorthand_map(combined_ranges.union(chars)))}]",
+            f"[{'^' if pre1.__is_negated else ''}{''.join(__class__.__inverse_shorthand_map(__class__.__reduce(ranges, chars)))}]",
             pre1.__is_negated)
 
-    def __combine_ranges(ranges: set[str]) -> set[str]:
+    def __sub__(self, pre: '__Class') -> '__Class':
+        if not issubclass(pre.__class__, __class__):
+            raise _exceptions.CannotBeSubtractedException(self, pre, False)
+        return __class__.__sub(self, pre)
 
-        def reduce(ranges: list[str]) -> set[str]:
+    def __rsub__(self, pre: '__Class') -> '__Class':
+        if not issubclass(pre.__class__, __class__):
+            raise _exceptions.CannotBeSubtractedException(pre, self, False)
+        return __class__.__sub(pre, self)
+
+    def __sub(pre1: '__Class', pre2: '__Class') -> '__Class':
+        if  pre1.__is_negated != pre2.__is_negated:
+            raise _exceptions.CannotBeSubtractedException(pre1, pre2, True)
+        if isinstance(pre2, Any):
+            raise _exceptions.EmptyClassException(pre1, pre2)
+        if isinstance(pre1, Any):
+            return ~ pre2
+
+        ranges1, chars1 = __class__.__extract_classes(pre1)
+        ranges2, chars2 = __class__.__extract_classes(pre2)
+
+        # Subtract any ranges found in both pre2 and pre1 from pre1.
+        def subtract_ranges(ranges1: set[str], ranges2: set[str]) -> tuple[set[str], set[str]]:
+            '''
+            Subtracts any range found within 'ranges2' from 'ranges1' and returns \
+            the resulting ranges/characters in two seperate sets.
+
+            NOTE: This method might produce characters, for example [A-Z] - [B-Z] \
+                produces the character 'A'.
+            '''
+
+            ranges1 = [rng.split('-') for rng in ranges1]
+            ranges2 = [rng.split('-') for rng in ranges2]
+
+            i = 0
+            while i < len(ranges1):
+                start_1, end_1 = ranges1[i]
+                for start_2, end_2 in ranges2:
+                    if start_1 <= end_2 and end_1 >= start_2:
+                        if start_1 == start_2 and end_1 == end_2:
+                            ranges1.pop(i)
+                            i -= 1
+                            break
+                        split_rng = list()
+                        if start_1 <= start_2 and end_1 <= end_2:
+                            split_rng.append((start_1, chr(ord(start_2) - 1)))
+                        elif start_1 >= start_2 and end_1 >= end_2:
+                            split_rng.append((chr(ord(end_2) + 1), end_1))
+                        else:
+                            split_rng.append((start_1, chr(ord(start_2) - 1)))
+                            split_rng.append((chr(ord(end_2) + 1), end_1))
+                        if len(split_rng) > 0:
+                            ranges1.pop(i)
+                            i -= 1
+                            ranges1 = ranges1 + split_rng
+                            break
+                i += 1
+                    
+            ranges, chars = set(), set()
+            for start, end in ranges1:
+                if start == end:
+                    chars.add(start)
+                else:
+                    ranges.add(f"{start}-{end}")
+            
+            return ranges, chars
+
+
+        # Subtract chars2 from chars1.
+        chars1 = chars1.difference(chars2)
+
+        # Subtract ranges2 from ranges1.
+        ranges1, reduced_chars = subtract_ranges(ranges1, ranges2)
+        chars1 = chars1.union(reduced_chars)
+
+        # Subtract any characters in chars2 from ranges1.
+        ranges1, reduced_chars = subtract_ranges(ranges1, set(f"{c}-{c}" for c in chars2))
+        chars1 = chars1.union(reduced_chars)
+
+        result = ranges1.union(chars1)
+
+        if len(result) == 0:
+            raise _exceptions.EmptyClassException(pre1, pre2)
+
+
+        return  __class__(
+            f"[{'^' if pre1.__is_negated else ''}{''.join(__class__.__inverse_shorthand_map(result))}]",
+            pre1.__is_negated)
+
+    def __extract_classes(pre: '__Class') -> tuple[set[str], set[str]]:
+        '''
+        Extracts all classes from the provided '__Class' instance, convert them \
+        to their verbose notation, and return them separated into two different sets \
+        based on whether they constitute a range or an individual character.
+        '''
+
+        def get_start_index(pre):
+            if str(pre).startswith('[^'):
+                return 2
+            elif str(pre).startswith('['):
+                return 1
+            return 0
+        
+        # Remove brackets etc from string.
+        start_index = get_start_index(pre)
+        classes = str(pre)[start_index:-1]
+
+        # Replace every class by its verbose notation.
+        for s_key in __class__.__shorthand_map:
+            classes = classes.replace(s_key, __class__.__shorthand_map[s_key])
+        
+        # Return classes as a string.
+        return (__class__.__extract_ranges(classes), __class__.__extract_chars(classes))
+
+
+    def __extract_ranges(classes: 'str') -> set[str]:
+        '''
+        Extracts all ranges from the provided character class pattern and returns \
+        a set containing them.
+
+        :param str classes: One or more string character class patterns.
+        '''
+
+        return set(_re.findall("[A-Za-z0-9]-[A-Za-z0-9]", classes, flags=_re.DOTALL))
+
+
+    def __extract_chars(classes: str) -> set[str]:
+        '''
+        Extracts all individual characters from the provided character class pattern \
+        and returns a set containing them.
+
+        :param str classes: One or more string character class patterns.
+        '''
+        return set(_re.findall(r"(?<!\w\-)(?:\\-|\\?[^\-])(?!\-\w)", classes, flags=_re.DOTALL))
+        
+
+    def __reduce(ranges: set[str], chars: set[str]) -> set[str]:
+        '''
+        Removes any characters or any sub-ranges if those are already included
+        within an other specified range, and returns the set of all remaining
+        ranges/characters.
+
+        :param set[str] ranges: A set containing all specified ranges.
+        :param set[str] chars: A set containing all specified chars.
+        '''
+
+        def reduce_ranges(ranges: list[str]) -> set[str]:
+            '''
+            Removes any sub-ranges if they are already included within an other specified range,
+            and returns the set of all remaining ranges.
+
+            :param list[str] ranges: A list containing all specified ranges.
+            '''
             if len(ranges) < 2:
                 return set(ranges)
             
             ranges = [rng.split('-') for rng in ranges]
 
-            continue_flag = True
-            while continue_flag:
-                set_flag = False
-                for i in range(len(ranges)):
-                    start_i, end_i = ranges[i][0], ranges[i][1]
-                    for j in range(len(ranges)):
-                        if i != j:
-                            start_j, end_j = ranges[j][0], ranges[j][1]
-                            if start_i <= start_j and ord(end_i) + 1 >= ord(start_j):
-                                ranges[i] = start_i, max(end_i, end_j)
-                                set_flag = True
-                        if set_flag:
+            i = 0
+            while i < len(ranges):
+                start_i, end_i = ranges[i]
+                j = 0
+                while j < len(ranges):
+                    if i != j:
+                        start_j, end_j = ranges[j]
+                        if start_i <= start_j and ord(end_i) + 1 >= ord(start_j):
+                            ranges[i] = start_i, max(end_i, end_j)
                             ranges.pop(j)
+                            i = -1
                             break
-                    if set_flag:
-                        break
-                continue_flag = set_flag
+                    j += 1
+                i += 1
 
             return set(f"{rng[0]}-{rng[1]}" for rng in ranges)
 
@@ -127,7 +267,44 @@ class __Class(_pre.Pregex):
         upper = list(filter(lambda e: e.isupper(), ranges.difference(lower)))
         digit = list(ranges.difference(lower).difference(upper))
 
-        return reduce(lower).union(reduce(upper)).union(reduce(digit))
+        ranges = reduce_ranges(lower) \
+            .union(reduce_ranges(upper)) \
+            .union(reduce_ranges(digit))
+
+        def reduce_chars(ranges: list[str], chars: list[str]):
+            '''
+            Removes any characters if those are already included within an other specified range,
+            and returns the set of all remaining characters.
+
+            :param list[str] ranges: A list containing all specified ranges.
+            :param list[str] chars: A list containing all specified chars.
+            '''
+
+            ranges = [rng.split('-') for rng in ranges]
+
+            i = 0
+            while i < len(chars):
+                for j in range(len(ranges)):
+                    start, end = ranges[j]
+                    if chars[i] >= start and chars[i] <= end:
+                        chars.pop(i)
+                        i = -1
+                    elif ord(start) == ord(chars[i]) + 1:
+                        ranges[j][0] = chars[i]
+                        chars.pop(i)
+                        i = -1
+                    elif ord(end) == ord(chars[i]) - 1:
+                        ranges[j][1] = chars[i]
+                        chars.pop(i)
+                        i = -1
+                i += 1
+
+            return set(f"{rng[0]}-{rng[1]}" for rng in ranges), set(chars)
+
+        ranges, chars = reduce_chars(list(ranges), list(chars))
+
+        return ranges.union(chars)
+
 
 
 
@@ -336,6 +513,9 @@ class AnyButWhitespace(__Class):
 class AnyWithinRange(__Class):
     '''
     Matches any character within the provided range.
+
+    :param str | int start: The first character within the range.
+    :param str | int end: The last character within the range.
     '''
 
     def __init__(self, start: str or int, end: str or int) -> 'AnyWithinRange':
@@ -355,6 +535,9 @@ class AnyButWithinRange(__Class):
     '''
     Matches any character except for all characters within the provided range. \
     Equivalent to "~AnyWithinRange()".
+
+    :param str | int start: The first character within the range.
+    :param str | int end: The last character within the range.
     '''
 
     def __init__(self, start: str or int, end: str or int) -> 'AnyButWithinRange':
@@ -374,6 +557,10 @@ class AnyButWithinRange(__Class):
 class AnyFrom(__Class):
     '''
     Matches any one of the provided characters.
+
+    :param Pregex | str *chars: One or more characters to match from. Each character must be \
+        a string of length one, provided either as is or wrapped within an instance of type \
+        "Token".
     '''
 
     def __init__(self, *chars: str or _tokens.Token) -> 'AnyFrom':
@@ -389,7 +576,9 @@ class AnyFrom(__Class):
                 raise _exceptions.NeitherStringNorTokenException()
             if len(str(c).replace("\\", "")) > 1:
                 raise _exceptions.MultiCharTokenException(str(c))
-        chars = tuple(str(_pre.Pregex(pre)._literal()) if isinstance(pre, str) else str(pre) for pre in chars)
+        to_escape = {'\\', '^', '[', ']', '-', "'"}
+        chars = tuple((f"\{pre}" if pre in to_escape else pre) if isinstance(pre, str) \
+             else str(pre) for pre in set(chars))
         super().__init__(f"[{''.join(chars)}]", False)
 
 
@@ -397,6 +586,10 @@ class AnyButFrom(__Class):
     '''
     Matches any character except for the provided characters. \
     Equivalent to "~AnyFrom()".
+
+    :param Pregex | str *chars: One or more characters to match from. Each character must be \
+        a string of length one, provided either as is or wrapped within an instance of class \
+        "Token".
     '''
 
     def __init__(self, *chars: str or _tokens.Token) -> 'AnyButFrom':
@@ -404,7 +597,7 @@ class AnyButFrom(__Class):
         Matches any character except for the provided characters. \
         Equivalent to "~AnyFrom()".
 
-        :param Pregex | str *chars: One or more characters to match from. Each character must be \
+        :param Pregex | str *chars: One or more characters not to match from. Each character must be \
             a string of length one, provided either as is or wrapped within an instance of class \
             "Token".
         '''
@@ -413,5 +606,7 @@ class AnyButFrom(__Class):
                 raise _exceptions.NeitherStringNorTokenException()
             if len(str(c).replace("\\", "")) > 1:
                 raise _exceptions.MultiCharTokenException(str(c))
-        chars = tuple(str(_pre.Pregex(pre)._literal()) if isinstance(pre, str) else str(pre) for pre in chars)
+        to_escape = {'\\', '^', '[', ']', '-', "'"}
+        chars = tuple((f"\{pre}" if pre in to_escape else pre) if isinstance(pre, str) \
+             else str(pre) for pre in set(chars))
         super().__init__(f"[^{''.join(chars)}]", True)

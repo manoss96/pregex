@@ -133,10 +133,10 @@ class CannotBeNegatedException(Exception):
         super().__init__(f"Class \"Any\" cannot be negated.")
 
 
-class CannotBeCombinedException(Exception):
+class CannotBeUnionedException(Exception):
     '''
-    This exception is thrown whenever one tries to combine a class \
-    either with a negated class or an object of different type.
+    This exception is thrown whenever one tries to union a class (or negated class) \
+    either with a negated class (or regular class) or an object of different type.
     '''
 
     def __init__(self, pre1, pre2, are_both_classes: bool):
@@ -147,8 +147,45 @@ class CannotBeCombinedException(Exception):
         param Pregex pre2: The "Pregex" instance because of which this exception was thrown.
         param bool are_both_classes: Indicates whether both "Pregex" instances are of type "__Class".
         '''
-        m = f"Classes and negated classes cannot be combined together." if are_both_classes \
+        m = f"Classes and negated classes cannot be unioned together." if are_both_classes \
             else f"Objects of type {type(pre1)} and {type(pre2)} cannot be combined."
+        super().__init__(m)
+
+
+class CannotBeSubtractedException(Exception):
+    '''
+    This exception is thrown whenever one tries to subtract a class (or negated class) \
+    either from a negated class (or regular class) or an object of different type.
+    '''
+
+    def __init__(self, pre1, pre2, are_both_classes: bool):
+        '''
+        The class' constructor.
+
+        param Pregex pre1: The "Pregex" instance because of which this exception was thrown.
+        param Pregex pre2: The "Pregex" instance because of which this exception was thrown.
+        param bool are_both_classes: Indicates whether both "Pregex" instances are of type "__Class".
+        '''
+        m = f"Classes and negated classes cannot be subtracted from one another" if are_both_classes \
+            else f"Objects of type {type(pre1)} and {type(pre2)} cannot be subtracted from one another."
+        super().__init__(m)
+
+
+class EmptyClassException(Exception):
+    '''
+    This exception is thrown whenever one tries to subtract a class (or negated class) \
+    from a class (or negated class) which results in an empty class.
+    '''
+
+    def __init__(self, pre1, pre2):
+        '''
+        The class' constructor.
+
+        param Pregex pre1: The "Pregex" instance because of which this exception was thrown.
+        param Pregex pre2: The "Pregex" instance because of which this exception was thrown.
+        '''
+        m = f"Cannot subtract class \"{pre2}\" from class \"{pre1}\"" \
+            " as this results into an empty class."
         super().__init__(m)
 
 

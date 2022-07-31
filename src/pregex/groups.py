@@ -77,6 +77,7 @@ class Backreference(_pre.Pregex):
 
     :param str name: The name of the referenced capturing group.
     '''
+
     def __init__(self, name: str):
         '''
         Creates a backreference to some previously declared named capturing group.\
@@ -90,3 +91,35 @@ class Backreference(_pre.Pregex):
         if re.fullmatch("[A-Za-z_][A-Za-z_0-9]*", name) is None:
             raise _exceptions.InvalidCapturingGroupNameException(name)
         super().__init__(f"(?P={name})", group_on_concat=False, group_on_quantify=False)
+
+    
+class Conditional(_pre.Pregex):
+    '''
+    Given the name of a capturing-group, matches 'pre1' only if said capturing-group has \
+    been previously matched. Furthermore, if a second pattern 'pre2' is provided, then this \
+    pattern is matched in case the referenced capturing-group was not matched, though one \
+    should be aware that for this to be possible, the referenced capturing group must be optional.
+
+    :param str name: The name of the referenced capturing group.
+    :param Pregex | str pre1: The pattern that is to be matched in case condition is true.
+    :param Pregex | str pre2: The pattern that is to be matched in case condition is false. \
+        Defaults to "''".
+    '''
+
+    def __init__(self, name: str, pre1: _pre.Pregex or str, pre2: _pre.Pregex or str = ''):
+        '''
+        Given the name of a capturing-group, matches 'pre1' only if said capturing-group has\
+        been previously matched. Furthermore, if a second pattern 'pre2' is provided, then this \
+        pattern is matched in case the referenced capturing-group was not matched, though one \
+        should be aware that for this to be possible, the referenced capturing group must be optional.
+
+        :param str name: The name of the referenced capturing group.
+        :param Pregex | str pre1: The pattern that is to be matched in case condition is true.
+        :param Pregex | str pre2: The pattern that is to be matched in case condition is false. \
+            Defaults to "''".
+        '''
+        if not isinstance(name, str):
+            raise _exceptions.NonStringArgumentException()
+        if re.fullmatch("[A-Za-z_][A-Za-z_0-9]*", name) is None:
+            raise _exceptions.InvalidCapturingGroupNameException(name)
+        super().__init__(f"(?({name}){pre1}{'|' + str(pre2) if pre2 != '' else ''})", group_on_concat=False, group_on_quantify=False)

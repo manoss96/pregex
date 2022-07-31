@@ -1,5 +1,6 @@
 import re
 import unittest
+from pregex.classes import AnyDigit, AnyWhitespace, AnyWordChar, AnyFrom
 from pregex.pre import Pregex
 from pregex.tokens import Literal
 from pregex.exceptions import NegativeArgumentException, NonIntegerArgumentException, \
@@ -58,6 +59,16 @@ class TestPregex(unittest.TestCase):
     def test_pregex_on_get_pattern(self):
         self.assertEqual(self.pre1.get_pattern(include_flags=False), self.PATTERN)
         self.assertEqual(self.pre1.get_pattern(include_flags=True), f"/{self.PATTERN}/gms")
+
+    def test_pregex_on_get_pattern_simplified(self):
+        self.assertEqual(AnyWordChar().get_pattern(), "\w")
+        self.assertEqual(AnyDigit().get_pattern(), "\d")
+        self.assertEqual(AnyWhitespace().get_pattern(), "\s")
+        self.assertEqual((AnyFrom("a")).get_pattern(), "a")
+        self.assertEqual((AnyFrom("+")).get_pattern(), "\+")
+        self.assertEqual((~AnyWordChar()).get_pattern(), "\W")
+        self.assertEqual((~AnyDigit()).get_pattern(), "\D")
+        self.assertEqual((~AnyWhitespace()).get_pattern(), "\S")
 
     def test_pregex_on_get_compiled_pattern(self):
         flags = re.MULTILINE | re.DOTALL

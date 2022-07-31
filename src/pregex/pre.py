@@ -13,7 +13,7 @@ class Pregex():
     __flags: _re.RegexFlag = _re.MULTILINE | _re.DOTALL
 
 
-    def __init__(self, pattern: str, group_on_concat=False, group_on_quantify=False) -> 'Pregex':
+    def __init__(self, pattern: str, group_on_concat: bool = False, group_on_quantify: bool = False) -> 'Pregex':
         '''
         Creates a 'Pregex' instance based on the provided pattern.
 
@@ -32,7 +32,7 @@ class Pregex():
     '''
     Public Methods
     '''
-    def get_pattern(self, include_flags=False) -> str:
+    def get_pattern(self, include_flags: bool = False) -> str:
         '''
         Returns the expression's pattern as its string representation.
 
@@ -67,7 +67,7 @@ class Pregex():
         further attempt at matching a string will use the compiled RegEx pattern \
         instead of the regular one.
         '''
-        self.__compiled = _re.compile(self.__pattern, flags=self.__flags)
+        self.__compiled = _re.compile(self.get_pattern(), flags=self.__flags)
 
     def has_match(self, text: str) -> bool:
         '''
@@ -121,7 +121,7 @@ class Pregex():
             yield match.groups() if include_empty else \
                 tuple(group for group in match.groups() if group != '')
 
-    def iterate_groups_and_pos(self, text: str, include_empty: bool = True, relative_to_match = False) -> _Iterator[list[tuple[str, int, int]]]:
+    def iterate_groups_and_pos(self, text: str, include_empty: bool = True, relative_to_match : bool = False) -> _Iterator[list[tuple[str, int, int]]]:
         '''
         Generates lists of tuples, one list per match, where each tuple contains one \
         of its corresponding match's captured groups along with its exact position \
@@ -176,7 +176,7 @@ class Pregex():
         '''
         return list(group for group in self.iterate_groups(text, include_empty))
 
-    def get_groups_and_pos(self, text: str, include_empty: bool = True, relative_to_match = False) -> list[list[tuple[str, int, int]]]:
+    def get_groups_and_pos(self, text: str, include_empty: bool = True, relative_to_match: bool = False) -> list[list[tuple[str, int, int]]]:
         '''
         Returns a list containing lists of tuples, one list per match, where each \
         tuple contains one of its corresponding match's captured groups along with \
@@ -322,7 +322,13 @@ class Pregex():
         '''
         Returns the string representation of this class instance in a printable format.
         '''
-        return _re.sub(r"\\\\", r"\\", repr(self.__pattern)[1:-1])
+        # Replace any quadraple backslashes.
+        s = _re.sub(r"\\\\", r"\\", repr(self.__pattern)[1:-1])
+        # Replace any one-character classes with a single (possibly escaped) character
+        s = _re.sub(r"\[([^\\]|\\.)\]", lambda m: str(__class__._to_pregex(m.group(1))) if len(m.group(1)) == 1 else m.group(1), s)
+        # Replace negated class shorthand-notation characters with their non-class shorthand-notation.
+        return _re.sub(r"\[\^(\\w|\\d|\\s)\]", lambda m: m.group(1).upper(), s)
+        
 
     def __add__(self, pre: str or 'Pregex') -> 'Pregex':
         '''
@@ -603,7 +609,7 @@ class Pregex():
         '''
         if not isinstance(name, str):
             raise _exceptions.NonStringArgumentException()
-        if name != '' and _re.fullmatch("[A-Za-z_][A-Za-z_0-9]*", name) is None:
+        if name != '' and _re.fullmatch("[A-Za-z_]\w*", name) is None:
             raise _exceptions.InvalidCapturingGroupNameException(name)
         if self.__is_group():
             pattern = self.__pattern.replace('?:', '', 1) if self.__pattern.startswith('(?:') else str(self)

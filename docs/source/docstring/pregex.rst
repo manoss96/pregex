@@ -24,7 +24,7 @@ A character class can be either one of the following two types:
 	   defined within the brackets". You can tell negated classes by their name, 
 	   which follows the "AnyBut*" pattern.
 
-**Combining Classes**
+**Class Unions**
 
 Classes of the same type can be combined together in order to get the union of
 the sets of characters they represent. This can be easily done though the use 
@@ -46,8 +46,8 @@ The same goes for negated classes as well:
    pre = AnyButDigit() | AnyButLowercaseLetter()
    print(pre.get_pattern()) # This will print "[^0-9a-z]"
 
-However, combining a regular and a negated class together cause a
-"CannotBeCombinedException" to be thrown.
+However, attempting to get the union of a regular class and a negated class
+causes a "CannotBeUnionedException" to be thrown.
 
 .. code-block:: python
 
@@ -55,11 +55,44 @@ However, combining a regular and a negated class together cause a
 
    pre = AnyDigit() | AnyButLowercaseLetter() # This is not OK!
 
+**Subtracting Classes**
+
+Subtraction is another operation that is exclusive to classes and is achieved via
+the overloaded subtraction operator "-". This feature comes in handy when one wishes
+to construct a class that would be tiresome to construct otherwise. Consider for
+example the class of all word characters except for alphabetic characters "Cc" and
+"Gg", as well as the digit "3". Constructing said class via subtraction is extremely
+easy:
+
+.. code-block:: python
+
+   from pregex.classes import AnyWordChar, AnyFrom
+
+   pre = AnyWordChar() - AnyFrom('C', 'c', 'G', 'g', '3')
+
+This is the returned pattern when invoking 'pre.get_pattern()'. It is evident
+that building the following pattern through multiple class unions would be
+more time consuming and prone to errors.
+
+.. code-block:: python
+
+	[A-BD-FH-Za-bd-fh-z0-24-9_]
+
+It should be noted that just like in the case of class unions, one is only 
+allowed to subtract a regular class from a regular class or a negated class
+from a negated class, as any other attempt will cause a "CannotBeSubtractedException"
+to be thrown.
+
+.. code-block:: python
+
+   from pregex.classes import AnyWordChar, AnyButLowercaseLetter
+
+   pre = AnyWordChar() - AnyButLowercaseLetter() # This is not OK!
 
 **Negating Classes**
 
-You should also know that every class can be negated through the use of the
-bitwise NOT operator "~":
+Finally, it is good to know that every regular class can be negated through
+the use of the bitwise NOT operator "~":
 
 .. code-block:: python
 
@@ -151,10 +184,10 @@ much more easy to read.
    pre = AnyDigit()
    s = "text"
 
-   concat = Concat(pre, s).get_pattern()
-   better_concat = (pre + s).get_pattern()
+   concat = Concat(pre, s)
+   better_concat = pre + s
 
-   print(concat == better_concat) # This prints 'True'
+   print(concat.get_pattern() == better_concat.get_pattern()) # This prints 'True'
 
 .. automodule:: pregex.operators
    :members:
@@ -164,6 +197,30 @@ much more easy to read.
 
 pregex.pre
 -----------------
+This module contains a single class, namely "Pregex", which constitutes the parent
+class for every other class within the 'pregex' package. Therefore, as long as a
+pattern is wrapped within a Pregex subtype instance, one has access to all of the
+class' methods in order to interact with said pattern and use it to match any text.
+One is also able to concatenate multiple Pregex instances together via the use of the
+class' overloaded addition operator "+":
+
+.. code-block:: python
+
+   from pregex.quantifiers import Optional
+
+   pre = Optional("a") + Optional("b") + Optional("c")
+
+   print(pre.get_pattern()) # This prints 'a?b?c?'
+
+Note that the above operation also works with simple strings:
+
+.. code-block:: python
+
+   from pregex.quantifiers import Optional
+
+   pre = Optional("a") + "b" + Optional("c")
+
+   print(pre.get_pattern()) # This prints 'a?bc?'
 
 .. automodule:: pregex.pre
    :members:
@@ -195,6 +252,7 @@ operator "*", which produces much simpler and easy to read code:
 .. automodule:: pregex.quantifiers
    :members:
    :undoc-members:
+
 ------------------------
 
 pregex.tokens

@@ -169,5 +169,40 @@ class TestBackreference(unittest.TestCase):
         self.assertFalse(pre.is_exact_match("ab"))
 
 
+class TestConditional(unittest.TestCase):
+
+    name = "name"
+    then_pre = Literal("then")
+    else_pre = Literal("else")
+
+    def test_conditional(self):
+        self.assertEqual(str(Conditional(self.name, self.then_pre)), f"(?({self.name}){self.then_pre})")
+
+
+    def test_conditional_with_else_pre(self):
+        self.assertEqual(str(Conditional(self.name, self.then_pre, self.else_pre)),
+        f"(?({self.name}){self.then_pre}|{self.else_pre})")
+
+    def test_conditional_on_non_string_name_exception(self):
+        invalid_type_names = [1, 1.5, True, Literal("z")]
+        for name in invalid_type_names:
+            self.assertRaises(NonStringArgumentException, Conditional, name, self.then_pre)
+
+    def test_conditional_on_invalid_name_exception(self):
+        invalid_names = ["11zzz", "ald!!", "@%^Fl", "!flflf123", "dld-"]
+        for name in invalid_names:
+            with self.assertRaises(InvalidCapturingGroupNameException):
+                _ = Conditional(name, self.then_pre)
+
+    def test_conditional_pattern(self):
+        pre: Pregex = Pregex(f"(?P<{self.name}>A)", False, False) + Conditional(self.name, "B")
+        self.assertTrue(pre.is_exact_match("AB"))
+
+    def test_conditional_pattern_with_else(self):
+        pre: Pregex = Pregex(f"(?P<{self.name}>A)?", False, False) + Conditional(self.name, "B", "C")
+        self.assertTrue(pre.is_exact_match("AB"))
+        self.assertTrue(pre.is_exact_match("C"))
+
+
 if __name__=="__main__":
     unittest.main()
