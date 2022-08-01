@@ -323,13 +323,8 @@ class Pregex():
         Returns the string representation of this class instance in a printable format.
         '''
         # Replace any quadraple backslashes.
-        s = _re.sub(r"\\\\", r"\\", repr(self.__pattern)[1:-1])
-        # Replace any one-character classes with a single (possibly escaped) character
-        s = _re.sub(r"\[([^\\]|\\.)\]", lambda m: str(__class__._to_pregex(m.group(1))) if len(m.group(1)) == 1 else m.group(1), s)
-        # Replace negated class shorthand-notation characters with their non-class shorthand-notation.
-        return _re.sub(r"\[\^(\\w|\\d|\\s)\]", lambda m: m.group(1).upper(), s)
+        return _re.sub(r"\\\\", r"\\", repr(self.__pattern)[1:-1])
         
-
     def __add__(self, pre: str or 'Pregex') -> 'Pregex':
         '''
         Calls "self._add" in order to concatenate this instance with the provided \

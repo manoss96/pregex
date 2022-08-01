@@ -26,22 +26,11 @@ class __Class(_pre.Pregex):
         - ~ AnyLowercaseLetter()
     '''
 
-    '''
-    This map is used to transform shorthand character classes \
-    into their more verbose form, in order to effectively \
-    combine this type of classes.
-    '''
-    __shorthand_map: dict[str, str] = {
-        "\w" : "a-zA-Z0-9_",
-        "\d" : "0-9",
-        "\s" : _whitespace
-    }
-
-    def __inverse_shorthand_map(classes: set[str]) -> set[str]:
+    def __verbose_to_shorthand(classes: set[str]) -> set[str]:
         '''
         This method searches the provided set for subsets of character classes that \
-        correspond to a shorthand charater class, and if it finds any, it replaces \
-        them with said character class, returning the resulting set at the end.
+        correspond to a shorthand-notation character class, and if it finds any, it \
+        replaces them with said character class, returning the resulting set at the end.
 
         :param set[str] classes: The set containing the classes as strings.
         '''
@@ -57,12 +46,37 @@ class __Class(_pre.Pregex):
         return classes
 
     def __init__(self, pattern: str, is_negated: bool) -> '__Class':
-        super().__init__(pattern, group_on_concat=False, group_on_quantify=False)
+        super().__init__(
+            __class__.__simplify(pattern, is_negated),
+            group_on_concat=False, group_on_quantify=False)
         self.__is_negated = is_negated
+        self.__verbose = pattern
+
+    def get_verbose_pattern(self) -> str:
+        '''
+        Returns a verbose representation of this class' pattern.
+        '''
+        return self.__verbose
+
+    def __simplify(pattern: str, is_negated: bool) -> str:
+        '''
+        Converts a verbose pattern to its simplified form.
+        '''
+        if pattern == ".":
+            return pattern
+        # Use shorthand notation for any classes that support this.
+        ranges, chars = __class__.__extract_classes(pattern)
+        classes = __class__.__verbose_to_shorthand(ranges.union(chars))
+        pattern = ''.join(f"[{'^' if is_negated else ''}{''.join(classes)}]")
+        # Replace any one-character classes with a single (possibly escaped) character
+        pattern = _re.sub(r"\[([^\\]|\\.)\]", lambda m: str(__class__._to_pregex(m.group(1))) \
+            if len(m.group(1)) == 1 else m.group(1), pattern)
+        # Replace negated class shorthand-notation characters with their non-class shorthand-notation.
+        return _re.sub(r"\[\^(\\w|\\d|\\s)\]", lambda m: m.group(1).upper(), pattern)
 
     def __invert__(self) -> '__Class':
         s, rs = '' if self.__is_negated else '^', '^' if self.__is_negated else ''
-        return __class__(f"[{s}{str(self).lstrip('[' + rs).rstrip(']')}]", not self.__is_negated)
+        return __class__(f"[{s}{self.__verbose.lstrip('[' + rs).rstrip(']')}]", not self.__is_negated)
 
     def __or__(self, pre: '__Class') -> '__Class':
         if not issubclass(pre.__class__, __class__):
@@ -80,12 +94,12 @@ class __Class(_pre.Pregex):
         if isinstance(pre1, Any) or isinstance(pre2, Any):
             return Any()
 
-        ranges1, chars1 = __class__.__extract_classes(pre1)
-        ranges2, chars2 = __class__.__extract_classes(pre2)
+        ranges1, chars1 = __class__.__extract_classes(pre1.__verbose)
+        ranges2, chars2 = __class__.__extract_classes(pre2.__verbose)
         ranges, chars = ranges1.union(ranges2), chars1.union(chars2)
 
         return  __class__(
-            f"[{'^' if pre1.__is_negated else ''}{''.join(__class__.__inverse_shorthand_map(__class__.__reduce(ranges, chars)))}]",
+            f"[{'^' if pre1.__is_negated else ''}{''.join(__class__.__reduce(ranges, chars))}]",
             pre1.__is_negated)
 
     def __sub__(self, pre: '__Class') -> '__Class':
@@ -106,8 +120,8 @@ class __Class(_pre.Pregex):
         if isinstance(pre1, Any):
             return ~ pre2
 
-        ranges1, chars1 = __class__.__extract_classes(pre1)
-        ranges2, chars2 = __class__.__extract_classes(pre2)
+        ranges1, chars1 = __class__.__extract_classes(pre1.__verbose)
+        ranges2, chars2 = __class__.__extract_classes(pre2.__verbose)
 
         # Subtract any ranges found in both pre2 and pre1 from pre1.
         def subtract_ranges(ranges1: set[str], ranges2: set[str]) -> tuple[set[str], set[str]]:
@@ -164,7 +178,7 @@ class __Class(_pre.Pregex):
         chars1 = chars1.union(reduced_chars)
 
         # Subtract any characters in chars2 from ranges1.
-        ranges1, reduced_chars = subtract_ranges(ranges1, set(f"{c}-{c}" for c in chars2))
+        ranges1, reduced_chars = subtract_ranges(ranges1, set(f"{c}-{c}" for c in chars2 if len(c) == 1))
         chars1 = chars1.union(reduced_chars)
 
         result = ranges1.union(chars1)
@@ -172,32 +186,27 @@ class __Class(_pre.Pregex):
         if len(result) == 0:
             raise _exceptions.EmptyClassException(pre1, pre2)
 
-
         return  __class__(
-            f"[{'^' if pre1.__is_negated else ''}{''.join(__class__.__inverse_shorthand_map(result))}]",
+            f"[{'^' if pre1.__is_negated else ''}{''.join(result)}]",
             pre1.__is_negated)
 
-    def __extract_classes(pre: '__Class') -> tuple[set[str], set[str]]:
+    def __extract_classes(pattern: str) -> tuple[set[str], set[str]]:
         '''
-        Extracts all classes from the provided '__Class' instance, convert them \
-        to their verbose notation, and return them separated into two different sets \
-        based on whether they constitute a range or an individual character.
+        Extracts all classes from the provided class pattern and returns them \
+        separated into two different sets based on whether they constitute a range \
+        or an individual character.
         '''
 
-        def get_start_index(pre):
-            if str(pre).startswith('[^'):
+        def get_start_index(pattern: str):
+            if pattern.startswith('[^'):
                 return 2
-            elif str(pre).startswith('['):
+            elif pattern.startswith('['):
                 return 1
             return 0
         
         # Remove brackets etc from string.
-        start_index = get_start_index(pre)
-        classes = str(pre)[start_index:-1]
-
-        # Replace every class by its verbose notation.
-        for s_key in __class__.__shorthand_map:
-            classes = classes.replace(s_key, __class__.__shorthand_map[s_key])
+        start_index = get_start_index(pattern)
+        classes = pattern[start_index:-1]
         
         # Return classes as a string.
         return (__class__.__extract_ranges(classes), __class__.__extract_chars(classes))
@@ -286,6 +295,8 @@ class __Class(_pre.Pregex):
             while i < len(chars):
                 for j in range(len(ranges)):
                     start, end = ranges[j]
+                    if len(chars[i]) > 1:
+                        continue
                     if chars[i] >= start and chars[i] <= end:
                         chars.pop(i)
                         i = -1
@@ -306,8 +317,6 @@ class __Class(_pre.Pregex):
         return ranges.union(chars)
 
 
-
-
 class Any(__Class):
     '''
     Matches any possible character, including the newline character. \
@@ -321,7 +330,7 @@ class Any(__Class):
         In order to match every character except for the newline character, \
         one can use "~AnyFrom('\\n')" or "AnyButFrom('\\n')".
         '''
-        super().__init__('.', False)
+        super().__init__('.', is_negated=False)
 
 
 class AnyLetter(__Class):
@@ -412,7 +421,7 @@ class AnyDigit(__Class):
         '''
         Matches any numeric character.
         '''
-        super().__init__('[\d]', False)
+        super().__init__('[0-9]', False)
 
 
 class AnyButDigit(__Class):
@@ -426,7 +435,7 @@ class AnyButDigit(__Class):
         Matches any character except for numeric characters. \
         Equivalent to "~AnyDigit()".
         '''
-        super().__init__('[^\d]', True)
+        super().__init__('[^0-9]', True)
 
 
 class AnyWordChar(__Class):
@@ -441,7 +450,7 @@ class AnyWordChar(__Class):
         Matches any alphanumeric character plus "_". \
         Equivalent to "AnyLetter() | AnyDigit() | AnyFrom('_')"
         '''
-        super().__init__('[\w]', False)
+        super().__init__('[a-zA-Z0-9_]', False)
 
 
 class AnyButWordChar(__Class):
@@ -455,7 +464,7 @@ class AnyButWordChar(__Class):
         Matches any character except for alphanumeric characters plus "_".. \
         Equivalent to "~AnyWordChar()".
         '''
-        super().__init__('[^\w]', True)
+        super().__init__('[^a-zA-Z0-9_]', True)
 
 
 class AnyPunctuation(__Class):
@@ -493,7 +502,7 @@ class AnyWhitespace(__Class):
         '''
         Matches any whitespace character.
         '''
-        super().__init__('[\s]', False)
+        super().__init__(f'[{_whitespace}]', False)
 
 
 class AnyButWhitespace(__Class):
@@ -507,7 +516,7 @@ class AnyButWhitespace(__Class):
         Matches any character except for whitespace characters. \
         Equivalent to "~AnyWhitespace()".
         '''
-        super().__init__('[^\s]', True)
+        super().__init__(f'[^{_whitespace}]', True)
 
 
 class AnyWithinRange(__Class):
@@ -577,8 +586,8 @@ class AnyFrom(__Class):
             if len(str(c).replace("\\", "")) > 1:
                 raise _exceptions.MultiCharTokenException(str(c))
         to_escape = {'\\', '^', '[', ']', '-', "'"}
-        chars = tuple((f"\{pre}" if pre in to_escape else pre) if isinstance(pre, str) \
-             else str(pre) for pre in set(chars))
+        chars = tuple((f"\{c}" if c in to_escape else c) if isinstance(c, str) \
+             else str(c) for c in set(chars))
         super().__init__(f"[{''.join(chars)}]", False)
 
 
@@ -607,6 +616,6 @@ class AnyButFrom(__Class):
             if len(str(c).replace("\\", "")) > 1:
                 raise _exceptions.MultiCharTokenException(str(c))
         to_escape = {'\\', '^', '[', ']', '-', "'"}
-        chars = tuple((f"\{pre}" if pre in to_escape else pre) if isinstance(pre, str) \
-             else str(pre) for pre in set(chars))
+        chars = tuple((f"\{c}" if c in to_escape else c) if isinstance(c, str) \
+             else str(c) for c in set(chars))
         super().__init__(f"[^{''.join(chars)}]", True)

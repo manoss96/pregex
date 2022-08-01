@@ -7,7 +7,7 @@
 
 Let's face it, although RegEx is without a doubt an extremely useful tool, its syntax has been repeatedly proven to be quite hard for people to read and to memorize. This is mainly due to RegEx's declarative nature, which many programmers are not familiar with, as well as its extensive use of symbols that do not inherently relate to their functionality within a RegEx pattern, thus making them hard to remember. To make matters even worse, RegEx patterns are more often than not tightly packed with large amounts of information, which our brains just seem to be struggling to break down in order to analyze effectively.
 
-For the above reasons, building even a simple RegEx pattern for matching URLs can be quite a painful task for many people. This is where PRegEx comes in! PRegEx, which stands for Programmable Regular Expressions, is a Python package that can be used in order to construct Regular Expression patterns in a more human-friendly way. Through the use of PRegEx, one is able to fully utilize the powerful tool that is RegEx without having to deal with any of its nuisances that seem to drive people crazy! PRegEx achieves that by offering the following:
+For all those reasons, building even a simple RegEx pattern for matching URLs can be quite a painful task for many people. This is where PRegEx comes in! PRegEx, which stands for Programmable Regular Expressions, is a Python package that can be used in order to construct Regular Expression patterns in a more human-friendly way. Through the use of PRegEx, one is able to fully utilize the powerful tool that is RegEx without having to deal with any of its nuisances that seem to drive people crazy! PRegEx achieves that by offering the following:
 
 1. An easy-to-remember syntax that resembles the good ol' imperative way of programming!
 2. Adds modularity to building RegEx patterns, as one can easily break down a complex pattern into simpler sub-patterns which can then be combined together.
@@ -19,7 +19,7 @@ For the above reasons, building even a simple RegEx pattern for matching URLs ca
 <!-- Installation -->
 ## Installation
 
-You can start using PRegEx by simply installing it via pip:
+You can start using PRegEx by installing it via pip. Note that "pregex" requires Python >= 3.9.
 
 ```sh
 pip install pregex
@@ -41,8 +41,8 @@ from pregex.pre import Pregex
 
 pre: Pregex = \
         Optional("http" + Optional('s') + "://") + \
-        Optional("www.") + \
         Either(
+            Optional("www.") +
             CapturingGroup(
                 AtLeastOnce(AnyButWhitespace() | AnyButFrom(":", Backslash()))
             ) +
@@ -61,7 +61,7 @@ regex = pre.get_pattern()
 
 This is the pattern that we just built. Yikes!
 ```
-(?:https?\:\/\/)?(?:www\.)?(?:([^\s\:\\]+)(?:\.com|\.org)|(?:\d{1,3}\.){3}\d{1,3}\:\d{4})
+(?:https?\:\/\/)?(?:(?:www\.)?([^\\:\s]+)(?:\.com|\.org)|(?:\d{1,3}\.){3}\d{1,3}\:\d{4})
 ```
 
 Besides from having access to its underlying pattern, we can use a Pregex instance to find matches within a string. Consider for example the following piece of text:

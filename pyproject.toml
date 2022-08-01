@@ -1,8 +1,9 @@
 [project]
 name = "pregex"
-version = "1.1.0"
+version = "1.1.1"
 authors = [
-  { name="Emmanouil Stoumpos <manosstoumpos@gmail.com>" },
+  {email = "manosstoumpos@gmail.com"},
+  {name = "Manos Stoumpos"}
 ]
 description = "PRegEx - Programmable Regular Expressions"
 keywords = ["regex"]

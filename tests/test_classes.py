@@ -52,6 +52,10 @@ class Test__Class(unittest.TestCase):
         self.assertEqual(str(AnyWithinRange('1', '5') | AnyFrom('6', '7')), "[1-7]")
         self.assertEqual(str(AnyFrom('a') | AnyWithinRange('b', 'e') | AnyFrom('f') | AnyWithinRange('g', 'h')), "[a-h]")
 
+    def test_any_class_bitwise_or_with_escaped_chars(self):
+        self.assertTrue(str(AnyLowercaseLetter() | AnyFrom("^")) \
+            in get_permutations("a-z", "\^"))
+
     def test_any_class_subtraction(self):
         self.assertEqual(str(AnyWithinRange('a', 'e') - AnyWithinRange('d', 'k')), "[a-c]")
         self.assertEqual(str(AnyWithinRange('d', 'k') - AnyWithinRange('a', 'e')), "[f-k]")
@@ -67,8 +71,11 @@ class Test__Class(unittest.TestCase):
             '#', '.', '=', '&', '^', '$', '!', '?', '+', '*', '(', ')', '{', '}', '-',
             '_', '[', ']', '~', ':', '`', '<', '>', '@', '%', '|', Backslash())) \
              in get_permutations("'", '"', '/', ';', ','))
-        
 
+    def test_any_class_subtraction_with_escaped_chars(self):
+        self.assertTrue(str((AnyLetter() | AnyFrom("-")) - AnyFrom("-")) \
+            in get_permutations("a-z", "A-Z"))
+        
     def test_any_class_bitwise_or_on_cannot_be_unioned_exception(self):
         any_letter, any_but_digit = AnyLetter(), ~AnyDigit()
         self.assertRaises(CannotBeUnionedException, any_letter.__or__, any_but_digit)
@@ -122,6 +129,10 @@ class TestNegated__Class(unittest.TestCase):
         self.assertEqual(str(AnyButFrom('a') | AnyButWithinRange('b', 'e') | AnyButFrom('f') | AnyButWithinRange('g', 'h')),
             "[^a-h]")
 
+    def test_any_but_class_bitwise_or_with_escaped_chars(self):
+        self.assertTrue(str(AnyButLowercaseLetter() | AnyButFrom("^")) \
+            in get_negated_permutations("a-z", "\^"))
+
     def test_any_but_class_subtraction(self):
         self.assertEqual(str(AnyButWithinRange('a', 'e') - AnyButWithinRange('d', 'k')), "[^a-c]")
         self.assertEqual(str(AnyButWithinRange('d', 'k') - AnyButWithinRange('a', 'e')), "[^f-k]")
@@ -137,6 +148,10 @@ class TestNegated__Class(unittest.TestCase):
             '#', '.', '=', '&', '^', '$', '!', '?', '+', '*', '(', ')', '{', '}', '-',
             '_', '[', ']', '~', ':', '`', '<', '>', '@', '%', '|', Backslash())) \
              in get_negated_permutations("'", '"', '/', ';', ','))
+
+    def test_any_but_class_subtraction_with_escaped_chars(self):
+        self.assertTrue(str((AnyButLetter() | AnyButFrom("-")) - AnyButFrom("-")) \
+            in get_negated_permutations("a-z", "A-Z"))
 
     def test_any_but_class_bitwise_or_on_cannot_be_unioned_exception(self):
         any_but_letter, any_digit = AnyButLetter(), AnyDigit()
@@ -167,7 +182,7 @@ class TestAny(unittest.TestCase):
         self.assertEqual(str(AnyLetter() | Any()), ".")
 
     def test_any_on_subtraction(self):
-        self.assertEqual(str(Any() - AnyDigit()), "[^\d]")
+        self.assertEqual(str(Any() - AnyDigit()), "\D")
 
     def test_any_subtraction_on_empty_class_exception(self):
         with self.assertRaises(EmptyClassException):
@@ -177,7 +192,7 @@ class TestAny(unittest.TestCase):
 class TestAnyLetter(unittest.TestCase):
 
     def test_any_letter(self):
-        self.assertEqual(str(AnyLetter()), "[a-zA-Z]")
+        self.assertEqual(AnyLetter().get_verbose_pattern(), "[a-zA-Z]")
 
 
 class TestAnyLowercaseLetter(unittest.TestCase):
@@ -195,41 +210,41 @@ class TestAnyUppercaseLetter(unittest.TestCase):
 class TestAnyDigit(unittest.TestCase):
 
     def test_any_digit(self):
-        self.assertEqual(str(AnyDigit()), "[\d]")
+        self.assertEqual(str(AnyDigit()), "\d")
 
 
 class TestAnyWordChar(unittest.TestCase):
 
     def test_any_word_char(self):
-        self.assertEqual(str(AnyWordChar()), "[\w]")
+        self.assertEqual(str(AnyWordChar()), "\w")
 
     def test_any_word_char_combine_with_subsets(self):
-        self.assertEqual(str(AnyWordChar() | (AnyLetter() | AnyDigit())), "[\w]")
-        self.assertEqual(str(AnyWordChar() | AnyLetter()), "[\w]")
-        self.assertEqual(str(AnyWordChar() | AnyLowercaseLetter()), "[\w]")
-        self.assertEqual(str(AnyWordChar() | AnyUppercaseLetter()), "[\w]")
-        self.assertEqual(str(AnyWordChar() | AnyDigit()), "[\w]")
+        self.assertEqual(str(AnyWordChar() | (AnyLetter() | AnyDigit())), "\w")
+        self.assertEqual(str(AnyWordChar() | AnyLetter()), "\w")
+        self.assertEqual(str(AnyWordChar() | AnyLowercaseLetter()), "\w")
+        self.assertEqual(str(AnyWordChar() | AnyUppercaseLetter()), "\w")
+        self.assertEqual(str(AnyWordChar() | AnyDigit()), "\w")
 
     def test_any_word_char_result_from_subsets(self):
-        self.assertEqual(str(AnyLetter() | (AnyDigit() | AnyFrom("_"))), "[\w]")
+        self.assertEqual(str(AnyLetter() | (AnyDigit() | AnyFrom("_"))), "\w")
 
 
 class TestAnyPunctuation(unittest.TestCase):
 
     def test_any_punctuation(self):
-        self.assertEqual(str(AnyPunctuation()), '[\^\-\[\]!"#$%&\'()*+,./:;<=>?@_`{|}~\\\\]')
+        self.assertEqual(str(AnyPunctuation().get_verbose_pattern()), '[\^\-\[\]!"#$%&\'()*+,./:;<=>?@_`{|}~\\\\]')
 
 
 class TestAnyWhitespace(unittest.TestCase):
 
     def test_any_whitespace(self):
-        self.assertEqual(str(AnyWhitespace()), "[\s]")
+        self.assertEqual(str(AnyWhitespace()), "\s")
 
     def test_any_whitespace_combine_with_subsets(self):
-        self.assertEqual(str(AnyWhitespace() | AnyFrom(" ", "\r")), "[\s]")
+        self.assertEqual(str(AnyWhitespace() | AnyFrom(" ", "\r")), "\s")
 
     def test_any_whitespace_result_from_subsets(self):
-        self.assertEqual(str(AnyFrom(' ', '\t', '\n', '\r', '\x0b') | AnyFrom('\x0c')), "[\s]")
+        self.assertEqual(str(AnyFrom(' ', '\t', '\n', '\r', '\x0b') | AnyFrom('\x0c')), "\s")
 
 
 class TestAnyWithinRange(unittest.TestCase):
@@ -262,8 +277,8 @@ class TestNegatedAnyLetter(unittest.TestCase):
 
     def test_any_but_letter(self):
         pattern = "[^a-zA-Z]"
-        self.assertEqual(str(~AnyLetter()), pattern)
-        self.assertEqual(str(AnyButLetter()), pattern)
+        self.assertEqual((~AnyLetter()).get_verbose_pattern(), pattern)
+        self.assertEqual(AnyButLetter().get_verbose_pattern(), pattern)
 
 
 class TestNegatedAnyLowercaseLetter(unittest.TestCase):
@@ -285,7 +300,7 @@ class TestNegatedAnyUppercaseLetter(unittest.TestCase):
 class TestNegatedAnyDigit(unittest.TestCase):
 
     def test_any_but_digit(self):
-        pattern = "[^\d]"
+        pattern = "\D"
         self.assertEqual(str(~AnyDigit()), pattern)
         self.assertEqual(str(AnyButDigit()), pattern)
 
@@ -293,7 +308,7 @@ class TestNegatedAnyDigit(unittest.TestCase):
 class TestNegatedAnyWordChar(unittest.TestCase):
 
     def test_any_but_word_char(self):
-        pattern = "[^\w]"
+        pattern = "\W"
         self.assertEqual(str(~AnyWordChar()), pattern)
         self.assertEqual(str(AnyButWordChar()), pattern)
 
@@ -302,14 +317,14 @@ class TestNegatedAnyPunctuation(unittest.TestCase):
 
     def test_any_but_punctuation_char(self):
         pattern = '[^\^\-\[\]!"#$%&\'()*+,./:;<=>?@_`{|}~\\\\]'
-        self.assertEqual(str(~AnyPunctuation()), pattern)
-        self.assertEqual(str(AnyButPunctuation()), pattern)
+        self.assertEqual((~AnyPunctuation()).get_verbose_pattern(), pattern)
+        self.assertEqual(AnyButPunctuation().get_verbose_pattern(), pattern)
 
 
 class TestNegatedAnyWhitespace(unittest.TestCase):
 
     def test_any_but_whitespace(self):
-        pattern = "[^\s]"
+        pattern = "\S"
         self.assertEqual(str(~AnyWhitespace()), pattern)
         self.assertEqual(str(AnyButWhitespace()), pattern)
 
