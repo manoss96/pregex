@@ -5,11 +5,12 @@ import pregex.exceptions as _exceptions
 
 class __Group(_pre.Pregex):
     '''
-    Every "Group" class must inherit from this class.
+    Constitutes the base class for classes "CapturingGroup" and "NonCapturingGroup".
     '''
     def __init__(self, pre: _pre.Pregex or str, transform) -> _pre.Pregex:
         pre = transform(__class__._to_pregex(pre))
-        super().__init__(str(pre), pre._get_group_on_concat(), pre._get_group_on_quantify())
+        super().__init__(str(pre), escape=False)
+        self._set_type(__class__._PatternType.Group)
 
 
 class CapturingGroup(__Group):
@@ -69,7 +70,7 @@ class NonCapturingGroup(__Group):
         super().__init__(pre, lambda pre: pre._non_capturing_group())
 
 
-class Backreference(_pre.Pregex):
+class Backreference(__Group):
     '''
     Creates a backreference to some previously declared named capturing group.\
     A backreference matches the same text as the text that was most recently \
@@ -90,10 +91,10 @@ class Backreference(_pre.Pregex):
             raise _exceptions.NonStringArgumentException()
         if re.fullmatch("[A-Za-z_][A-Za-z_0-9]*", name) is None:
             raise _exceptions.InvalidCapturingGroupNameException(name)
-        super().__init__(f"(?P={name})", group_on_concat=False, group_on_quantify=False)
+        super().__init__(name, lambda s : f"(?P={s})")
 
     
-class Conditional(_pre.Pregex):
+class Conditional(__Group):
     '''
     Given the name of a capturing-group, matches 'pre1' only if said capturing-group has \
     been previously matched. Furthermore, if a second pattern 'pre2' is provided, then this \
@@ -122,4 +123,4 @@ class Conditional(_pre.Pregex):
             raise _exceptions.NonStringArgumentException()
         if re.fullmatch("[A-Za-z_][A-Za-z_0-9]*", name) is None:
             raise _exceptions.InvalidCapturingGroupNameException(name)
-        super().__init__(f"(?({name}){pre1}{'|' + str(pre2) if pre2 != '' else ''})", group_on_concat=False, group_on_quantify=False)
+        super().__init__(name, lambda s: f"(?({s}){pre1}{'|' + str(pre2) if pre2 != '' else ''})")

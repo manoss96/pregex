@@ -1,54 +1,29 @@
 
 import re as _re
 import pregex.pre as _pre
-import pregex.tokens as _tokens
 import pregex.exceptions as _exceptions
 from string import whitespace as _whitespace
 
 
 class __Class(_pre.Pregex):
     '''
-    Any "Class" class must inherit from this class.
+    Constitutes the base class for every class within "classes.py".
 
-    This type of objects are used to  construct character classes. \
-    For example, the "AnyLetter" class represents character class "[a-zA-Z]". \
-    This modules contains a number of classes in order for various character \
-    classes to be easily constructed.
-    
-    Besides these pre-defined character classes, one is also able to create their own \
-    by combining other character classes together through the use of the overloaded Bitwise \
-    OR operator "|". For instance, one can construct character class "[a-z0-9]" as such:
-        - AnyLowercaseLetter() | AnyDigit()
+    Operations defined for classes:
+        - Union:
+            AnyLowercaseLetter() | AnyDigit() => [a-z0-9]
+        - Subtraction:
+            AnyLetter() - AnyLowercaseLetter() => [A-Z]
+        - Negation:
+            ~ AnyLowercaseLetter() => [^a-z]
 
-    Furthermore, one is also able to negate character classes by using the overloaded \
-    Bitwise NOT operator "~". For instance, one can construct character class "[^a-z]" \
-    by negating "AnyLowercaseLetter()":
-        - ~ AnyLowercaseLetter()
+    NOTE: Union and subtraction can only be performed on a pair of classes of the same type, \
+        that is, either a pair of regular classes or a pair of negated classes.
     '''
 
-    def __verbose_to_shorthand(classes: set[str]) -> set[str]:
-        '''
-        This method searches the provided set for subsets of character classes that \
-        correspond to a shorthand-notation character class, and if it finds any, it \
-        replaces them with said character class, returning the resulting set at the end.
-
-        :param set[str] classes: The set containing the classes as strings.
-        '''
-        word_set = {'a-z', 'A-Z', '0-9', '_'}
-        digit_set = {'0-9'}
-        whitespace_set = {' ', '\t', '\n', '\r', '\x0b', '\x0c'}
-        if classes.issuperset(word_set):
-            classes = classes.difference(word_set).union({'\w'})
-        elif classes.issuperset(digit_set):
-            classes = classes.difference(digit_set).union({'\d'})
-        if classes.issuperset(whitespace_set):
-            classes = classes.difference(whitespace_set).union({'\s'})
-        return classes
-
     def __init__(self, pattern: str, is_negated: bool) -> '__Class':
-        super().__init__(
-            __class__.__simplify(pattern, is_negated),
-            group_on_concat=False, group_on_quantify=False)
+        super().__init__(__class__.__simplify(pattern, is_negated), escape=False)
+        self._set_type(__class__._PatternType.Class)
         self.__is_negated = is_negated
         self.__verbose = pattern
 
@@ -73,6 +48,25 @@ class __Class(_pre.Pregex):
             if len(m.group(1)) == 1 else m.group(1), pattern)
         # Replace negated class shorthand-notation characters with their non-class shorthand-notation.
         return _re.sub(r"\[\^(\\w|\\d|\\s)\]", lambda m: m.group(1).upper(), pattern)
+
+    def __verbose_to_shorthand(classes: set[str]) -> set[str]:
+        '''
+        This method searches the provided set for subsets of character classes that \
+        correspond to a shorthand-notation character class, and if it finds any, it \
+        replaces them with said character class, returning the resulting set at the end.
+
+        :param set[str] classes: The set containing the classes as strings.
+        '''
+        word_set = {'a-z', 'A-Z', '0-9', '_'}
+        digit_set = {'0-9'}
+        whitespace_set = {' ', '\t', '\n', '\r', '\x0b', '\x0c'}
+        if classes.issuperset(word_set):
+            classes = classes.difference(word_set).union({'\w'})
+        elif classes.issuperset(digit_set):
+            classes = classes.difference(digit_set).union({'\d'})
+        if classes.issuperset(whitespace_set):
+            classes = classes.difference(whitespace_set).union({'\s'})
+        return classes
 
     def __invert__(self) -> '__Class':
         s, rs = '' if self.__is_negated else '^', '^' if self.__is_negated else ''
@@ -568,23 +562,21 @@ class AnyFrom(__Class):
     Matches any one of the provided characters.
 
     :param Pregex | str *chars: One or more characters to match from. Each character must be \
-        a string of length one, provided either as is or wrapped within an instance of type \
-        "Token".
+        a string of length one, provided either as is or wrapped within a "tokens" class.
     '''
 
-    def __init__(self, *chars: str or _tokens.Token) -> 'AnyFrom':
+    def __init__(self, *chars: str or _pre.Pregex) -> 'AnyFrom':
         '''
         Matches any one of the provided characters.
 
         :param Pregex | str *chars: One or more characters to match from. Each character must be \
-            a string of length one, provided either as is or wrapped within an instance of type \
-            "Token".
+            a string of length one, provided either as is or wrapped within a "tokens" class.
         '''
         for c in chars:
-            if not issubclass(c.__class__, (str, _tokens.Token)):
+            if not issubclass(c.__class__, (str, _pre.Pregex)):
                 raise _exceptions.NeitherStringNorTokenException()
-            if len(str(c).replace("\\", "")) > 1:
-                raise _exceptions.MultiCharTokenException(str(c))
+            if issubclass(c.__class__, _pre.Pregex) and c._get_type() != __class__._PatternType.Token:
+                raise _exceptions.NeitherStringNorTokenException()
         to_escape = {'\\', '^', '[', ']', '-', "'"}
         chars = tuple((f"\{c}" if c in to_escape else c) if isinstance(c, str) \
              else str(c) for c in set(chars))
@@ -597,24 +589,22 @@ class AnyButFrom(__Class):
     Equivalent to "~AnyFrom()".
 
     :param Pregex | str *chars: One or more characters to match from. Each character must be \
-        a string of length one, provided either as is or wrapped within an instance of class \
-        "Token".
+        a string of length one, provided either as is or wrapped within a "tokens" class.
     '''
 
-    def __init__(self, *chars: str or _tokens.Token) -> 'AnyButFrom':
+    def __init__(self, *chars: str or _pre.Pregex) -> 'AnyButFrom':
         '''
         Matches any character except for the provided characters. \
         Equivalent to "~AnyFrom()".
 
         :param Pregex | str *chars: One or more characters not to match from. Each character must be \
-            a string of length one, provided either as is or wrapped within an instance of class \
-            "Token".
+            a string of length one, provided either as is or wrapped within a "tokens" class.
         '''
         for c in chars:
-            if not issubclass(c.__class__, (str, _tokens.Token)):
+            if not issubclass(c.__class__, (str, _pre.Pregex)):
                 raise _exceptions.NeitherStringNorTokenException()
-            if len(str(c).replace("\\", "")) > 1:
-                raise _exceptions.MultiCharTokenException(str(c))
+            if issubclass(c.__class__, _pre.Pregex) and c._get_type() != __class__._PatternType.Token:
+                raise _exceptions.NeitherStringNorTokenException()
         to_escape = {'\\', '^', '[', ']', '-', "'"}
         chars = tuple((f"\{c}" if c in to_escape else c) if isinstance(c, str) \
              else str(c) for c in set(chars))

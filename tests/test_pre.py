@@ -2,9 +2,8 @@ import re
 import unittest
 from pregex.classes import AnyDigit, AnyWhitespace, AnyWordChar, AnyFrom
 from pregex.pre import Pregex
-from pregex.tokens import Literal
 from pregex.exceptions import NegativeArgumentException, NonIntegerArgumentException, \
-    NonPositiveArgumentException
+    NonPositiveArgumentException, NonStringArgumentException
 
 
 class TestPregex(unittest.TestCase):
@@ -12,8 +11,8 @@ class TestPregex(unittest.TestCase):
     TEXT = "A0z aaa _9 z9z 99a B0c"
     PATTERN = "([A-Za-z_])[0-9]+([a-z]?)"
 
-    pre1 = Pregex(PATTERN, False, True)
-    pre2 = Pregex(PATTERN, True, False)
+    pre1 = Pregex(PATTERN, escape=False)
+    pre2 = Pregex(PATTERN, escape=False)
     # pre2 is compiled.
     pre2.compile()
 
@@ -51,6 +50,30 @@ class TestPregex(unittest.TestCase):
     SPLIT_BY_MATCH = [" aaa ", " ", " 99a "]
     SPLIT_BY_GROUP = ['0', ' aaa ', '9', ' ', '9', ' 99a ', '0']
     SPLIT_BY_GROUP_WITHOUT_EMPTY = ['0', ' aaa ', '9 ', '9', ' 99a ', '0']
+
+
+    '''
+    Test Pregex Constructor.
+    '''    
+    def test_pregex_on_len_1_str(self):
+        s = "s"
+        self.assertEqual(str(Pregex(s)), s)
+
+    def test_pregex_on_len_n_str(self):
+        s = "test"
+        self.assertEqual(str(Pregex(s)), s)
+
+    def test_pregex_on_escape(self):
+        for c in ('\\', '^', '$', '(', ')', '[', ']', '{', '}', '<', '>', '?', '+', '*', '.', '|', '-', '!', '=', ':', '/'):
+            self.assertEqual(str(Pregex(c)), f"\{c}")
+
+    def test_pregex_on_non_string_argument(self):
+        for val in [1, 1.3, True]:
+            self.assertRaises(NonStringArgumentException, Pregex, val)
+
+    def test_pregex_on_match(self):
+        text = ":\z^l"
+        self.assertTrue(Pregex(text).get_matches(f"text{text}text") == [text])
 
 
     '''
@@ -156,31 +179,23 @@ class TestPregex(unittest.TestCase):
     '''
     Test Protected Methods
     '''
-    def test_pregex_on__get_group_on_concat(self):
-        self.assertEqual(self.pre1._get_group_on_concat(), False)
-
-    def test_pregex_on__get_group_on_quantify(self):
-        self.assertEqual(self.pre1._get_group_on_quantify(), True)
-
     def test_pregex_on__concat_conditional_group(self):
-        self.assertEqual(str(self.pre1._concat_conditional_group()), str(self.pre1))
-        self.assertEqual(str(self.pre2._concat_conditional_group()), f"(?:{self.pre2})")
+        self.assertEqual(self.pre1._concat_conditional_group(), str(self.pre1))
 
     def test_pregex_on__quantify_conditional_group(self):
-        self.assertEqual(str(self.pre1._quantify_conditional_group()), f"(?:{self.pre1})")
-        self.assertEqual(str(self.pre2._quantify_conditional_group()), str(self.pre2))
+        self.assertEqual(self.pre1._quantify_conditional_group(), f"(?:{self.pre1})")
 
     def test_pregex_on__to_pregex(self):
         s = "abc.-<?>"
-        self.assertEqual(str(Pregex._to_pregex(s)), str(Literal(s)))
+        self.assertEqual(str(Pregex._to_pregex(s)), str(Pregex(s)))
         self.assertEqual(str(Pregex._to_pregex(self.pre1)), str(self.pre1))
 
-    def test_pregex_on__add(self):
-        self.assertEqual(str(Pregex._add(self.pre1, self.pre2)), f"{self.pre1}(?:{self.pre2})")
+    def test_pregex_on_addition_operator(self):
+        self.assertEqual(str(self.pre1 + self.pre2), f"{self.pre1}{self.pre2}")
         l1, l2 = "a", "b"
-        self.assertEqual(str(Pregex._add(l1, l2)), l1 + l2)
+        self.assertEqual(str(Pregex(l1) + Pregex(l2)), l1 + l2)
         l1, l2 = "|", "?"
-        self.assertEqual(str(Pregex._add(l1, l2)), f"\\{l1}\\{l2}")
+        self.assertEqual(str(Pregex(l1) + Pregex(l2)), f"\\{l1}\\{l2}")
 
 
     '''
@@ -192,8 +207,8 @@ class TestPregex(unittest.TestCase):
         self.assertEqual(str(s + self.pre1), s + self.PATTERN)
 
     def test_pregex_on_pregex_pregex_addition(self):
-        self.assertEqual(str(self.pre1 + self.pre2), f"{self.PATTERN}(?:{self.PATTERN})")
-        self.assertEqual(str(self.pre2 + self.pre1), f"(?:{self.PATTERN}){self.PATTERN}")
+        self.assertEqual(str(self.pre1 + self.pre2), f"{self.PATTERN}{self.PATTERN}")
+        self.assertEqual(str(self.pre2 + self.pre1), f"{self.PATTERN}{self.PATTERN}")
 
     def test_pregex_on_multiplication(self):
         self.assertEqual(str(self.pre1 * 1), self.PATTERN)

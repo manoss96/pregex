@@ -5,14 +5,15 @@ import pregex.exceptions as _exceptions
 
 class __Quantifier(_pre.Pregex):
     '''
-    Every "Quantifier" class must inherit from this class.
+    Constitutes the base class for every class within "quantifiers.py".
     '''
     def __init__(self, pre: _pre.Pregex or str, is_greedy: bool, transform) -> '__Quantifier':
-        if isinstance(pre, (_assertions.MatchAtStart, _assertions.MatchAtLineStart,
-            _assertions.MatchAtEnd, _assertions.MatchAtLineEnd)):
-            raise _exceptions.NotQuantifiableException(pre)
+        if issubclass(pre.__class__, _pre.Pregex):
+            if pre._get_type() in (__class__._PatternType.Assertion, __class__._PatternType.Quantifier):
+                raise _exceptions.CannotBeQuantifiedException(pre)
         pre = transform(__class__._to_pregex(pre), is_greedy)
-        super().__init__(str(pre), pre._get_group_on_concat(), pre._get_group_on_quantify())
+        super().__init__(str(pre), escape=False)
+        self._set_type(__class__._PatternType.Quantifier)
 
 
 class Optional(__Quantifier):

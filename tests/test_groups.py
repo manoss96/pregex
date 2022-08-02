@@ -1,7 +1,7 @@
 import unittest
-from pregex.pre import Pregex
 from pregex.groups import *
-from pregex.tokens import Backslash, Literal
+from pregex.pre import Pregex
+from pregex.tokens import Backslash
 from pregex.exceptions import NonStringArgumentException, InvalidCapturingGroupNameException
 
 
@@ -15,7 +15,7 @@ class TestCapturingGroup(unittest.TestCase):
         self.assertEqual(str(CapturingGroup(TEST_STR)), f"({TEST_STR})")
 
     def test_capturing_group_on_literal(self):
-        literal = Literal(TEST_STR)
+        literal = Pregex(TEST_STR)
         self.assertEqual(str(CapturingGroup(literal)), f"({literal})")
 
     def test_capturing_group_on_capturing_group(self):
@@ -60,7 +60,7 @@ class TestCapturingGroup(unittest.TestCase):
         self.assertEqual(str(CapturingGroup(TEST_STR, self.name)), f"(?P<{self.name}>{TEST_STR})")
 
     def test_named_capturing_group_on_literal(self):
-        literal = Literal(TEST_STR)
+        literal = Pregex(TEST_STR)
         self.assertEqual(str(CapturingGroup(literal, self.name)), f"(?P<{self.name}>{literal})")
 
     def test_named_capturing_group_on_capturing_group(self):
@@ -80,7 +80,7 @@ class TestCapturingGroup(unittest.TestCase):
         self.assertEqual(str(CapturingGroup(group, self.name)), f"(?P<{self.name}>{str(group)[:-1].replace('(?:', '', 1)})")
 
     def test_named_capturing_group_on_non_string_name_exception(self):
-        invalid_type_names = [1, 1.5, True, Literal("z")]
+        invalid_type_names = [1, 1.5, True, Pregex("z")]
         for name in invalid_type_names:
             self.assertRaises(NonStringArgumentException, CapturingGroup, "test", name)
 
@@ -96,7 +96,7 @@ class TestNonCapturingGroup(unittest.TestCase):
         self.assertEqual(str(NonCapturingGroup(TEST_STR)), f"(?:{TEST_STR})")
 
     def test_non_capturing_group_on_literal(self):
-        literal = Literal(TEST_STR)
+        literal = Pregex(TEST_STR)
         self.assertEqual(str(NonCapturingGroup(literal)), f"(?:{literal})")
 
     def test_non_capturing_group_on_capturing_group(self):
@@ -151,7 +151,7 @@ class TestBackreference(unittest.TestCase):
         self.assertEqual(str(Backreference(name)), f"(?P={name})")
 
     def test_backreference_on_non_string_name_exception(self):
-        invalid_type_names = [1, 1.5, True, Literal("z")]
+        invalid_type_names = [1, 1.5, True, Pregex("z")]
         for name in invalid_type_names:
             self.assertRaises(NonStringArgumentException, Backreference, name)
 
@@ -163,7 +163,7 @@ class TestBackreference(unittest.TestCase):
 
     def test_backreference_pattern(self):
         name = "name"
-        pre: Pregex = Pregex(f"(?P<{name}>a|b)", False, False) + Backreference(name)
+        pre: Pregex = Pregex(f"(?P<{name}>a|b)", escape=False) + Backreference(name)
         self.assertTrue(pre.is_exact_match("aa"))
         self.assertTrue(pre.is_exact_match("bb"))
         self.assertFalse(pre.is_exact_match("ab"))
@@ -172,8 +172,8 @@ class TestBackreference(unittest.TestCase):
 class TestConditional(unittest.TestCase):
 
     name = "name"
-    then_pre = Literal("then")
-    else_pre = Literal("else")
+    then_pre = Pregex("then")
+    else_pre = Pregex("else")
 
     def test_conditional(self):
         self.assertEqual(str(Conditional(self.name, self.then_pre)), f"(?({self.name}){self.then_pre})")
@@ -184,7 +184,7 @@ class TestConditional(unittest.TestCase):
         f"(?({self.name}){self.then_pre}|{self.else_pre})")
 
     def test_conditional_on_non_string_name_exception(self):
-        invalid_type_names = [1, 1.5, True, Literal("z")]
+        invalid_type_names = [1, 1.5, True, Pregex("z")]
         for name in invalid_type_names:
             self.assertRaises(NonStringArgumentException, Conditional, name, self.then_pre)
 
@@ -195,11 +195,11 @@ class TestConditional(unittest.TestCase):
                 _ = Conditional(name, self.then_pre)
 
     def test_conditional_pattern(self):
-        pre: Pregex = Pregex(f"(?P<{self.name}>A)", False, False) + Conditional(self.name, "B")
+        pre: Pregex = Pregex(f"(?P<{self.name}>A)", escape=False) + Conditional(self.name, "B")
         self.assertTrue(pre.is_exact_match("AB"))
 
     def test_conditional_pattern_with_else(self):
-        pre: Pregex = Pregex(f"(?P<{self.name}>A)?", False, False) + Conditional(self.name, "B", "C")
+        pre: Pregex = Pregex(f"(?P<{self.name}>A)?", escape=False) + Conditional(self.name, "B", "C")
         self.assertTrue(pre.is_exact_match("AB"))
         self.assertTrue(pre.is_exact_match("C"))
 

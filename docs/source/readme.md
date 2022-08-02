@@ -1,8 +1,8 @@
 (about-pregex)=
 
-# About PRegEx
+# About pregex
 
-This page serves as a quick introduction to the PRegEx package.
+This page serves as a quick introduction to the pregex package.
 
 
 <!-- What is PRegEx? -->
@@ -52,8 +52,8 @@ pre: Pregex = \
             Either(".com", ".org"),
 
             3 * (AtLeastAtMost(AnyDigit(), min=1, max=3) + ".") +
-            1 * AtLeastAtMost(AnyDigit(), min=1, max=3) +
-            ":" + 4 * AnyDigit() 
+            1 * (AtLeastAtMost(AnyDigit(), min=1, max=3) + ":") +
+            4 * AnyDigit() 
         )
 ```
 

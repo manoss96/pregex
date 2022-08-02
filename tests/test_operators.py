@@ -1,6 +1,6 @@
 import unittest
+from pregex.pre import Pregex
 from pregex.operators import *
-from pregex.tokens import Literal
 from pregex.quantifiers import Exactly
 from pregex.classes import AnyLowercaseLetter
 from pregex.assertions import FollowedBy, MatchAtStart
@@ -24,7 +24,7 @@ class TestConcat(unittest.TestCase):
         self.assertEqual(str(Concat(TEST_STR_1, TEST_STR_1)), f"{TEST_STR_1}{TEST_STR_1}")
 
     def test_concat_on_literal(self):
-        self.assertEqual(str(Concat(Literal(TEST_STR_1), TEST_STR_2)), f"{TEST_STR_1}{TEST_STR_2}")
+        self.assertEqual(str(Concat(Pregex(TEST_STR_1), TEST_STR_2)), f"{TEST_STR_1}{TEST_STR_2}")
 
     def test_concat_on_quantifier(self):
         quantifier = Exactly(TEST_STR_1, 2)
@@ -58,7 +58,7 @@ class TestEither(unittest.TestCase):
         self.assertEqual(str(Either(TEST_STR_1, TEST_STR_1)), f"{TEST_STR_1}|{TEST_STR_1}")
 
     def test_either_on_literal(self):
-        self.assertEqual(str(Either(Literal(TEST_STR_1), TEST_STR_2)), f"{TEST_STR_1}|{TEST_STR_2}")
+        self.assertEqual(str(Either(Pregex(TEST_STR_1), TEST_STR_2)), f"{TEST_STR_1}|{TEST_STR_2}")
 
     def test_either_on_quantifier(self):
         quantifier = Exactly(TEST_STR_1, 2)

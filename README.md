@@ -49,8 +49,8 @@ pre: Pregex = \
             Either(".com", ".org"),
 
             3 * (AtLeastAtMost(AnyDigit(), min=1, max=3) + ".") +
-            1 * AtLeastAtMost(AnyDigit(), min=1, max=3) +
-            ":" + 4 * AnyDigit() 
+            1 * (AtLeastAtMost(AnyDigit(), min=1, max=3) + ":") +
+            4 * AnyDigit() 
         )
 ```
 

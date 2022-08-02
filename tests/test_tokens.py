@@ -3,29 +3,6 @@ from pregex.tokens import *
 from pregex.exceptions import NonStringArgumentException
 
 
-class TestLiteral(unittest.TestCase):
-    
-    def test_literal_on_len_1_str(self):
-        s = "s"
-        self.assertEqual(str(Literal(s)), s)
-
-    def test_literal_on_len_n_str(self):
-        s = "test"
-        self.assertEqual(str(Literal(s)), s)
-
-    def test_literal_on_escape(self):
-        for c in ('\\', '^', '$', '(', ')', '[', ']', '{', '}', '<', '>', '?', '+', '*', '.', '|', '-', '!', '=', ':', '/'):
-            self.assertEqual(str(Literal(c)), f"\{c}")
-
-    def test_literal_on_non_string_argument(self):
-        for val in [1, 1.3, True]:
-            self.assertRaises(NonStringArgumentException, Literal, val)
-
-    def test_literal_on_match(self):
-        text = ":\z^l"
-        self.assertTrue(Literal(text).get_matches(f"text{text}text") == [text])
-
-
 class TestWhitespace(unittest.TestCase):
 
     def test_space(self):

@@ -1,5 +1,113 @@
+pregex.pre
+-----------------
+This module contains a single class, namely "Pregex", which constitutes the base
+class for every other class within the "pregex" package. This means that all methods
+of this class are also defined for every other class as well.
+
+**Converting a string to a Pregex instance**
+
+In general, one can wrap any string within a "Pregex" instance by passing it as a 
+parameter to the class's constructor. By doing this, any characters that are part of
+the provided string that might need escaping so that said string is considered a valid RegEx
+pattern are automatically escaped.
+
+.. code-block:: python
+
+   from pregex.pre import Pregex
+
+   pre = Pregex("Hello.")
+
+   print(pre.get_pattern()) # This prints 'Hello\.'
+
+However, you probably won't need to do this often since any string that interacts with a
+"Pregex" instance in any way is automatically converted into a "Pregex" instance itself:
+
+.. code-block:: python
+
+   from pregex.pre import Pregex
+   from pregex.quantifiers import Optional
+
+   # These two statements are equivalent.
+   pre1 = Optional(Pregex("Hello."))
+   pre2 = Optional("Hello.")
+
+Finally, you should also know that character-escaping can also be disabled when wrapping a string
+within a "Pregex" instance. This can be used for example in order to construct your own RegEx patterns
+to be exactly as you want them to be:
+
+.. code-block:: python
+
+   from pregex.pre import Pregex
+
+   pre = Pregex("Hello.", escape=False)
+
+   print(pre.get_pattern()) # This prints 'Hello.'
+
+Be as it may, this practice is not recommended as it might lead to certain errors that
+relate to pattern-groupping. Therefore, it is strongly suggested that you make use of
+the classes within this package in order to build your RegEx patterns.
+
+**Concatenating patterns with "+"**
+
+Instead of using the "pregex.operators.Concat" class in order to concatenate "Pregex"
+instances, one is also able to use the overloaded addition operator "+" as seen in
+the example below:
+
+.. code-block:: python
+
+   from pregex.pre import Pregex
+   from pregex.quantifiers import Optional
+
+   pre = Pregex("a") + Pregex("b") + Optional("c")
+
+   print(pre.get_pattern()) # This prints 'abc?'
+
+This of course works with simple strings as well, as long as there
+is at least one "Pregex" instance involved in the operation:
+
+.. code-block:: python
+
+   from pregex.quantifiers import Optional
+
+   pre = "a" + "b" + Optional("c")
+
+   print(pre.get_pattern()) # This prints 'abc?'
+
+Concatenating patterns this way is encouraged as it leads to much more easy-to-read code.
+
+**Repeating patterns with "*"**
+
+The "Pregex" class has one more overloaded operator, namely the multiplication
+operator "*", which can be used in order to replace the functionality of class
+"pregex.quantifiers.Exactly". By using this operator on a "Pregex" instance, one
+indicates that a pattern is to be repeated an exact number of times:
+
+.. code-block:: python
+
+   from pregex.pre import Pregex
+
+   pre = 3 * Pregex("Hi")
+
+   print(pre.get_pattern()) # This prints 'HiHiHi'
+
+Now that you've taked a first look at the "Pregex" class, check out its
+methods below to learn about what else this class has to offer!
+
+.. automodule:: pregex.pre
+   :members:
+   :undoc-members:
+
+------------------------
+
 pregex.assertions
 ------------------------
+All classes within this module "assert" something about the provided pattern
+without having to match any additional characters. For example, "MatchAtStart" ensures
+that the provided pattern matches only when it is found at the start of the string,
+or "NotFollowedBy" asserts that any match with the provided pattern must not be followed
+by some other specified pattern. In general, you should now that assertions cannot be
+quantified, as attempting that will cause a "CannotBeQuantifiedException" exception to be thrown.
+
 
 .. automodule:: pregex.assertions
    :members:
@@ -9,7 +117,7 @@ pregex.assertions
 
 pregex.classes
 ---------------------
-All classes within this module represent the so-called Regex "character classes",
+All classes within this module represent the so-called RegΕx "character classes",
 which can be used in order to define a set or "class" of characters that can be matched.
 A character class can be either one of the following two types:
 
@@ -125,10 +233,10 @@ pregex.groups
 ------------------------
 This module contains all necessary classes that are used to construct both types
 of groups, capturing and non-capturing, as well as classes that relate to any
-other group-related concept, such as backreferences. In general, one should not
-have to concern themselves with grouping, as patterns are automatically grouped
-into non-capturing groups whenever this is deemed necessary. Consider for
-instance the code snippet below, where in the first case the "?" quanitifer is
+other group-related concept, such as backreferences and conditionals. In general,
+one should not have to concern themselves with grouping, as patterns are automatically
+grouped into non-capturing groups whenever this is deemed necessary. Consider for
+instance the code snippet below, where in the first case the "Optional" quanitifer is
 applied to the pattern directly, whereas in the second case, the pattern is wrapped
 within a non-capturing group:
 
@@ -171,23 +279,10 @@ so that said pattern is also captured separately whenever a match occurs.
 
 pregex.operators
 -----------------------
-This module contains two operators, namely "Concat" and "Either", of which
-you'll probably just need the latter, as pattern concatenation can also be
-done via the overloaded addition operator "+", which produces code that is
-much more easy to read.
-
-.. code-block:: python
-
-   from pregex.classes import AnyDigit
-   from pregex.operators import Concat
-
-   pre = AnyDigit()
-   s = "text"
-
-   concat = Concat(pre, s)
-   better_concat = pre + s
-
-   print(concat.get_pattern() == better_concat.get_pattern()) # This prints 'True'
+This module contains two operators, namely "Concat" and "Either", the former
+of which is used to concatenate two or more patterns, whereas the latter constitutes
+the alternation operator, which is used whenever either one of the provided patterns
+can be matched.
 
 .. automodule:: pregex.operators
    :members:
@@ -195,59 +290,12 @@ much more easy to read.
 
 ------------------------
 
-pregex.pre
------------------
-This module contains a single class, namely "Pregex", which constitutes the parent
-class for every other class within the 'pregex' package. Therefore, as long as a
-pattern is wrapped within a Pregex subtype instance, one has access to all of the
-class' methods in order to interact with said pattern and use it to match any text.
-One is also able to concatenate multiple Pregex instances together via the use of the
-class' overloaded addition operator "+":
-
-.. code-block:: python
-
-   from pregex.quantifiers import Optional
-
-   pre = Optional("a") + Optional("b") + Optional("c")
-
-   print(pre.get_pattern()) # This prints 'a?b?c?'
-
-Note that the above operation also works with simple strings:
-
-.. code-block:: python
-
-   from pregex.quantifiers import Optional
-
-   pre = Optional("a") + "b" + Optional("c")
-
-   print(pre.get_pattern()) # This prints 'a?bc?'
-
-.. automodule:: pregex.pre
-   :members:
-   :undoc-members:
-
-------------------------
-
 pregex.quantifiers
 -------------------------
-All classes of this module are used to declare that a pattern is to be
-repeated a number of times, where each class represents a slightly different
-repetition rule. Out of these classes, one is able to ignore the "Exactly" class
-which dictates that a pattern is to be repeated an exact number of times,
-as this rule can also be expressed via the use of the overloaded multiplication
-operator "*", which produces much simpler and easy to read code:
-
-.. code-block:: python
-
-   from pregex.quantifiers import Exactly
-   from pregex.tokens import Literal
-
-   lit = Literal("text")
-
-   pre1 = Exactly(lit, n=3)
-   pre2 = 3 * lit
-
-   print(pre1.get_pattern() == pre2.get_pattern()) # This prints 'True'.
+Every class within this module is used to declare that a pattern is to be
+matched a number of times, with each class representing a slightly different
+pattern-repetition rule. Note that quantifiers cannot be quantified themselves,
+as attempting that will cause a "CannotBeQuantifiedException" exception to be thrown.
 
 .. automodule:: pregex.quantifiers
    :members:
@@ -257,33 +305,10 @@ operator "*", which produces much simpler and easy to read code:
 
 pregex.tokens
 --------------------
-This module contains a number of classes that represent special characters,
-such as the "newline" character, the "carriage return" character, etc...
-In this module one will also find the "Literal" class, which can be used
-in order to convert a string into a RegEx pattern. This class wraps the provided
-string, escaping any characters it might contain that require to be escaped,
-so that the provided string constitutes a valid RegEx pattern. Consider the
-following example, where the "." in "hello." is automatically escaped so that
-it is not mistaken for the wildcard meta character ".".
-
-.. code-block:: python
-
-   from pregex.tokens import Literal
-
-   lit = Literal("hello.")
-   print(lit.get_pattern()) # This prints "hello\."
-
-However, you probably won't need to explicitly wrap a string within a "Literal"
-instance, as this is done automatically whenever a string interacts with a "Pregex"
-instance in any way.
-
-.. code-block:: python
-
-   from pregex.tokens import Literal
-   from pregex.quantifiers import Optional
-
-   pre = Optional("hello.") + "world."
-   print(pre.get_pattern()) # This prints "(?:hello\.)?world\."
+This module contains a number of classes that represent special characters.
+It is recommended that you use the classes of this module instead of providing
+the corresponding characters as strings, as this might lead to all sorts of
+errors due to escaping.
 
 .. automodule:: pregex.tokens
    :members:

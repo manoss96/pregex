@@ -2,38 +2,7 @@ import pregex.pre as _pre
 import pregex.exceptions as _exceptions
 
 
-class Token(_pre.Pregex):
-    '''
-    All tokens must inherit from this class.
-    '''
-
-    def __init__(self, pattern, group_on_concat, group_on_quantify) -> 'Token':
-        super().__init__(pattern, group_on_concat, group_on_quantify)
-
-
-class Literal(Token):
-    '''
-    Matches the provided string as it is.
-
-    :param str s: The string that is to be matched.
-    '''
-
-    def __init__(self, s: str) -> 'Literal':
-        '''
-        Matches the provided string as it is.
-
-        :param str s: The string that is to be matched.
-        '''
-        if not isinstance(s, str):
-            raise _exceptions.NonStringArgumentException()
-        literal = __class__._to_pregex(s)
-        super().__init__(
-            str(literal),
-            group_on_concat=literal._get_group_on_concat(),
-            group_on_quantify=literal._get_group_on_quantify())
-
-
-class Space(Token):
+class Space(_pre.Pregex):
     '''
     Matches a single space character.
     '''
@@ -42,10 +11,10 @@ class Space(Token):
         '''
          Matches a single space character.
         '''
-        super().__init__(r" ", group_on_concat=False, group_on_quantify=False)
+        super().__init__(r" ", escape=False)
 
 
-class Backslash(Token):
+class Backslash(_pre.Pregex):
     '''
     Matches a single backslash character.
     '''
@@ -54,10 +23,10 @@ class Backslash(Token):
         '''
          Matches a backslash character.
         '''
-        super().__init__(r"\\", group_on_concat=False, group_on_quantify=False)
+        super().__init__(r"\\", escape=False)
 
 
-class Newline(Token):
+class Newline(_pre.Pregex):
     '''
     Matches a single newline character.
     '''
@@ -66,10 +35,10 @@ class Newline(Token):
         '''
          Matches a single newline character.
         '''
-        super().__init__(r"\n", group_on_concat=False, group_on_quantify=False)
+        super().__init__(r"\n", escape=False)
 
 
-class CarriageReturn(Token):
+class CarriageReturn(_pre.Pregex):
     '''
     Matches a single carriage return character.
     '''
@@ -78,10 +47,10 @@ class CarriageReturn(Token):
         '''
          Matches a carriage return character.
         '''
-        super().__init__(r"\r", group_on_concat=False, group_on_quantify=False)
+        super().__init__(r"\r", escape=False)
 
 
-class FormFeed(Token):
+class FormFeed(_pre.Pregex):
     '''
     Matches a single form feed character.
     '''
@@ -90,10 +59,10 @@ class FormFeed(Token):
         '''
          Matches a form feed character.
         '''
-        super().__init__(r"\f", group_on_concat=False, group_on_quantify=False)
+        super().__init__(r"\f", escape=False)
 
 
-class Tab(Token):
+class Tab(_pre.Pregex):
     '''
     Matches a single tab character.
     '''
@@ -102,10 +71,10 @@ class Tab(Token):
         '''
          Matches a single tab character.
         '''
-        super().__init__(r"\t", group_on_concat=False, group_on_quantify=False)
+        super().__init__(r"\t", escape=False)
 
 
-class VerticalTab(Token):
+class VerticalTab(_pre.Pregex):
     '''
     Matches a single vertical tab character.
     '''
@@ -114,4 +83,4 @@ class VerticalTab(Token):
         '''
          Matches a single vertical tab character.
         '''
-        super().__init__(r"\v", group_on_concat=False, group_on_quantify=False)
+        super().__init__(r"\v", escape=False)

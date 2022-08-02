@@ -1,23 +1,33 @@
 import pregex.pre as _pre
 
-class __Anchor(_pre.Pregex):
+class __Assertion(_pre.Pregex):
     '''
-    Every "Anchor" class must inherit from this class.
+    Constitutes the base class for "__Anchor" and "__Lookaround" classes.
+    '''
+
+    def __init__(self, pattern: str):
+        super().__init__(pattern, escape=False)
+        self._set_type(__class__._PatternType.Assertion)
+
+
+class __Anchor(__Assertion):
+    '''
+    Constitutes the base class for every "anchor" classes.
     '''
 
     def __init__(self, pre: _pre.Pregex or str, transform):
         pre = __class__._to_pregex(pre)
-        super().__init__(transform(pre), group_on_concat=False)
+        super().__init__(transform(pre))
 
 
-class __Lookaround(_pre.Pregex):
+class __Lookaround(__Assertion):
     '''
-    Every "Lookaround" class must inherit from this class.
+    Constitutes the base class for every "lookaround" classes.
     '''
 
     def __init__(self, pre1: _pre.Pregex or str, pre2: _pre.Pregex or str, transform):
         pre1, pre2 = __class__._to_pregex(pre1), __class__._to_pregex(pre2)
-        super().__init__(transform(pre1, pre2), group_on_concat=False, group_on_quantify=True)
+        super().__init__(transform(pre1, pre2))
 
 
 class MatchAtStart(__Anchor):

@@ -3,10 +3,9 @@ from pregex.pre import Pregex
 from pregex.classes import *
 from string import whitespace
 from itertools import permutations
-from pregex.tokens import Backslash, Literal
-from pregex.exceptions import NeitherStringNorTokenException, MultiCharTokenException, \
-    CannotBeUnionedException, CannotBeSubtractedException, InvalidRangeException, \
-    EmptyClassException
+from pregex.tokens import Backslash
+from pregex.exceptions import NeitherStringNorTokenException, CannotBeUnionedException, \
+    CannotBeSubtractedException, InvalidRangeException, EmptyClassException
 
 
 def get_permutations(*classes: str):
@@ -261,16 +260,12 @@ class TestAnyWithinRange(unittest.TestCase):
 class TestAnyFrom(unittest.TestCase):
 
     def test_any_from(self):
-        tokens = ("a", "c", Backslash(), Literal("!"))
+        tokens = ("a", "c", Backslash(), Pregex("!"))
         self.assertTrue(str(AnyFrom(*tokens)) in get_permutations(*[str(t) for t in tokens]))
 
     def test_any_from_on_neither_str_or_token_exception(self):
-        for t in (True, 1, 1.1, Pregex("a")):
+        for t in (True, 1, 1.1, Pregex("ab")):
             self.assertRaises(NeitherStringNorTokenException, AnyFrom, t)
-
-    def test_any_from_on_multi_char_token_exception(self):
-        for t in ("aa", Literal("zzen")):
-            self.assertRaises(MultiCharTokenException, AnyFrom, t)
 
 
 class TestNegatedAnyLetter(unittest.TestCase):
@@ -346,21 +341,15 @@ class TestNegatedAnyWithinRange(unittest.TestCase):
 class TestNegatedAnyFrom(unittest.TestCase):
 
     def test_any_but_from(self):
-        tokens = ("a", "c", Backslash(), Literal("!"))
+        tokens = ("a", "c", Backslash(), Pregex("!"))
         self.assertTrue(str(~AnyFrom(*tokens)) in get_negated_permutations(*[str(t) for t in tokens]))
         self.assertTrue(str(AnyButFrom(*tokens)) in get_negated_permutations(*[str(t) for t in tokens]))
 
     def test_any_but_from_on_neither_str_or_token_exception(self):
-        for t in (True, 1, 1.1, Pregex("a")):
+        for t in (True, 1, 1.1, Pregex("ab")):
             with self.assertRaises(NeitherStringNorTokenException):
                 _ = ~AnyFrom(t)
             self.assertRaises(NeitherStringNorTokenException, AnyButFrom, t)
-
-    def test_any_but_from_on_multi_char_token_exception(self):
-        for t in ("aa", Literal("zzen")):
-            with self.assertRaises(MultiCharTokenException):
-                _ = ~AnyFrom(t)
-            self.assertRaises(MultiCharTokenException, AnyButFrom, t)
 
 
 

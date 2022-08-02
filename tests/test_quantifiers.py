@@ -1,18 +1,18 @@
 import unittest
 
+from pregex.pre import Pregex
 from pregex.quantifiers import *
-from pregex.tokens import Literal
 from pregex.operators import Concat, Either
 from pregex.classes import AnyLowercaseLetter
 from pregex.assertions import FollowedBy, MatchAtStart
 from pregex.exceptions import NeitherStringNorPregexException, NonPositiveArgumentException, \
     NegativeArgumentException, MinGreaterThanMaxException, NonIntegerArgumentException, \
-    NotQuantifiableException
+    CannotBeQuantifiedException
 
 TEST_STR_LEN_1 = "t"
 TEST_STR_LEN_N = "test"
-TEST_LITERAL_LEN_1 = Literal(TEST_STR_LEN_1)
-TEST_LITERAL_LEN_N = Literal(TEST_STR_LEN_N)
+TEST_LITERAL_LEN_1 = Pregex(TEST_STR_LEN_1)
+TEST_LITERAL_LEN_N = Pregex(TEST_STR_LEN_N)
 
 class Test__Quantifier(unittest.TestCase):
 
@@ -25,10 +25,6 @@ class Test__Quantifier(unittest.TestCase):
 
     def test_quantifier_on_literal(self):
         self.assertEqual(str(Optional(TEST_LITERAL_LEN_N)), f"(?:{TEST_LITERAL_LEN_N})?")
-
-    def test_quantifier_on_quantifier(self):
-        optional = Optional(TEST_STR_LEN_N)
-        self.assertEqual(str(Optional(optional)), f"(?:{optional})?")
 
     def test_quantifier_on_concat(self):
         concat = Concat(TEST_STR_LEN_1, TEST_STR_LEN_N)
@@ -44,11 +40,15 @@ class Test__Quantifier(unittest.TestCase):
 
     def test_quantifier_on_look_around_assertion(self):
         followed_by = FollowedBy("a", "b")
-        self.assertEqual(str(Optional(followed_by)), f"(?:{followed_by})?")
+        self.assertRaises(CannotBeQuantifiedException, Optional, followed_by)
 
-    def test_quantifier_on_anchor_assertion_exception(self):
+    def test_quantifier_on_quantifier_exception(self):
+        optional = Optional(TEST_STR_LEN_N)
+        self.assertRaises(CannotBeQuantifiedException, Optional, optional)
+
+    def test_quantifier_on_assertion_exception(self):
         mat = MatchAtStart("a")
-        self.assertRaises(NotQuantifiableException, Optional, mat)
+        self.assertRaises(CannotBeQuantifiedException, Optional, mat)
 
 
 class TestOptional(unittest.TestCase):

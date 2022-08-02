@@ -4,7 +4,7 @@ import pregex.exceptions as _exceptions
 
 class __Operator(_pre.Pregex):
     '''
-    Every "Operator" class must inherit from this class.
+    Constitutes the base class for every class within "operators.py".
     '''
 
     def __init__(self, pres: tuple[_pre.Pregex or str], transform) -> _pre.Pregex:
@@ -13,7 +13,7 @@ class __Operator(_pre.Pregex):
         result = __class__._to_pregex(pres[0])
         for pre in pres[1:]:
             result = transform(result, __class__._to_pregex(pre))
-        super().__init__(str(result), result._get_group_on_concat(), result._get_group_on_quantify())
+        super().__init__(str(result), escape=False)
 
 
 class Concat(__Operator):
@@ -52,3 +52,4 @@ class Either(__Operator):
             operator's alternatives.
         '''
         super().__init__(pres, lambda pre1, pre2: pre1._either(pre2))
+        self._set_type(__class__._PatternType.Either)

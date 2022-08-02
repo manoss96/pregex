@@ -29,21 +29,6 @@ class NonStringArgumentException(Exception):
         super().__init__("The argument that was provided is not a string.")
 
 
-class MultiCharTokenException(Exception):
-    '''
-    This exception is thrown whenever a token argument \
-    contains more than one character.
-    '''
-
-    def __init__(self, token: str):
-        '''
-        The class' constructor.
-
-        :param str token: The string because of which this exception was thrown.
-        '''
-        super().__init__(f"Token \"{token}\" must be composed from a single character.")
-
-
 class NegativeArgumentException(Exception):
     '''
     This exception is thrown whenever an argument is a negative number.
@@ -205,7 +190,7 @@ class InvalidRangeException(Exception):
         super().__init__(f"\"[{start}-{end}]\" is not a valid range.")
 
 
-class NotQuantifiableException(Exception):
+class CannotBeQuantifiedException(Exception):
     '''
     This exception is thrown whenever an instance of a class \
     that is part of the "Anchor" assertions is being quantified.
