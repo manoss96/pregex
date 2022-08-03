@@ -1,6 +1,8 @@
 import unittest
+from pregex.exceptions import NonFixedWidthPatternException
 from pregex.pre import Pregex
 from pregex.assertions import *
+from pregex.quantifiers import *
 
 
 TEST_STR = "test"
@@ -67,11 +69,21 @@ class TestPrecededBy(unittest.TestCase):
     def test_preceded_by(self):
         self.assertEqual(str(PrecededBy(pre1, pre2)), f"(?<={pre2}){pre1}")
 
+    def test_preceded_by_on_quantifier(self):
+        exactly = Exactly(pre2, 3)
+        self.assertEqual(str(PrecededBy(pre1, exactly)), f"(?<={exactly}){pre1}")
+        self.assertRaises(NonFixedWidthPatternException, PrecededBy, pre1, Optional(pre2))
+
 
 class TestNotPrecededBy(unittest.TestCase):
     
-    def test_preceded_by(self):
+    def test_not_preceded_by(self):
         self.assertEqual(str(NotPrecededBy(pre1, pre2)), f"(?<!{pre2}){pre1}")
+
+    def test_not_preceded_by_on_quantifier(self):
+        exactly = Exactly(pre2, 3)
+        self.assertEqual(str(NotPrecededBy(pre1, exactly)), f"(?<!{exactly}){pre1}")
+        self.assertRaises(NonFixedWidthPatternException, NotPrecededBy, pre1, Optional(pre2))
 
 
 if __name__=="__main__":

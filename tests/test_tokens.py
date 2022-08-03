@@ -24,7 +24,7 @@ class TestBackslash(unittest.TestCase):
 class TestNewline(unittest.TestCase):
 
     def test_newline(self):
-        self.assertEqual(str(Newline()), r"\n")
+        self.assertEqual(str(Newline()), "\n")
 
     def test_newline_on_match(self):
         self.assertTrue(Newline().get_matches("text\ntext") == ["\n"])
@@ -33,7 +33,7 @@ class TestNewline(unittest.TestCase):
 class TestCarriageReturn(unittest.TestCase):
 
     def test_carriage_return(self):
-        self.assertEqual(str(CarriageReturn()), r"\r")
+        self.assertEqual(str(CarriageReturn()), "\r")
 
     def test_carriage_return_on_match(self):
         self.assertTrue(CarriageReturn().get_matches("text\rtext") == ["\r"])
@@ -42,7 +42,7 @@ class TestCarriageReturn(unittest.TestCase):
 class TestFormFeed(unittest.TestCase):
 
     def test_form_feed(self):
-        self.assertEqual(str(FormFeed()), r"\f")
+        self.assertEqual(str(FormFeed()), "\f")
 
     def test_form_feed_on_match(self):
         self.assertTrue(FormFeed().get_matches("text\ftext") == ["\f"])
@@ -51,7 +51,7 @@ class TestFormFeed(unittest.TestCase):
 class TestTab(unittest.TestCase):
 
     def test_tab(self):
-        self.assertEqual(str(Tab()), r"\t")
+        self.assertEqual(str(Tab()), "\t")
 
     def test_tab_on_match(self):
         self.assertTrue(Tab().get_matches("text\ttext") == ["\t"])
@@ -60,7 +60,7 @@ class TestTab(unittest.TestCase):
 class TestVerticalTab(unittest.TestCase):
 
     def test_vertical_tab(self):
-        self.assertEqual(str(VerticalTab()), r"\v")
+        self.assertEqual(str(VerticalTab()), "\v")
 
     def test_vertical_tab_on_match(self):
         self.assertTrue(VerticalTab().get_matches("text\vtext") == ["\v"])

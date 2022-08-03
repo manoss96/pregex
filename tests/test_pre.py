@@ -144,21 +144,21 @@ class TestPregex(unittest.TestCase):
         self.assertEqual(self.pre1.get_matches_and_pos(self.TEXT), self.MATCHES_AND_POS)
         self.assertEqual(self.pre2.get_matches_and_pos(self.TEXT), self.MATCHES_AND_POS)
 
-    def test_pregex_on_get_groups(self):
-        self.assertEqual(self.pre1.get_groups(self.TEXT), self.GROUPS)
-        self.assertEqual(self.pre1.get_groups(self.TEXT, include_empty=False), self.GROUPS_WITHOUT_EMPTY)
-        self.assertEqual(self.pre2.get_groups(self.TEXT, include_empty=False), self.GROUPS_WITHOUT_EMPTY)
+    def test_pregex_on_get_captured_groups(self):
+        self.assertEqual(self.pre1.get_captured_groups(self.TEXT), self.GROUPS)
+        self.assertEqual(self.pre1.get_captured_groups(self.TEXT, include_empty=False), self.GROUPS_WITHOUT_EMPTY)
+        self.assertEqual(self.pre2.get_captured_groups(self.TEXT, include_empty=False), self.GROUPS_WITHOUT_EMPTY)
 
-    def test_pregex_on_get_groups_and_pos(self):
-        self.assertEqual(self.pre1.get_groups_and_pos(self.TEXT), self.GROUPS_AND_POS)
-        self.assertEqual(self.pre1.get_groups_and_pos(self.TEXT, include_empty=False), self.GROUPS_AND_POS_WITHOUT_EMPTY)
-        self.assertEqual(self.pre2.get_groups_and_pos(self.TEXT, include_empty=False), self.GROUPS_AND_POS_WITHOUT_EMPTY)
+    def test_pregex_on_get_captured_groups_and_pos(self):
+        self.assertEqual(self.pre1.get_captured_groups_and_pos(self.TEXT), self.GROUPS_AND_POS)
+        self.assertEqual(self.pre1.get_captured_groups_and_pos(self.TEXT, include_empty=False), self.GROUPS_AND_POS_WITHOUT_EMPTY)
+        self.assertEqual(self.pre2.get_captured_groups_and_pos(self.TEXT, include_empty=False), self.GROUPS_AND_POS_WITHOUT_EMPTY)
 
-    def test_pregex_on_get_groups_and_relative_pos(self):
-        self.assertEqual(self.pre1.get_groups_and_pos(self.TEXT, relative_to_match=True), self.GROUPS_AND_RELATIVE_POS)
-        self.assertEqual(self.pre1.get_groups_and_pos(self.TEXT, include_empty=False, relative_to_match=True),
+    def test_pregex_on_get_captured_groups_and_relative_pos(self):
+        self.assertEqual(self.pre1.get_captured_groups_and_pos(self.TEXT, relative_to_match=True), self.GROUPS_AND_RELATIVE_POS)
+        self.assertEqual(self.pre1.get_captured_groups_and_pos(self.TEXT, include_empty=False, relative_to_match=True),
             self.GROUPS_AND_RELATIVE_POS_WITHOUT_EMPTY)
-        self.assertEqual(self.pre2.get_groups_and_pos(self.TEXT, include_empty=False, relative_to_match=True),
+        self.assertEqual(self.pre2.get_captured_groups_and_pos(self.TEXT, include_empty=False, relative_to_match=True),
             self.GROUPS_AND_RELATIVE_POS_WITHOUT_EMPTY)
 
     def test_pregex_on_replace(self):

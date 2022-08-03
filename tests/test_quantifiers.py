@@ -94,22 +94,22 @@ class TestIndefinite(unittest.TestCase):
         self.assertEqual(str(Indefinite(TEST_LITERAL_LEN_N, is_greedy=False)), f"(?:{TEST_STR_LEN_N})*?")
 
 
-class TestAtLeastOnce(unittest.TestCase):
+class TestOneOrMore(unittest.TestCase):
     
-    def test_at_least_once_on_len_1_str(self):
-        self.assertEqual(str(AtLeastOnce(TEST_STR_LEN_1)), f"{TEST_STR_LEN_1}+")
+    def test_one_or_more_on_len_1_str(self):
+        self.assertEqual(str(OneOrMore(TEST_STR_LEN_1)), f"{TEST_STR_LEN_1}+")
 
-    def test_at_least_once_on_len_n_str(self):
-        self.assertEqual(str(AtLeastOnce(TEST_STR_LEN_N)), f"(?:{TEST_STR_LEN_N})+")
+    def test_one_or_more_on_len_n_str(self):
+        self.assertEqual(str(OneOrMore(TEST_STR_LEN_N)), f"(?:{TEST_STR_LEN_N})+")
 
-    def test_at_least_once_on_len_1_literal(self):
-        self.assertEqual(str(AtLeastOnce(TEST_LITERAL_LEN_1)), f"{TEST_STR_LEN_1}+")
+    def test_one_or_more_on_len_1_literal(self):
+        self.assertEqual(str(OneOrMore(TEST_LITERAL_LEN_1)), f"{TEST_STR_LEN_1}+")
 
-    def test_at_least_once_on_len_n_literal(self):
-        self.assertEqual(str(AtLeastOnce(TEST_LITERAL_LEN_N)), f"(?:{TEST_STR_LEN_N})+")
+    def test_one_or_more_on_len_n_literal(self):
+        self.assertEqual(str(OneOrMore(TEST_LITERAL_LEN_N)), f"(?:{TEST_STR_LEN_N})+")
 
-    def test_at_least_once_on_laziness(self):
-        self.assertEqual(str(AtLeastOnce(TEST_LITERAL_LEN_N, is_greedy=False)), f"(?:{TEST_STR_LEN_N})+?")
+    def test_one_or_more_on_laziness(self):
+        self.assertEqual(str(OneOrMore(TEST_LITERAL_LEN_N, is_greedy=False)), f"(?:{TEST_STR_LEN_N})+?")
         
 
 class TestExactly(unittest.TestCase):

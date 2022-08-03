@@ -3,8 +3,8 @@ from pregex.pre import Pregex
 from pregex.classes import *
 from string import whitespace
 from itertools import permutations
-from pregex.tokens import Backslash
-from pregex.exceptions import NeitherStringNorTokenException, CannotBeUnionedException, \
+from pregex.tokens import Backslash, Newline
+from pregex.exceptions import NeitherCharNorTokenException, CannotBeUnionedException, \
     CannotBeSubtractedException, InvalidRangeException, EmptyClassException
 
 
@@ -46,6 +46,10 @@ class Test__Class(unittest.TestCase):
         self.assertTrue(str(AnyWithinRange("A", "D") | AnyFrom("C")) == "[A-D]")
         self.assertTrue(str(AnyWithinRange("0", "3") | AnyFrom("2")) == "[0-3]")
 
+    def test_any_class_bitwise_or_with_tokens(self):
+        self.assertTrue(str(AnyDigit() | 'z') in get_permutations("\d", "z"))
+        self.assertTrue(str(AnyDigit() | Newline()) in get_permutations("\d", "\n"))
+
     def test_any_class_complex_bitwise_or(self):
         self.assertEqual(str(AnyFrom('a') | AnyWithinRange('b', 'd')), "[a-d]")
         self.assertEqual(str(AnyWithinRange('1', '5') | AnyFrom('6', '7')), "[1-7]")
@@ -60,6 +64,10 @@ class Test__Class(unittest.TestCase):
         self.assertEqual(str(AnyWithinRange('d', 'k') - AnyWithinRange('a', 'e')), "[f-k]")
         self.assertTrue(str(AnyWithinRange('a', 'z') - AnyWithinRange('g', 'k')) in 
             get_permutations('a-f', 'l-z'))
+
+    def test_any_class_subtraction_with_tokens(self):
+        self.assertTrue(str(AnyDigit() - '5') in get_permutations("0-4", "6-9"))
+        self.assertTrue(str(AnyWhitespace() - Newline()) in get_permutations(" ", "\r", "\t", "\x0b", "\x0c"))
 
     def test_any_class_complex_subtraction(self):
         self.assertTrue(str(AnyWordChar() - AnyWithinRange('b', 'd')) in 
@@ -122,6 +130,11 @@ class TestNegated__Class(unittest.TestCase):
         self.assertTrue(str(AnyButWithinRange("A", "D") | AnyButFrom("C")) == "[^A-D]")
         self.assertTrue(str(AnyButWithinRange("0", "3") | AnyButFrom("2")) == "[^0-3]")
 
+    def test_any_but_class_bitwise_or_with_tokens(self):
+        with self.assertRaises(CannotBeUnionedException):
+            _ = AnyButDigit() | '5'
+            _ = AnyButWhitespace() | Newline()
+
     def test_any_but_class_complex_bitwise_or(self):
         self.assertEqual(str(AnyButFrom('a') | AnyButWithinRange('b', 'd')), "[^a-d]")
         self.assertEqual(str(AnyButWithinRange('1', '5') | AnyButFrom('6', '7')), "[^1-7]")
@@ -137,6 +150,11 @@ class TestNegated__Class(unittest.TestCase):
         self.assertEqual(str(AnyButWithinRange('d', 'k') - AnyButWithinRange('a', 'e')), "[^f-k]")
         self.assertTrue(str(AnyButWithinRange('a', 'z') - AnyButWithinRange('g', 'k')) in 
             get_negated_permutations('a-f', 'l-z'))
+
+    def test_any_but_class_subtraction_with_tokens(self):
+        with self.assertRaises(CannotBeSubtractedException):
+            _ = AnyButDigit() - '5'
+            _ = AnyButWhitespace() - Newline()
 
     def test_any_but_class_complex_subtraction(self):
         self.assertTrue(str(AnyButWordChar() - AnyButWithinRange('b', 'd')) in 
@@ -263,9 +281,9 @@ class TestAnyFrom(unittest.TestCase):
         tokens = ("a", "c", Backslash(), Pregex("!"))
         self.assertTrue(str(AnyFrom(*tokens)) in get_permutations(*[str(t) for t in tokens]))
 
-    def test_any_from_on_neither_str_or_token_exception(self):
+    def test_any_from_on_neither_char_nor_token_exception(self):
         for t in (True, 1, 1.1, Pregex("ab")):
-            self.assertRaises(NeitherStringNorTokenException, AnyFrom, t)
+            self.assertRaises(NeitherCharNorTokenException, AnyFrom, t)
 
 
 class TestNegatedAnyLetter(unittest.TestCase):
@@ -345,11 +363,11 @@ class TestNegatedAnyFrom(unittest.TestCase):
         self.assertTrue(str(~AnyFrom(*tokens)) in get_negated_permutations(*[str(t) for t in tokens]))
         self.assertTrue(str(AnyButFrom(*tokens)) in get_negated_permutations(*[str(t) for t in tokens]))
 
-    def test_any_but_from_on_neither_str_or_token_exception(self):
+    def test_any_but_from_on_neither_char_nor_token_exception(self):
         for t in (True, 1, 1.1, Pregex("ab")):
-            with self.assertRaises(NeitherStringNorTokenException):
+            with self.assertRaises(NeitherCharNorTokenException):
                 _ = ~AnyFrom(t)
-            self.assertRaises(NeitherStringNorTokenException, AnyButFrom, t)
+            self.assertRaises(NeitherCharNorTokenException, AnyButFrom, t)
 
 
 

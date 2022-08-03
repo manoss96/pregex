@@ -1,4 +1,6 @@
 import pregex.pre as _pre
+import pregex.exceptions as _exceptions
+from pregex.quantifiers import Exactly as _Exactly
 
 class __Assertion(_pre.Pregex):
     '''
@@ -68,7 +70,7 @@ class MatchAtLineStart(__Anchor):
 
     :param Pregex | str pre: The pattern that is to be matched.
 
-    NOTE: Uses meta character "^" since the "MULTILINE" flag is considered on.
+    :note: Uses meta character "^" since the "MULTILINE" flag is considered on.
     '''
 
     def __init__(self, pre: _pre.Pregex or str):
@@ -77,7 +79,7 @@ class MatchAtLineStart(__Anchor):
 
         :param Pregex | str pre: The pattern that is to be matched.
 
-        NOTE: Uses meta character "^" since the "MULTILINE" flag is considered on.
+        :note: Uses meta character "^" since the "MULTILINE" flag is considered on.
         '''
         super().__init__(pre, lambda pre: str(pre._match_at_line_start()))
 
@@ -88,7 +90,7 @@ class MatchAtLineEnd(__Anchor):
 
     :param Pregex | str pre: The pattern that is to be matched.
 
-    NOTE: Uses meta character "$" since the "MULTILINE" flag is considered on.
+    :note: Uses meta character "$" since the "MULTILINE" flag is considered on.
     '''
 
     def __init__(self, pre: _pre.Pregex or str):
@@ -97,7 +99,7 @@ class MatchAtLineEnd(__Anchor):
 
         :param Pregex | str pre: The pattern that is to be matched.
 
-        NOTE: Uses meta character "$" since the "MULTILINE" flag is considered on.
+        :note: Uses meta character "$" since the "MULTILINE" flag is considered on.
         '''
         super().__init__(pre, lambda pre: str(pre._match_at_line_end()))
 
@@ -202,6 +204,9 @@ class PrecededBy(__Lookaround):
 
     :param Pregex | str pre1: The pattern that is to be matched.
     :param Pregex | str pre2: The pattern that must precede pattern 'pre1'.
+
+    :raises NonFixedWidthPatternException: A class that represents a non-fixed-width \
+        pattern is provided as parameter "pre2".
     '''
 
     def __init__(self, pre1: _pre.Pregex or str, pre2: _pre.Pregex or str):
@@ -211,7 +216,13 @@ class PrecededBy(__Lookaround):
 
         :param Pregex | str pre1: The pattern that is to be matched.
         :param Pregex | str pre2: The pattern that must precede pattern 'pre1'.
+
+        :raises NonFixedWidthPatternException: A class that represents a non-fixed-width \
+            pattern is provided as parameter "pre2".
         '''
+        if isinstance(pre2, _pre.Pregex):
+            if pre2._get_type() == _pre.Pregex._PatternType.Quantifier and (not isinstance(pre2, _Exactly)):
+                raise _exceptions.NonFixedWidthPatternException(self, pre2)
         super().__init__(pre1, pre2, lambda pre1, pre2: str(pre1._preceded_by(pre2)))
 
 
@@ -222,6 +233,9 @@ class NotPrecededBy(__Lookaround):
 
     :param Pregex | str pre1: The pattern that is to be matched.
     :param Pregex | str pre2: The pattern that must not precede pattern 'pre1'.
+
+    :raises NonFixedWidthPatternException: A class that represents a non-fixed-width \
+        pattern is provided as parameter "pre2".
     '''
 
     def __init__(self, pre1: _pre.Pregex or str, pre2: _pre.Pregex or str):
@@ -231,5 +245,11 @@ class NotPrecededBy(__Lookaround):
 
         :param Pregex | str pre1: The pattern that is to be matched.
         :param Pregex | str pre2: The pattern that must not precede pattern 'pre1'.
+
+        :raises NonFixedWidthPatternException: A class that represents a non-fixed-width \
+            pattern is provided as parameter "pre2".
         '''
+        if isinstance(pre2, _pre.Pregex):
+            if pre2._get_type() == _pre.Pregex._PatternType.Quantifier and (not isinstance(pre2, _Exactly)):
+                raise _exceptions.NonFixedWidthPatternException(self, pre2)
         super().__init__(pre1, pre2, lambda pre1, pre2: str(pre1._not_preceded_by(pre2)))

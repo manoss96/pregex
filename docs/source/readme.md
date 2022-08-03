@@ -35,26 +35,37 @@ pip install pregex
 In PRegEx, everything is a Programmable Regular Expression, or "Pregex" for short. This makes it easy for simple Pregex instances to be combined into more complex ones! Within the code snippet below, we construct a Pregex instance that will match any URL that ends with either ".com" or ".org" as well as any IP address for which a 4-digit port number is specified. Furthermore, in the case of a URL, we would like for its domain name to be separately captured as well.
 
 ```python
-from pregex.quantifiers import Optional, AtLeastOnce, AtLeastAtMost
-from pregex.classes import AnyButWhitespace, AnyButFrom, AnyDigit
-from pregex.groups import CapturingGroup
-from pregex.tokens import Backslash
+from pregex.classes import AnyLowercaseLetter, AnyDigit, AnyFrom
+from pregex.quantifiers import Optional, AtLeastAtMost
 from pregex.operators import Either
+from pregex.groups import Capture
 from pregex.pre import Pregex
 
-pre: Pregex = \
-        Optional("http" + Optional('s') + "://") + \
-        Either(
-            Optional("www.") +
-            CapturingGroup(
-                AtLeastOnce(AnyButWhitespace() | AnyButFrom(":", Backslash()))
-            ) +
-            Either(".com", ".org"),
+# Define main sub-patterns.
+http_protocol = Optional("http" + Optional('s') + "://")
 
-            3 * (AtLeastAtMost(AnyDigit(), min=1, max=3) + ".") +
-            1 * (AtLeastAtMost(AnyDigit(), min=1, max=3) + ":") +
-            4 * AnyDigit() 
-        )
+www = Optional("www.")
+
+any_alphanum = AnyLetter() | AnyDigit()
+
+domain_name = \
+    any_alphanum + \
+    AtLeastAtMost(any_alphanum | AnyFrom("-", "."), min=1, max=61) + \
+    any_alphanum
+
+tld = "." + Either("com", "org")
+
+ip_octet = AtLeastAtMost(AnyDigit(), min=1, max=3)
+
+port_number = 4 * AnyDigit()
+
+# Combine sub-patterns together.
+pre: Pregex = \
+    http_protocol + \
+    Either(
+        www + Capture(domain_name) + tld,
+        3 * (ip_octet + ".") + ip_octet + ":" + port_number
+    )
 ```
 
 We can then easily fetch the resulting Pregex instance's underlying RegEx pattern.
@@ -64,7 +75,7 @@ regex = pre.get_pattern()
 
 This is the pattern that we just built. Yikes!
 ```
-(?:https?\:\/\/)?(?:(?:www\.)?([^\s:\\]+)(?:\.com|\.org)|(?:\d{1,3}\.){3}\d{1,3}\:\d{4})
+(?:https?\:\/\/)?(?:(?:www\.)?([A-Za-z\d][A-Za-z\d\-.]{1,61}[A-Za-z\d])\.(?:com|org)|(?:\d{1,3}\.){3}\d{1,3}\:\d{4})
 ```
 
 Besides from having access to its underlying pattern, we can use a Pregex instance to find matches within a string. Consider for example the following piece of text:
@@ -81,9 +92,9 @@ Looks like there were three matches:
 ['192.168.1.1:8000', 'http://www.wikipedia.org', 'https://youtube.com']
 ```
 
-Likewise, we can invoke the instance's "get_groups" method to get any captured groups.
+Likewise, we can invoke the instance's "get_captured_groups" method to get any captured groups.
 ```python
-groups = pre.get_groups(text)
+groups = pre.get_captured_groups(text)
 ```
 As expected, there were only two captured groups since the first match is not a URL and therefore it does not contain a domain name to be captured.
 ```python

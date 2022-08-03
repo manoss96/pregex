@@ -29,13 +29,17 @@ class __Class(_pre.Pregex):
 
     def get_verbose_pattern(self) -> str:
         '''
-        Returns a verbose representation of this class' pattern.
+        Returns a verbose representation of this class's pattern.
         '''
         return self.__verbose
 
     def __simplify(pattern: str, is_negated: bool) -> str:
         '''
         Converts a verbose pattern to its simplified form.
+
+        :param str pattern: The pattern that is to be simplified.
+        :param bool is_negated: Indicates whether the patterns belongs \
+            to a negated class or a regular one.
         '''
         if pattern == ".":
             return pattern
@@ -69,20 +73,55 @@ class __Class(_pre.Pregex):
         return classes
 
     def __invert__(self) -> '__Class':
+        '''
+        If this instance is a regular class, then converts it to its negated counterpart. \
+        If this instance is a negated class, then converts it to its regular counterpart.
+        '''
         s, rs = '' if self.__is_negated else '^', '^' if self.__is_negated else ''
         return __class__(f"[{s}{self.__verbose.lstrip('[' + rs).rstrip(']')}]", not self.__is_negated)
 
-    def __or__(self, pre: '__Class') -> '__Class':
+    def __or__(self, pre: '__Class' or str) -> '__Class':
+        '''
+        Returns a "__Class" instance representing the union of the provided classes.
+
+        :param __Class | str pre: The class that is to be unioned with this instance.
+
+        :raises CannotBeUnionedException: 'pre' is neither a "__Class" instance nor a token.
+        '''
+        if not self.__is_negated:
+            if isinstance(pre, str) and (len(pre) == 1):
+                pre = AnyFrom(pre)
+            elif isinstance(pre, _pre.Pregex) and pre._get_type() == __class__._PatternType.Token:
+                pre = AnyFrom(pre)
         if not issubclass(pre.__class__, __class__):
             raise _exceptions.CannotBeUnionedException(self, pre, False)
         return __class__.__or(self, pre)
 
-    def __ror__(self, pre: '__Class') -> '__Class':
+    def __ror__(self, pre: '__Class' or str) -> '__Class':
+        '''
+        Returns a "__Class" instance representing the union of the provided classes.
+
+        :param __Class | str pre: The class that is to be unioned with this instance.
+
+        :raises CannotBeUnionedException: 'pre' is neither a "__Class" instance nor a token.
+        '''
+        if not self.__is_negated:
+            if isinstance(pre, str) and (len(pre) == 1):
+                pre = AnyFrom(pre)
+            elif isinstance(pre, _pre.Pregex) and pre._get_type() == __class__._PatternType.Token:
+                pre = AnyFrom(pre)
         if not issubclass(pre.__class__, __class__):
             raise _exceptions.CannotBeUnionedException(pre, self, False)
         return __class__.__or(pre, self)
 
     def __or(pre1: '__Class', pre2: '__Class') -> '__Class':
+        '''
+        Returns a "__Class" instance representing the union of the provided classes.
+
+        :param __Class pre: The class that is to be unioned with this instance.
+
+        :raises CannotBeUnionedException: 'pre1' is a different type of class than 'pre2'.
+        '''
         if  pre1.__is_negated != pre2.__is_negated:
             raise _exceptions.CannotBeUnionedException(pre1, pre2, True)
         if isinstance(pre1, Any) or isinstance(pre2, Any):
@@ -96,17 +135,49 @@ class __Class(_pre.Pregex):
             f"[{'^' if pre1.__is_negated else ''}{''.join(__class__.__reduce(ranges, chars))}]",
             pre1.__is_negated)
 
-    def __sub__(self, pre: '__Class') -> '__Class':
+    def __sub__(self, pre: '__Class' or str) -> '__Class':
+        '''
+        Returns a "__Class" instance representing the difference of the provided classes.
+
+        :param __Class | str pre: The class that is to be subtracted from this instance.
+
+        :raises CannotBeSubtractedException: 'pre' is neither a "__Class" instance nor a token.
+        '''
+        if not self.__is_negated:
+            if isinstance(pre, str) and (len(pre) == 1):
+                pre = AnyFrom(pre)
+            elif isinstance(pre, _pre.Pregex) and pre._get_type() == __class__._PatternType.Token:
+                pre = AnyFrom(pre)
         if not issubclass(pre.__class__, __class__):
             raise _exceptions.CannotBeSubtractedException(self, pre, False)
         return __class__.__sub(self, pre)
 
-    def __rsub__(self, pre: '__Class') -> '__Class':
+    def __rsub__(self, pre: '__Class' or str) -> '__Class':
+        '''
+        Returns a "__Class" instance representing the difference of the provided classes.
+
+        :param __Class | str pre: The class that is to be subtracted from this instance.
+
+        :raises CannotBeSubtractedException: 'pre' is neither a "__Class" instance nor a token.
+        '''
+        if not self.__is_negated:
+            if isinstance(pre, str) and (len(pre) == 1):
+                pre = AnyFrom(pre)
+            elif isinstance(pre, _pre.Pregex) and pre._get_type() == __class__._PatternType.Token:
+                pre = AnyFrom(pre)
         if not issubclass(pre.__class__, __class__):
             raise _exceptions.CannotBeSubtractedException(pre, self, False)
         return __class__.__sub(pre, self)
 
     def __sub(pre1: '__Class', pre2: '__Class') -> '__Class':
+        '''
+        Returns a "__Class" instance representing the difference of the provided classes.
+
+        :param __Class  pre: The class that is to be subtracted from this instance.
+
+        :raises CannotBeSubtractedException: 'pre' is neither a "__Class" instance nor a token.
+        :raises EmptyClassException: 'pre2' is an instance of class "Any".
+        '''
         if  pre1.__is_negated != pre2.__is_negated:
             raise _exceptions.CannotBeSubtractedException(pre1, pre2, True)
         if isinstance(pre2, Any):
@@ -163,15 +234,28 @@ class __Class(_pre.Pregex):
             
             return ranges, chars
 
+        # 1. Subtract ranges2 from chars1.
+        splt_ranges2 = [rng.split('-') for rng in ranges2]
+        lst_chars1 = list(chars1)
 
-        # Subtract chars2 from chars1.
+        for start, end in splt_ranges2:
+            i = 0
+            while i < len(lst_chars1):
+                c = lst_chars1[i]
+                if c.isalnum and c >= start and c <= end:
+                    lst_chars1.pop(i)
+                    i = -1
+                i += 1
+        chars1 = set(lst_chars1)
+
+        # 2. Subtract chars2 from chars1.
         chars1 = chars1.difference(chars2)
 
-        # Subtract ranges2 from ranges1.
+        # 3. Subtract ranges2 from ranges1.
         ranges1, reduced_chars = subtract_ranges(ranges1, ranges2)
         chars1 = chars1.union(reduced_chars)
 
-        # Subtract any characters in chars2 from ranges1.
+        # 4. Subtract any characters in chars2 from ranges1.
         ranges1, reduced_chars = subtract_ranges(ranges1, set(f"{c}-{c}" for c in chars2 if len(c) == 1))
         chars1 = chars1.union(reduced_chars)
 
@@ -289,19 +373,22 @@ class __Class(_pre.Pregex):
             while i < len(chars):
                 for j in range(len(ranges)):
                     start, end = ranges[j]
-                    if len(chars[i]) > 1:
+                    if not chars[i].isalnum():
                         continue
                     if chars[i] >= start and chars[i] <= end:
                         chars.pop(i)
                         i = -1
+                        break
                     elif ord(start) == ord(chars[i]) + 1:
                         ranges[j][0] = chars[i]
                         chars.pop(i)
                         i = -1
+                        break
                     elif ord(end) == ord(chars[i]) - 1:
                         ranges[j][1] = chars[i]
                         chars.pop(i)
                         i = -1
+                        break
                 i += 1
 
             return set(f"{rng[0]}-{rng[1]}" for rng in ranges), set(chars)
@@ -313,16 +400,12 @@ class __Class(_pre.Pregex):
 
 class Any(__Class):
     '''
-    Matches any possible character, including the newline character. \
-    In order to match every character except for the newline character, \
-    one can use "~AnyFrom('\\n')" or "AnyButFrom('\\n')".
+    Matches any possible character, including the newline character.
     '''
 
     def __init__(self) -> 'Any':
         '''
-        Matches any possible character, including the newline character. \
-        In order to match every character except for the newline character, \
-        one can use "~AnyFrom('\\n')" or "AnyButFrom('\\n')".
+        Matches any possible character, including the newline character.
         '''
         super().__init__('.', is_negated=False)
 
@@ -341,14 +424,12 @@ class AnyLetter(__Class):
 
 class AnyButLetter(__Class):
     '''
-    Matches any character except for alphabetic characters. \
-    Equivalent to "~AnyLetter()".
+    Matches any character except for alphabetic characters.
     '''
 
     def __init__(self) -> 'AnyButLetter':
         '''
-        Matches any character except for alphabetic characters. \
-        Equivalent to "~AnyLetter()".
+        Matches any character except for alphabetic characters.
         '''
         super().__init__('[^a-zA-Z]', True)
 
@@ -365,17 +446,14 @@ class AnyLowercaseLetter(__Class):
         super().__init__('[a-z]', False)
 
 
-
 class AnyButLowercaseLetter(__Class):
     '''
-    Matches any character except for lowercase alphabetic characters. \
-    Equivalent to "~AnyLowercaseLetter()".
+    Matches any character except for lowercase alphabetic characters.
     '''
 
     def __init__(self) -> 'AnyButLowercaseLetter':
         '''
-        Matches any character except for lowercase alphabetic characters. \
-        Equivalent to "~AnyLowercaseLetter()".
+        Matches any character except for lowercase alphabetic characters.
         '''
         super().__init__('[^a-z]', True)
 
@@ -394,14 +472,12 @@ class AnyUppercaseLetter(__Class):
 
 class AnyButUppercaseLetter(__Class):
     '''
-    Matches any character except for uppercase alphabetic characters. \
-    Equivalent to "~AnyUppercaseLetter()".
+    Matches any character except for uppercase alphabetic characters.
     '''
 
     def __init__(self) -> 'AnyButUppercaseLetter':
         '''
-        Matches any character except for uppercase alphabetic characters. \
-        Equivalent to "~AnyUppercaseLetter()".
+        Matches any character except for uppercase alphabetic characters.
         '''
         super().__init__('[^A-Z]', True)
 
@@ -420,14 +496,12 @@ class AnyDigit(__Class):
 
 class AnyButDigit(__Class):
     '''
-    Matches any character except for numeric characters. \
-    Equivalent to "~AnyDigit()".
+    Matches any character except for numeric characters.
     '''
 
     def __init__(self) -> 'AnyButDigit':
         '''
-        Matches any character except for numeric characters. \
-        Equivalent to "~AnyDigit()".
+        Matches any character except for numeric characters.
         '''
         super().__init__('[^0-9]', True)
 
@@ -447,14 +521,12 @@ class AnyWordChar(__Class):
 
 class AnyButWordChar(__Class):
     '''
-    Matches any character except for alphanumeric characters plus "_". \
-    Equivalent to "~AnyWordChar()".
+    Matches any character except for alphanumeric characters and "_".
     '''
 
     def __init__(self) -> 'AnyButWordChar':
         '''
-        Matches any character except for alphanumeric characters plus "_".. \
-        Equivalent to "~AnyWordChar()".
+        Matches any character except for alphanumeric characters and "_".
         '''
         super().__init__('[^a-zA-Z0-9_]', True)
 
@@ -473,14 +545,12 @@ class AnyPunctuation(__Class):
 
 class AnyButPunctuation(__Class):
     '''
-    Matches any character except for punctuation characters. \
-    Equivalent to "~AnyPuncutation()".
+    Matches any character except for punctuation characters.
     '''
 
     def __init__(self) -> 'AnyButPunctuation':
         '''
-        Matches any character except for punctuation characters. \
-        Equivalent to "~AnyPunctuation()".
+        Matches any character except for punctuation characters.
         '''
         super().__init__('[^\^\-\[\]!"#$%&\'()*+,./:;<=>?@_`{|}~\\\\]', True)
 
@@ -499,14 +569,12 @@ class AnyWhitespace(__Class):
 
 class AnyButWhitespace(__Class):
     '''
-    Matches any character except for whitespace characters. \
-    Equivalent to "~AnyWhitespace()".
+    Matches any character except for whitespace characters.
     '''
 
     def __init__(self) -> 'AnyButWhitespace':
         '''
-        Matches any character except for whitespace characters. \
-        Equivalent to "~AnyWhitespace()".
+        Matches any character except for whitespace characters.
         '''
         super().__init__(f'[^{_whitespace}]', True)
 
@@ -517,6 +585,8 @@ class AnyWithinRange(__Class):
 
     :param str | int start: The first character within the range.
     :param str | int end: The last character within the range.
+
+    :raises InvalidRangeException: A non-valid range is provided.
     '''
 
     def __init__(self, start: str or int, end: str or int) -> 'AnyWithinRange':
@@ -525,6 +595,8 @@ class AnyWithinRange(__Class):
 
         :param str | int start: The first character within the range.
         :param str | int end: The last character within the range.
+
+        :raises InvalidRangeException: A non-valid range is provided.
         '''
         start, end = str(start), str(end)
         if start >= end or (not start.isalnum()) or (not end.isalnum()):
@@ -534,20 +606,22 @@ class AnyWithinRange(__Class):
 
 class AnyButWithinRange(__Class):
     '''
-    Matches any character except for all characters within the provided range. \
-    Equivalent to "~AnyWithinRange()".
+    Matches any character except for all characters within the provided range.
 
     :param str | int start: The first character within the range.
     :param str | int end: The last character within the range.
+
+    :raises InvalidRangeException: A non-valid range is provided.
     '''
 
     def __init__(self, start: str or int, end: str or int) -> 'AnyButWithinRange':
         '''
-        Matches any character except for all characters within the provided range. \
-         Equivalent to "~AnyWithinRange()".
+        Matches any character except for all characters within the provided range.
 
         :param str | int start: The first character within the range.
         :param str | int end: The last character within the range.
+
+        :raises InvalidRangeException: A non-valid range is provided.
         '''
         start, end = str(start), str(end)
         if start >= end or (not start.isalnum()) or (not end.isalnum()):
@@ -561,6 +635,9 @@ class AnyFrom(__Class):
 
     :param Pregex | str *chars: One or more characters to match from. Each character must be \
         a string of length one, provided either as is or wrapped within a "tokens" class.
+
+    :raises NeitherCharNorTokenException: At least one of the provided characters is \
+        neither a "token" class instance nor a single-character string.
     '''
 
     def __init__(self, *chars: str or _pre.Pregex) -> 'AnyFrom':
@@ -569,13 +646,16 @@ class AnyFrom(__Class):
 
         :param Pregex | str *chars: One or more characters to match from. Each character must be \
             a string of length one, provided either as is or wrapped within a "tokens" class.
+
+        :raises NeitherCharNorTokenException: At least one of the provided characters is \
+            neither a "token" class instance nor a single-character string.
         '''
         for c in chars:
             if not issubclass(c.__class__, (str, _pre.Pregex)):
-                raise _exceptions.NeitherStringNorTokenException()
+                raise _exceptions.NeitherCharNorTokenException()
             if issubclass(c.__class__, _pre.Pregex) and c._get_type() != __class__._PatternType.Token:
-                raise _exceptions.NeitherStringNorTokenException()
-        to_escape = {'\\', '^', '[', ']', '-', "'"}
+                raise _exceptions.NeitherCharNorTokenException()
+        to_escape = {'\\', '^', '[', ']', '-'}
         chars = tuple((f"\{c}" if c in to_escape else c) if isinstance(c, str) \
              else str(c) for c in set(chars))
         super().__init__(f"[{''.join(chars)}]", False)
@@ -583,27 +663,31 @@ class AnyFrom(__Class):
 
 class AnyButFrom(__Class):
     '''
-    Matches any character except for the provided characters. \
-    Equivalent to "~AnyFrom()".
+    Matches any character except for the provided characters.
 
-    :param Pregex | str *chars: One or more characters to match from. Each character must be \
+    :param Pregex | str *chars: One or more characters not to match from. Each character must be \
         a string of length one, provided either as is or wrapped within a "tokens" class.
+
+    :raises NeitherCharNorTokenException: At least one of the provided characters is \
+        neither a "token" class instance nor a single-character string.
     '''
 
     def __init__(self, *chars: str or _pre.Pregex) -> 'AnyButFrom':
         '''
-        Matches any character except for the provided characters. \
-        Equivalent to "~AnyFrom()".
+        Matches any character except for the provided characters.
 
         :param Pregex | str *chars: One or more characters not to match from. Each character must be \
             a string of length one, provided either as is or wrapped within a "tokens" class.
+
+        :raises NeitherCharNorTokenException: At least one of the provided characters is \
+            neither a "token" class instance nor a single-character string.
         '''
         for c in chars:
             if not issubclass(c.__class__, (str, _pre.Pregex)):
-                raise _exceptions.NeitherStringNorTokenException()
+                raise _exceptions.NeitherCharNorTokenException()
             if issubclass(c.__class__, _pre.Pregex) and c._get_type() != __class__._PatternType.Token:
-                raise _exceptions.NeitherStringNorTokenException()
-        to_escape = {'\\', '^', '[', ']', '-', "'"}
+                raise _exceptions.NeitherCharNorTokenException()
+        to_escape = {'\\', '^', '[', ']', '-'}
         chars = tuple((f"\{c}" if c in to_escape else c) if isinstance(c, str) \
              else str(c) for c in set(chars))
         super().__init__(f"[^{''.join(chars)}]", True)

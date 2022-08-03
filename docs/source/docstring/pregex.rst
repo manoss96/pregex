@@ -101,7 +101,7 @@ All classes within this module "assert" something about the provided pattern
 without having to match any additional characters. For example, "MatchAtStart" ensures
 that the provided pattern matches only when it is found at the start of the string,
 while "NotFollowedBy" asserts that any match with the provided pattern must not be followed
-by some other specified pattern. Another things you should keep in mind is that assertions
+by some other specified pattern. Another thing you should keep in mind is that assertions
 cannot be quantified, as attempting that will cause a "CannotBeQuantifiedException"
 exception to be thrown.
 
@@ -160,14 +160,38 @@ causes a "CannotBeUnionedException" to be thrown.
 
    pre = AnyDigit() | AnyButLowercaseLetter() # This is not OK!
 
+Lastly, it also possible to union a regular class with a token, that is,
+any string of length one or any class within the "tokens" module:
+
+.. code-block:: python
+
+   from pregex.classes import AnyDigit
+   from pregex.tokens import Newline
+
+   pre = AnyDigit() | "a" | Newline()
+   
+   print(pre.get_pattern()) # This prints "[\da\n]"
+
+However, in the case of negated classes one is forced to wrap tokens
+within an "AnyButFrom" class instance in order to do the same:
+
+.. code-block:: python
+
+   from pregex.classes import AnyButDigit
+   from pregex.tokens import Newline
+
+   pre = AnyButDigit() | AnyButFrom("a", Newline())
+   
+   print(pre.get_pattern()) # This prints "[^\da\n]"
+
 **Subtracting Classes**
 
 Subtraction is another operation that is exclusive to classes and is achieved via
 the overloaded subtraction operator "-". This feature comes in handy when one wishes
 to construct a class that would be tiresome to construct otherwise. Consider for
-example the class of all word characters except for alphabetic characters "Cc" and
-"Gg", as well as the digit "3". Constructing said class via subtraction is extremely
-easy:
+example the class of all word characters except for the alphabetic characters "Cc" and
+"Gg", as well as for the digit "3". Constructing said class via subtraction is
+extremely easy:
 
 .. code-block:: python
 
@@ -175,9 +199,9 @@ easy:
 
    pre = AnyWordChar() - AnyFrom('C', 'c', 'G', 'g', '3')
 
-This is the returned pattern when invoking 'pre.get_pattern()'. It is evident
+Below we see this operation's resulting pattern, from which it becomes evident
 that building the following pattern through multiple class unions would be
-more time consuming and prone to errors.
+more time consuming and, more importantly, prone to errors.
 
 .. code-block:: python
 
@@ -193,6 +217,19 @@ to be thrown.
    from pregex.classes import AnyWordChar, AnyButLowercaseLetter
 
    pre = AnyWordChar() - AnyButLowercaseLetter() # This is not OK!
+
+Furthermore, applying the subtraction operation between a class and a token
+is also possible, but just like in the case of class unions, this only works
+with regular classes:
+
+.. code-block:: python
+
+   from pregex.classes import AnyDigit
+   from pregex.tokens import Newline
+
+   pre = (AnyDigit() | Newline()) - "5" - Newline()
+   
+   print(pre.get_pattern()) # This prints "[0-46-9]"
 
 **Negating Classes**
 
@@ -218,7 +255,7 @@ this as it doesn't help much in making the code any more easy to read.
 
 Therefore, in order to create a negated class one can either negate a regular "Any*"
 class by placing "~" in front of it, or use its "AnyBut*" negated class equivalent.
-The result is entirely the same and which one you'll choose is just a matter of choice.
+The result is entirely the same and which one you'll use is just a matter of choice.
 
 .. automodule:: pregex.classes
    :members:
@@ -228,14 +265,12 @@ The result is entirely the same and which one you'll choose is just a matter of 
 
 pregex.groups
 ------------------------
-This module contains all necessary classes that are used to construct both types
-of groups, capturing and non-capturing, as well as classes that relate to any
-other group-related concept, such as backreferences and conditionals. In general,
-one should not have to concern themselves with grouping, as patterns are automatically
-grouped into non-capturing groups whenever this is deemed necessary. Consider for
-instance the code snippet below, where in the first case the "Optional" quanitifer is
-applied to the pattern directly, whereas in the second case, the pattern is wrapped
-within a non-capturing group:
+This module contains all necessary classes that are used to construct both capturing
+and non-capturing groups, as well as any other classes that relate to further
+group-related concepts, such as backreferences and conditionals. In general,
+one should not have to concern themselves with pattern-grouping, as patterns are
+automatically grouped into non-capturing groups whenever this is deemed necessary.
+Consider for instance the following code snippet:
 
 .. code-block:: python
 
@@ -244,28 +279,30 @@ within a non-capturing group:
    print(Optional("a").get_pattern()) # This prints "a?"
    print(Optional("aa").get_pattern()) # This prints "(?:aa)?"
 
-Even so, one can also explicitly construct a non-capturing group out of any
-pattern if one wishes to do so:
+In the first case, quantifier "?" is applied to the pattern directly,
+whereas in the second case the pattern is wrapped within a non-capturing group
+so that "aa" is quantified as a whole. Even so, one can also explicitly construct
+a non-capturing group out of any pattern if one wishes to do so:
 
 .. code-block:: python
 
-   from pregex.groups import NonCapturingGroup
+   from pregex.groups import Group
    from pregex.quantifiers import Optional
 
-   print(NonCapturingGroup(Optional("a")).get_pattern()) # This prints "(?:a)?"
+   print(Group(Optional("a")).get_pattern()) # This prints "(?:a)?"
 
-You'll find however that "CapturingGroup" is probably the most important class
+You'll find however that "Capture" is probably the most important class
 of this module, as it is used to create a capturing group out of a pattern,
 so that said pattern is also captured separately whenever a match occurs.
 
 .. code-block:: python
 
-   from pregex.groups import CapturingGroup
+   from pregex.groups import Capture
    from pregex.classes import AnyLetter
 
-   pre = AnyLetter() + CapturingGroup(AnyLetter()) + AnyLetter()
+   pre = AnyLetter() + Capture(AnyLetter()) + AnyLetter()
 
-   print(pre.get_groups("abc def")) # This prints "[('b'), ('e')]"
+   print(pre.get_captured_groups("abc def")) # This prints "[('b'), ('e')]"
 
 
 .. automodule:: pregex.groups
@@ -276,7 +313,7 @@ so that said pattern is also captured separately whenever a match occurs.
 
 pregex.operators
 -----------------------
-This module contains two operators, namely "Concat" and "Either", the former
+This module contains two classes, namely "Concat" and "Either", the former
 of which is used to concatenate two or more patterns, whereas the latter constitutes
 the alternation operator, which is used whenever either one of the provided patterns
 can be matched.
@@ -303,8 +340,8 @@ pregex.tokens
 --------------------
 This module contains a number of classes that represent special characters.
 Each token represents one and only one character. It is recommended that you
-use the classes of this module instead of providing their corresponding characters
-as strings on your own, as this might lead to all sorts of errors due to escaping.
+use these classes instead of providing their corresponding characters as strings
+on your own, as this might lead to all sorts of errors due to escaping.
 
 .. automodule:: pregex.tokens
    :members:

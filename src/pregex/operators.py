@@ -5,6 +5,8 @@ import pregex.exceptions as _exceptions
 class __Operator(_pre.Pregex):
     '''
     Constitutes the base class for every class within "operators.py".
+
+    :raises LessThanTwoArgumentsException: Less than two arguments are provided.
     '''
 
     def __init__(self, pres: tuple[_pre.Pregex or str], transform, type) -> _pre.Pregex:
@@ -22,6 +24,8 @@ class Concat(__Operator):
     Matches the concatenation of the provided patterns.
 
     :param Pregex | str *pres: Two or more patterns that are to be concatenated.
+
+    :raises LessThanTwoArgumentsException: Less than two arguments are provided.
     '''
 
     def __init__(self, *pres: _pre.Pregex or str) -> _pre.Pregex:
@@ -29,6 +33,8 @@ class Concat(__Operator):
         Matches the concatenation of the provided patterns.
 
         :param Pregex | str *pres: Two or more patterns that are to be concatenated.
+
+        :raises LessThanTwoArgumentsException: Less than two arguments are provided.
         '''
         super().__init__(pres, lambda pre1, pre2: pre1._concat(pre2), __class__._PatternType.Other)
 
@@ -40,7 +46,9 @@ class Either(__Operator):
     :param Pregex | str *pres: Two or more patterns that constitute the \
         operator's alternatives.
 
-    NOTE: One should be aware that "Either" is eager, meaning that the regex engine will \
+    :raises LessThanTwoArgumentsException: Less than two arguments are provided.
+
+    :note: One should be aware that "Either" is eager, meaning that the regex engine will \
         stop the moment it matches either one of the alternatives, starting from \
         the left-most pattern and continuing on to the right until a match occurs.
     '''
@@ -51,5 +59,11 @@ class Either(__Operator):
 
         :param Pregex | str *pres: Two or more patterns that constitute the \
             operator's alternatives.
+
+        :raises LessThanTwoArgumentsException: Less than two arguments are provided.
+
+        :note: One should be aware that "Either" is eager, meaning that the regex engine will \
+            stop the moment it matches either one of the alternatives, starting from \
+            the left-most pattern and continuing on to the right until a match occurs.
         '''
         super().__init__(pres, lambda pre1, pre2: pre1._either(pre2), __class__._PatternType.Either)

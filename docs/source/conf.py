@@ -22,7 +22,7 @@ copyright = '2022, Emmanouil Stoumpos'
 author = 'Emmanouil Stoumpos'
 
 # The full version, including alpha/beta/rc tags
-release = '1.2.1'
+release = '1.3.0'
 
 
 # -- General configuration ---------------------------------------------------

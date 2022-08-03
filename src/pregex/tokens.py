@@ -1,5 +1,4 @@
 import pregex.pre as _pre
-import pregex.exceptions as _exceptions
 
 
 class Space(_pre.Pregex):
@@ -11,7 +10,7 @@ class Space(_pre.Pregex):
         '''
          Matches a single space character.
         '''
-        super().__init__(r" ", escape=False)
+        super().__init__(" ", escape=False)
 
 
 class Backslash(_pre.Pregex):
@@ -35,7 +34,7 @@ class Newline(_pre.Pregex):
         '''
          Matches a single newline character.
         '''
-        super().__init__(r"\n", escape=False)
+        super().__init__("\n", escape=False)
 
 
 class CarriageReturn(_pre.Pregex):
@@ -47,7 +46,7 @@ class CarriageReturn(_pre.Pregex):
         '''
          Matches a carriage return character.
         '''
-        super().__init__(r"\r", escape=False)
+        super().__init__("\r", escape=False)
 
 
 class FormFeed(_pre.Pregex):
@@ -59,7 +58,7 @@ class FormFeed(_pre.Pregex):
         '''
          Matches a form feed character.
         '''
-        super().__init__(r"\f", escape=False)
+        super().__init__("\f", escape=False)
 
 
 class Tab(_pre.Pregex):
@@ -71,7 +70,7 @@ class Tab(_pre.Pregex):
         '''
          Matches a single tab character.
         '''
-        super().__init__(r"\t", escape=False)
+        super().__init__("\t", escape=False)
 
 
 class VerticalTab(_pre.Pregex):
@@ -83,4 +82,4 @@ class VerticalTab(_pre.Pregex):
         '''
          Matches a single vertical tab character.
         '''
-        super().__init__(r"\v", escape=False)
+        super().__init__("\v", escape=False)
