@@ -38,17 +38,17 @@ class Test__Quantifier(unittest.TestCase):
         any_ll = AnyLowercaseLetter()
         self.assertEqual(str(Optional(any_ll)), f"{any_ll}?")
 
+    def test_quantifier_on_quantifier_exception(self):
+        optional = Optional(TEST_STR_LEN_N)
+        self.assertEqual(str(Optional(optional)), f"(?:{optional})?")
+
+    def test_quantifier_on_anchor_assertion_exception(self):
+        mat = MatchAtStart("a")
+        self.assertRaises(CannotBeQuantifiedException, Optional, mat)
+
     def test_quantifier_on_look_around_assertion(self):
         followed_by = FollowedBy("a", "b")
         self.assertRaises(CannotBeQuantifiedException, Optional, followed_by)
-
-    def test_quantifier_on_quantifier_exception(self):
-        optional = Optional(TEST_STR_LEN_N)
-        self.assertRaises(CannotBeQuantifiedException, Optional, optional)
-
-    def test_quantifier_on_assertion_exception(self):
-        mat = MatchAtStart("a")
-        self.assertRaises(CannotBeQuantifiedException, Optional, mat)
 
 
 class TestOptional(unittest.TestCase):

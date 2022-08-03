@@ -35,8 +35,6 @@ class MatchAtStart(__Anchor):
     Matches the provided pattern only if said pattern is at the start of the string.
 
     :param Pregex | str pre: The pattern that is to be matched.
-
-    NOTE: Cannot be quantified.
     '''
 
     def __init__(self, pre: _pre.Pregex or str):
@@ -44,8 +42,6 @@ class MatchAtStart(__Anchor):
         Matches the provided pattern only if said pattern is at the start of the string.
 
         :param Pregex | str pre: The pattern that is to be matched.
-
-        NOTE: Cannot be quantified.
         '''
         super().__init__(pre, lambda pre: str(pre._match_at_start()))
 
@@ -55,8 +51,6 @@ class MatchAtEnd(__Anchor):
     Matches the provided pattern only if said pattern is at the end of the string.
 
     :param Pregex | str pre: The pattern that is to be matched.
-
-    NOTE: Cannot be quantified.
     '''
 
     def __init__(self, pre: _pre.Pregex or str):
@@ -64,8 +58,6 @@ class MatchAtEnd(__Anchor):
         Matches the provided pattern only if said pattern is at the end of the string.
 
         :param Pregex | str pre: The pattern that is to be matched.
-
-        NOTE: Cannot be quantified.
         '''
         super().__init__(pre, lambda pre: str(pre._match_at_end()))
 
@@ -76,9 +68,7 @@ class MatchAtLineStart(__Anchor):
 
     :param Pregex | str pre: The pattern that is to be matched.
 
-    NOTE: 
-        - Cannot be quantified.
-        - Uses meta character "^" since the "MULTILINE" flag is considered on.
+    NOTE: Uses meta character "^" since the "MULTILINE" flag is considered on.
     '''
 
     def __init__(self, pre: _pre.Pregex or str):
@@ -87,9 +77,7 @@ class MatchAtLineStart(__Anchor):
 
         :param Pregex | str pre: The pattern that is to be matched.
 
-        NOTE: 
-            - Cannot be quantified.
-            - Uses meta character "^" since the "MULTILINE" flag is considered on.
+        NOTE: Uses meta character "^" since the "MULTILINE" flag is considered on.
         '''
         super().__init__(pre, lambda pre: str(pre._match_at_line_start()))
 
@@ -100,9 +88,7 @@ class MatchAtLineEnd(__Anchor):
 
     :param Pregex | str pre: The pattern that is to be matched.
 
-    NOTE: 
-        - Cannot be quantified.
-        - Uses meta character "$" since the "MULTILINE" flag is considered on.
+    NOTE: Uses meta character "$" since the "MULTILINE" flag is considered on.
     '''
 
     def __init__(self, pre: _pre.Pregex or str):
@@ -111,9 +97,7 @@ class MatchAtLineEnd(__Anchor):
 
         :param Pregex | str pre: The pattern that is to be matched.
 
-        NOTE: 
-            - Cannot be quantified.
-            - Uses meta character "$" since the "MULTILINE" flag is considered on.
+        NOTE: Uses meta character "$" since the "MULTILINE" flag is considered on.
         '''
         super().__init__(pre, lambda pre: str(pre._match_at_line_end()))
 

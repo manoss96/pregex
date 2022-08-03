@@ -17,7 +17,7 @@ More specifically:
 - Module **pregex.operators** is imported as **op**.
 - Module **pregex.quantifiers** is imported as **qu**.
 - Module **pregex.tokens** is imported as **tk**.
-- Class **pregex.pre.Pregex** is imported as well.
+- Class **pregex.pre.Pregex** is imported as is.
 
 Take a look at the example below to better understand how this works:
 
@@ -38,7 +38,7 @@ it can be used.
 
 ==================================
 
-You can click on any one of pregex's core modules to learn more about it!
+Click on any one of pregex's core modules to learn more about it!
 
 .. toctree::
    :maxdepth: 4

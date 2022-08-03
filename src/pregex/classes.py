@@ -434,15 +434,13 @@ class AnyButDigit(__Class):
 
 class AnyWordChar(__Class):
     '''
-    Matches any alphanumeric character plus "_". \
-    Equivalent to "AnyLetter() | AnyDigit() | AnyFrom('_')"
+    Matches any alphanumeric character plus "_".
     '''
 
     def __init__(self) -> 'AnyWordChar':
 
         '''
-        Matches any alphanumeric character plus "_". \
-        Equivalent to "AnyLetter() | AnyDigit() | AnyFrom('_')"
+        Matches any alphanumeric character plus "_".
         '''
         super().__init__('[a-zA-Z0-9_]', False)
 

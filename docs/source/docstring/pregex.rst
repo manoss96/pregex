@@ -7,9 +7,8 @@ of this class are also defined for every other class as well.
 **Converting a string to a Pregex instance**
 
 In general, one can wrap any string within a "Pregex" instance by passing it as a 
-parameter to the class's constructor. By doing this, any characters that are part of
-the provided string that might need escaping so that said string is considered a valid RegEx
-pattern are automatically escaped.
+parameter to the class's constructor. By doing this, any characters of the provided
+string that might need escaping are automatically escaped.
 
 .. code-block:: python
 
@@ -32,26 +31,23 @@ However, you probably won't need to do this often since any string that interact
    pre2 = Optional("Hello.")
 
 Finally, you should also know that character-escaping can also be disabled when wrapping a string
-within a "Pregex" instance. This can be used for example in order to construct your own RegEx patterns
-to be exactly as you want them to be:
+within a "Pregex" instance. This can be used for example in order to explicitly define
+your own RegEx patterns:
 
 .. code-block:: python
 
    from pregex.pre import Pregex
 
-   pre = Pregex("Hello.", escape=False)
+   pre = Pregex("[a-z].?", escape=False)
 
-   print(pre.get_pattern()) # This prints 'Hello.'
+   print(pre.get_pattern()) # This prints '[a-z].?'
 
-Be as it may, this practice is not recommended as it might lead to certain errors that
-relate to pattern-groupping. Therefore, it is strongly suggested that you make use of
-the classes within this package in order to build your RegEx patterns.
 
 **Concatenating patterns with "+"**
 
-Instead of using the "pregex.operators.Concat" class in order to concatenate "Pregex"
-instances, one is also able to use the overloaded addition operator "+" as seen in
-the example below:
+Instead of using class "pregex.operators.Concat" in order to concatenate "Pregex"
+instances, one is also able to make use of the overloaded addition operator "+" 
+as seen in the example below:
 
 .. code-block:: python
 
@@ -78,7 +74,7 @@ Concatenating patterns this way is encouraged as it leads to much more easy-to-r
 **Repeating patterns with "*"**
 
 The "Pregex" class has one more overloaded operator, namely the multiplication
-operator "*", which can be used in order to replace the functionality of class
+operator "*", which essentially replaces the functionality of class
 "pregex.quantifiers.Exactly". By using this operator on a "Pregex" instance, one
 indicates that a pattern is to be repeated an exact number of times:
 
@@ -88,10 +84,10 @@ indicates that a pattern is to be repeated an exact number of times:
 
    pre = 3 * Pregex("Hi")
 
-   print(pre.get_pattern()) # This prints 'HiHiHi'
+   print(pre.get_pattern()) # This prints '(?:Hi){3}'
 
-Now that you've taked a first look at the "Pregex" class, check out its
-methods below to learn about what else this class has to offer!
+Now that you've taken a first look at the "Pregex" class, check out its
+methods below to see what else this class has to offer!
 
 .. automodule:: pregex.pre
    :members:
@@ -104,9 +100,10 @@ pregex.assertions
 All classes within this module "assert" something about the provided pattern
 without having to match any additional characters. For example, "MatchAtStart" ensures
 that the provided pattern matches only when it is found at the start of the string,
-or "NotFollowedBy" asserts that any match with the provided pattern must not be followed
-by some other specified pattern. In general, you should now that assertions cannot be
-quantified, as attempting that will cause a "CannotBeQuantifiedException" exception to be thrown.
+while "NotFollowedBy" asserts that any match with the provided pattern must not be followed
+by some other specified pattern. Another things you should keep in mind is that assertions
+cannot be quantified, as attempting that will cause a "CannotBeQuantifiedException"
+exception to be thrown.
 
 
 .. automodule:: pregex.assertions
@@ -294,8 +291,7 @@ pregex.quantifiers
 -------------------------
 Every class within this module is used to declare that a pattern is to be
 matched a number of times, with each class representing a slightly different
-pattern-repetition rule. Note that quantifiers cannot be quantified themselves,
-as attempting that will cause a "CannotBeQuantifiedException" exception to be thrown.
+pattern-repetition rule.
 
 .. automodule:: pregex.quantifiers
    :members:
@@ -306,9 +302,9 @@ as attempting that will cause a "CannotBeQuantifiedException" exception to be th
 pregex.tokens
 --------------------
 This module contains a number of classes that represent special characters.
-It is recommended that you use the classes of this module instead of providing
-the corresponding characters as strings, as this might lead to all sorts of
-errors due to escaping.
+Each token represents one and only one character. It is recommended that you
+use the classes of this module instead of providing their corresponding characters
+as strings on your own, as this might lead to all sorts of errors due to escaping.
 
 .. automodule:: pregex.tokens
    :members:

@@ -25,6 +25,7 @@ class Pregex():
         Quantifier = 5
         Token = 6
         Other = 7
+        Custom = 8
 
     '''
     Indicates the groupping rules of each Pregex instance type:
@@ -32,13 +33,14 @@ class Pregex():
         * groupping_rules[type] => (on_concat, on_quantify)
     '''
     __groupping_rules = {
-        _PatternType.Assertion : (False, False),
+        _PatternType.Assertion : (False, None),
         _PatternType.Class: (False, False),
         _PatternType.Group: (False, False),
         _PatternType.Either: (True, True),
         _PatternType.Quantifier: (False, True),
         _PatternType.Token: (False, False),
         _PatternType.Other: (False, True),
+        _PatternType.Custom: (True, True),
     }
 
     '''
@@ -58,7 +60,8 @@ class Pregex():
         '''
         if not isinstance(pattern, str):
             raise _exceptions.NonStringArgumentException()
-        self.__type = __class__._PatternType.Other if len(pattern.replace("\\", "")) > 1 \
+        self.__type = (__class__._PatternType.Other if escape else __class__._PatternType.Custom) \
+             if len(pattern.replace("\\", "")) > 1 \
             else __class__._PatternType.Token
         self.__pattern: str = __class__.__escape(pattern) if escape else pattern
         self.__compiled: _re.Pattern = None
@@ -81,10 +84,10 @@ class Pregex():
 
     def get_compiled_pattern(self, discard_after: bool = True) -> _re.Pattern:
         '''
-        Returns the expression's compiled pattern as a 're.Pattern' instance. \
+        Returns the expression's compiled pattern as a 're.Pattern' instance.
         
         :param bool discard_after: Indicates whether the compiled pattern is to be \
-            discarded after this method, or to be held so that any further attempt \
+            discarded after this method, or to be retained so that any further attempt \
             at matching a string will use the compiled pattern instead of the regular one. \
             Defaults to 'True'.
         '''
@@ -375,7 +378,9 @@ class Pregex():
         :param Pregex | str pre1: The string or a "Pregex" instance at the left side of the concatenation.
         :param Pregex | str pre2: The string or a "Pregex" instance at the right side of the concatenation.
         '''
-        return Pregex(__class__._to_pregex(pre1)._concat(__class__._to_pregex(pre2)), escape=False)
+        pre = Pregex(__class__._to_pregex(pre1)._concat(__class__._to_pregex(pre2)), escape=False)
+        pre._set_type(__class__._PatternType.Other)
+        return pre
 
     def __mul__(self, n: int) -> 'Pregex':
         '''
@@ -384,7 +389,9 @@ class Pregex():
 
         :param int n: The parameter "n" provided to the "self.exactly" method.
         '''
-        return Pregex(self._exactly(n), escape=False)
+        pre = Pregex(self._exactly(n), escape=False)
+        pre._set_type(__class__._PatternType.Quantifier)
+        return pre
 
     def __rmul__(self, n: int) -> 'Pregex':
         '''
@@ -393,7 +400,9 @@ class Pregex():
 
         :param int n: The parameter "n" provided to the "self.exactly" method.
         '''
-        return Pregex(self._exactly(n), False)
+        pre = Pregex(self._exactly(n), escape=False)
+        pre._set_type(__class__._PatternType.Quantifier)
+        return pre
 
     def __get_group_on_concat_rule(self) -> bool:
         '''
