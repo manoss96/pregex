@@ -1,9 +1,10 @@
-name: Pass Tests Validation
+name: Tests
 
 on: [push, pull_request]
 
 jobs:
   build:
+    name: pass tests
 
     runs-on: ubuntu-latest
 
