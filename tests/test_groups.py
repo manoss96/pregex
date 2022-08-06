@@ -77,7 +77,7 @@ class TestCapture(unittest.TestCase):
     def test_named_capturing_group_on_non_capturing_group(self):
         ''' Name-Grouping a non-capturing group converts it to a named capturing group. '''
         group = Group(TEST_STR)
-        self.assertEqual(str(Capture(group, self.name)), f"(?<{self.name}>{str(group)[:-1].replace('(?:', '', 1)})")
+        self.assertEqual(str(Capture(group, self.name)), f"(?P<{self.name}>{str(group)[:-1].replace('(?:', '', 1)})")
 
     def test_named_capturing_group_on_non_string_name_exception(self):
         invalid_type_names = [1, 1.5, True, Pregex("z")]
