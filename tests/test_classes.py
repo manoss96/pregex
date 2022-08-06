@@ -268,7 +268,7 @@ class TestAnyWordChar(unittest.TestCase):
 class TestAnyPunctuation(unittest.TestCase):
 
     def test_any_punctuation(self):
-        self.assertEqual(str(AnyPunctuation()._get_verbose_pattern()), '[!-/:-@\[-`{-~]')
+        self.assertEqual(str(AnyPunctuation()._get_verbose_pattern()), '[!-\/:-@\[-`{-~]')
 
 
 class TestAnyWhitespace(unittest.TestCase):
@@ -381,7 +381,7 @@ class TestAnyButWordChar(unittest.TestCase):
 
 class TestAnyButPunctuation(unittest.TestCase):
 
-    perms = get_negated_permutations("!-/", ":-@", "\[-`", "{-~")
+    perms = get_negated_permutations("!-\/", ":-@", "\[-`", "{-~")
 
     def test_any_but_punctuation_char(self):
         self.assertTrue((~AnyPunctuation())._get_verbose_pattern() in self.perms)

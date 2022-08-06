@@ -28,6 +28,7 @@ class __Class(_pre.Pregex):
 
 
     def __init__(self, pattern: str, is_negated: bool, simplify_word: bool = False) -> '__Class':
+
         super().__init__(__class__.__simplify(pattern, is_negated, simplify_word), escape=False)
         self._set_type(_pre._Type.Class)
         self.__is_negated = is_negated
@@ -658,7 +659,7 @@ class AnyPunctuation(__Class):
         '''
         Matches any puncutation character as defined within the ASCII table.
         '''
-        super().__init__('[!-/:-@\[-`{-~]', is_negated=False)
+        super().__init__('[!-\/:-@\[-`{-~]', is_negated=False)
 
 
 class AnyButPunctuation(__Class):
@@ -672,7 +673,7 @@ class AnyButPunctuation(__Class):
         Matches any character except for punctuation characters \
         as defined within the ASCII table.
         '''
-        super().__init__('[^!-/:-@\[-`{-~]', is_negated=True)
+        super().__init__('[^!-\/:-@\[-`{-~]', is_negated=True)
 
 
 class AnyWhitespace(__Class):
@@ -703,8 +704,8 @@ class AnyBetween(__Class):
     '''
     Matches any character within the provided range.
 
-    :param str | int start: The first character of the range.
-    :param str | int end: The last character of the range.
+    :param str start: The first character of the range.
+    :param str end: The last character of the range.
 
     :raises NeitherCharNorTokenException: At least one of the provided characters \
         is neither a "token" class instance nor a single-character string.
@@ -719,8 +720,8 @@ class AnyBetween(__Class):
         '''
         Matches any character within the provided range.
 
-        :param str | int start: The first character of the range.
-        :param str | int end: The last character of the range.
+        :param str start: The first character of the range.
+        :param str end: The last character of the range.
 
         :raises NeitherCharNorTokenException: At least one of the provided characters \
             is neither a "token" class instance nor a single-character string.
@@ -748,8 +749,8 @@ class AnyButBetween(__Class):
     '''
     Matches any character except for all characters within the provided range.
 
-    :param str | int start: The first character of the range.
-    :param str | int end: The last character of the range.
+    :param str start: The first character of the range.
+    :param str end: The last character of the range.
 
     :raises NeitherCharNorTokenException: At least one of the provided characters \
         is neither a "token" class instance nor a single-character string.
@@ -764,8 +765,8 @@ class AnyButBetween(__Class):
         '''
         Matches any character except for all characters within the provided range.
 
-        :param str | int start: The first character of the range.
-        :param str | int end: The last character of the range.
+        :param str start: The first character of the range.
+        :param str end: The last character of the range.
 
         :raises NeitherCharNorTokenException: At least one of the provided characters \
             is neither a "token" class instance nor a single-character string.
