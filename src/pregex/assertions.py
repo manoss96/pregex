@@ -2,33 +2,32 @@ import pregex.pre as _pre
 import pregex.exceptions as _exceptions
 from pregex.quantifiers import Exactly as _Exactly
 
+
 class __Assertion(_pre.Pregex):
     '''
     Constitutes the base class for "__Anchor" and "__Lookaround" classes.
     '''
-
     def __init__(self, pattern: str):
         super().__init__(pattern, escape=False)
-        self._set_type(__class__._PatternType.Assertion)
+        self._set_type(_pre._Type.Assertion)
+
 
 
 class __Anchor(__Assertion):
     '''
     Constitutes the base class for every "anchor" classes.
     '''
-
     def __init__(self, pre: _pre.Pregex or str, transform):
-        pre = __class__._to_pregex(pre)
-        super().__init__(transform(pre))
+        super().__init__(transform(__class__._to_pregex(pre)))
 
 
 class __Lookaround(__Assertion):
     '''
     Constitutes the base class for every "lookaround" classes.
     '''
-
     def __init__(self, pre1: _pre.Pregex or str, pre2: _pre.Pregex or str, transform):
-        pre1, pre2 = __class__._to_pregex(pre1), __class__._to_pregex(pre2)
+        pre1 = __class__._to_pregex(pre1)
+        pre2 = __class__._to_pregex(pre2)
         super().__init__(transform(pre1, pre2))
 
 
@@ -120,6 +119,7 @@ class MatchAtWordBoundary(__Anchor):
         :param Pregex | str pre: The pattern that is to be matched.
         '''
         super().__init__(pre, lambda pre: str(pre._match_at_word_boundary()))
+
 
 class MatchAtLeftWordBoundary(__Anchor):
     '''
@@ -221,7 +221,7 @@ class PrecededBy(__Lookaround):
             pattern is provided as parameter "pre2".
         '''
         if isinstance(pre2, _pre.Pregex):
-            if pre2._get_type() == _pre.Pregex._PatternType.Quantifier and (not isinstance(pre2, _Exactly)):
+            if pre2._get_type() == _pre._Type.Quantifier and (not isinstance(pre2, _Exactly)):
                 raise _exceptions.NonFixedWidthPatternException(self, pre2)
         super().__init__(pre1, pre2, lambda pre1, pre2: str(pre1._preceded_by(pre2)))
 
@@ -250,6 +250,6 @@ class NotPrecededBy(__Lookaround):
             pattern is provided as parameter "pre2".
         '''
         if isinstance(pre2, _pre.Pregex):
-            if pre2._get_type() == _pre.Pregex._PatternType.Quantifier and (not isinstance(pre2, _Exactly)):
+            if pre2._get_type() == _pre._Type.Quantifier and (not isinstance(pre2, _Exactly)):
                 raise _exceptions.NonFixedWidthPatternException(self, pre2)
         super().__init__(pre1, pre2, lambda pre1, pre2: str(pre1._not_preceded_by(pre2)))

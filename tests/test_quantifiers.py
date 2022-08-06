@@ -1,7 +1,6 @@
 import unittest
-
-from pregex.pre import Pregex
 from pregex.quantifiers import *
+from pregex.pre import Pregex, _Type
 from pregex.operators import Concat, Either
 from pregex.classes import AnyLowercaseLetter
 from pregex.assertions import FollowedBy, MatchAtStart
@@ -15,6 +14,9 @@ TEST_LITERAL_LEN_1 = Pregex(TEST_STR_LEN_1)
 TEST_LITERAL_LEN_N = Pregex(TEST_STR_LEN_N)
 
 class Test__Quantifier(unittest.TestCase):
+
+    def test_quantifier_class_type(self):
+        self.assertEqual(Optional("a")._get_type(), _Type.Quantifier)
 
     def test_neither_pregex_nor_str(self):
         for arg in (1, 1.56, True):

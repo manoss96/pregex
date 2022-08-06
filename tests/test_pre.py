@@ -1,9 +1,9 @@
 import re
 import unittest
-from pregex.classes import AnyDigit, AnyWhitespace, AnyWordChar, AnyFrom
 from pregex.pre import Pregex
-from pregex.exceptions import NegativeArgumentException, NonIntegerArgumentException, \
-    NonPositiveArgumentException, NonStringArgumentException
+from pregex.assertions import MatchAtStart
+from pregex.exceptions import CannotBeQuantifiedException, NegativeArgumentException, \
+    NonStringArgumentException, NonIntegerArgumentException, NonPositiveArgumentException
 
 
 class TestPregex(unittest.TestCase):
@@ -64,11 +64,11 @@ class TestPregex(unittest.TestCase):
         self.assertEqual(str(Pregex(s)), s)
 
     def test_pregex_on_escape(self):
-        for c in ('\\', '^', '$', '(', ')', '[', ']', '{', '}', '<', '>', '?', '+', '*', '.', '|', '-', '!', '=', ':', '/'):
+        for c in {'\\', '^', '$', '(', ')', '[', ']', '{', '}', '?', '+', '*', '.', '|', '/'}:
             self.assertEqual(str(Pregex(c)), f"\{c}")
 
     def test_pregex_on_non_string_argument(self):
-        for val in [1, 1.3, True]:
+        for val in [1, 1.3, True, Pregex("z")]:
             self.assertRaises(NonStringArgumentException, Pregex, val)
 
     def test_pregex_on_match(self):
@@ -81,17 +81,7 @@ class TestPregex(unittest.TestCase):
     '''
     def test_pregex_on_get_pattern(self):
         self.assertEqual(self.pre1.get_pattern(include_flags=False), self.PATTERN)
-        self.assertEqual(self.pre1.get_pattern(include_flags=True), f"/{self.PATTERN}/gms")
-
-    def test_pregex_on_get_pattern_simplified(self):
-        self.assertEqual(AnyWordChar().get_pattern(), "\w")
-        self.assertEqual(AnyDigit().get_pattern(), "\d")
-        self.assertEqual(AnyWhitespace().get_pattern(), "\s")
-        self.assertEqual((AnyFrom("a")).get_pattern(), "a")
-        self.assertEqual((AnyFrom("+")).get_pattern(), "\+")
-        self.assertEqual((~AnyWordChar()).get_pattern(), "\W")
-        self.assertEqual((~AnyDigit()).get_pattern(), "\D")
-        self.assertEqual((~AnyWhitespace()).get_pattern(), "\S")
+        self.assertEqual(self.pre1.get_pattern(include_flags=True), f"/{self.PATTERN}/gmsu")
 
     def test_pregex_on_get_compiled_pattern(self):
         flags = re.MULTILINE | re.DOTALL
@@ -116,24 +106,24 @@ class TestPregex(unittest.TestCase):
         self.assertEqual([tup for tup in self.pre1.iterate_matches_and_pos(self.TEXT)], self.MATCHES_AND_POS)
         self.assertEqual([tup for tup in self.pre2.iterate_matches_and_pos(self.TEXT)], self.MATCHES_AND_POS)
 
-    def test_pregex_on_iterate_groups(self):
-        self.assertEqual([group_tup for group_tup in self.pre1.iterate_groups(self.TEXT)], self.GROUPS)
-        self.assertEqual([group_tup for group_tup in self.pre1.iterate_groups(self.TEXT, include_empty=False)],
+    def test_pregex_on_iterate_captures(self):
+        self.assertEqual([group_tup for group_tup in self.pre1.iterate_captures(self.TEXT)], self.GROUPS)
+        self.assertEqual([group_tup for group_tup in self.pre1.iterate_captures(self.TEXT, include_empty=False)],
             self.GROUPS_WITHOUT_EMPTY)
-        self.assertEqual([group_tup for group_tup in self.pre2.iterate_groups(self.TEXT)], self.GROUPS)
+        self.assertEqual([group_tup for group_tup in self.pre2.iterate_captures(self.TEXT)], self.GROUPS)
 
-    def test_pregex_on_iterate_groups_and_pos(self):
-        self.assertEqual([group_list for group_list in self.pre1.iterate_groups_and_pos(self.TEXT)], self.GROUPS_AND_POS)
-        self.assertEqual([group_list for group_list in self.pre1.iterate_groups_and_pos(self.TEXT, include_empty=False)],
+    def test_pregex_on_iterate_captures_and_pos(self):
+        self.assertEqual([group_list for group_list in self.pre1.iterate_captures_and_pos(self.TEXT)], self.GROUPS_AND_POS)
+        self.assertEqual([group_list for group_list in self.pre1.iterate_captures_and_pos(self.TEXT, include_empty=False)],
             self.GROUPS_AND_POS_WITHOUT_EMPTY)
-        self.assertEqual([group_list for group_list in self.pre2.iterate_groups_and_pos(self.TEXT)], self.GROUPS_AND_POS)
+        self.assertEqual([group_list for group_list in self.pre2.iterate_captures_and_pos(self.TEXT)], self.GROUPS_AND_POS)
 
-    def test_pregex_on_iterate_groups_and_pos_relative_to_match(self):
-        self.assertEqual([group_list for group_list in self.pre1.iterate_groups_and_pos(self.TEXT, relative_to_match=True)],
+    def test_pregex_on_iterate_captures_and_pos_relative_to_match(self):
+        self.assertEqual([group_list for group_list in self.pre1.iterate_captures_and_pos(self.TEXT, relative_to_match=True)],
             self.GROUPS_AND_RELATIVE_POS)
-        self.assertEqual([group_list for group_list in self.pre1.iterate_groups_and_pos(self.TEXT,
+        self.assertEqual([group_list for group_list in self.pre1.iterate_captures_and_pos(self.TEXT,
             include_empty=False, relative_to_match=True)], self.GROUPS_AND_RELATIVE_POS_WITHOUT_EMPTY)
-        self.assertEqual([group_list for group_list in self.pre2.iterate_groups_and_pos(self.TEXT, relative_to_match=True)],
+        self.assertEqual([group_list for group_list in self.pre2.iterate_captures_and_pos(self.TEXT, relative_to_match=True)],
             self.GROUPS_AND_RELATIVE_POS)
 
     def test_pregex_on_get_matches(self):
@@ -144,21 +134,21 @@ class TestPregex(unittest.TestCase):
         self.assertEqual(self.pre1.get_matches_and_pos(self.TEXT), self.MATCHES_AND_POS)
         self.assertEqual(self.pre2.get_matches_and_pos(self.TEXT), self.MATCHES_AND_POS)
 
-    def test_pregex_on_get_captured_groups(self):
-        self.assertEqual(self.pre1.get_captured_groups(self.TEXT), self.GROUPS)
-        self.assertEqual(self.pre1.get_captured_groups(self.TEXT, include_empty=False), self.GROUPS_WITHOUT_EMPTY)
-        self.assertEqual(self.pre2.get_captured_groups(self.TEXT, include_empty=False), self.GROUPS_WITHOUT_EMPTY)
+    def test_pregex_on_get_captures(self):
+        self.assertEqual(self.pre1.get_captures(self.TEXT), self.GROUPS)
+        self.assertEqual(self.pre1.get_captures(self.TEXT, include_empty=False), self.GROUPS_WITHOUT_EMPTY)
+        self.assertEqual(self.pre2.get_captures(self.TEXT, include_empty=False), self.GROUPS_WITHOUT_EMPTY)
 
-    def test_pregex_on_get_captured_groups_and_pos(self):
-        self.assertEqual(self.pre1.get_captured_groups_and_pos(self.TEXT), self.GROUPS_AND_POS)
-        self.assertEqual(self.pre1.get_captured_groups_and_pos(self.TEXT, include_empty=False), self.GROUPS_AND_POS_WITHOUT_EMPTY)
-        self.assertEqual(self.pre2.get_captured_groups_and_pos(self.TEXT, include_empty=False), self.GROUPS_AND_POS_WITHOUT_EMPTY)
+    def test_pregex_on_get_captures_and_pos(self):
+        self.assertEqual(self.pre1.get_captures_and_pos(self.TEXT), self.GROUPS_AND_POS)
+        self.assertEqual(self.pre1.get_captures_and_pos(self.TEXT, include_empty=False), self.GROUPS_AND_POS_WITHOUT_EMPTY)
+        self.assertEqual(self.pre2.get_captures_and_pos(self.TEXT, include_empty=False), self.GROUPS_AND_POS_WITHOUT_EMPTY)
 
-    def test_pregex_on_get_captured_groups_and_relative_pos(self):
-        self.assertEqual(self.pre1.get_captured_groups_and_pos(self.TEXT, relative_to_match=True), self.GROUPS_AND_RELATIVE_POS)
-        self.assertEqual(self.pre1.get_captured_groups_and_pos(self.TEXT, include_empty=False, relative_to_match=True),
+    def test_pregex_on_get_captures_and_relative_pos(self):
+        self.assertEqual(self.pre1.get_captures_and_pos(self.TEXT, relative_to_match=True), self.GROUPS_AND_RELATIVE_POS)
+        self.assertEqual(self.pre1.get_captures_and_pos(self.TEXT, include_empty=False, relative_to_match=True),
             self.GROUPS_AND_RELATIVE_POS_WITHOUT_EMPTY)
-        self.assertEqual(self.pre2.get_captured_groups_and_pos(self.TEXT, include_empty=False, relative_to_match=True),
+        self.assertEqual(self.pre2.get_captures_and_pos(self.TEXT, include_empty=False, relative_to_match=True),
             self.GROUPS_AND_RELATIVE_POS_WITHOUT_EMPTY)
 
     def test_pregex_on_replace(self):
@@ -171,9 +161,9 @@ class TestPregex(unittest.TestCase):
     def test_pregex_on_split_by_match(self):
         self.assertEqual(self.pre1.split_by_match(self.TEXT), self.SPLIT_BY_MATCH)
 
-    def test_pregex_on_split_by_group(self):
-        self.assertEqual(self.pre1.split_by_group(self.TEXT, include_empty=True), self.SPLIT_BY_GROUP)
-        self.assertEqual(self.pre1.split_by_group(self.TEXT, include_empty=False), self.SPLIT_BY_GROUP_WITHOUT_EMPTY)
+    def test_pregex_on_split_by_capture(self):
+        self.assertEqual(self.pre1.split_by_capture(self.TEXT, include_empty=True), self.SPLIT_BY_GROUP)
+        self.assertEqual(self.pre1.split_by_capture(self.TEXT, include_empty=False), self.SPLIT_BY_GROUP_WITHOUT_EMPTY)
 
 
     '''
@@ -184,11 +174,6 @@ class TestPregex(unittest.TestCase):
 
     def test_pregex_on__quantify_conditional_group(self):
         self.assertEqual(self.pre1._quantify_conditional_group(), f"(?:{self.pre1})")
-
-    def test_pregex_on__to_pregex(self):
-        s = "abc.-<?>"
-        self.assertEqual(str(Pregex._to_pregex(s)), str(Pregex(s)))
-        self.assertEqual(str(Pregex._to_pregex(self.pre1)), str(self.pre1))
 
     def test_pregex_on_addition_operator(self):
         self.assertEqual(str(self.pre1 + self.pre2), f"(?:{self.pre1})(?:{self.pre2})")
@@ -211,11 +196,20 @@ class TestPregex(unittest.TestCase):
         self.assertEqual(str(self.pre2 + self.pre1), f"(?:{self.PATTERN})(?:{self.PATTERN})")
 
     def test_pregex_on_multiplication(self):
-        self.assertEqual(str(self.pre1 * 1), self.PATTERN)
-        self.assertEqual(str(self.pre1 * 2), f"(?:{self.PATTERN}){{2}}")
+        self.assertEqual(str(self.pre1.__mul__(1)), self.PATTERN)
+        self.assertEqual(str(self.pre1.__mul__(2)), f"(?:{self.PATTERN}){{2}}")
         self.assertRaises(NonPositiveArgumentException, self.pre1.__mul__, 0)
         for val in ["s", 1.1, True]:
             self.assertRaises(NonIntegerArgumentException, self.pre1.__mul__, val)
+        self.assertRaises(CannotBeQuantifiedException, MatchAtStart("x").__mul__, 2)
+
+    def test_pregex_on_right_side_multiplication(self):
+        self.assertEqual(str(self.pre1.__rmul__(1)), self.PATTERN)
+        self.assertEqual(str(self.pre1.__rmul__(2)), f"(?:{self.PATTERN}){{2}}")
+        self.assertRaises(NonPositiveArgumentException, self.pre1.__rmul__, 0)
+        for val in ["s", 1.1, True]:
+            self.assertRaises(NonIntegerArgumentException, self.pre1.__rmul__, val)
+        self.assertRaises(CannotBeQuantifiedException, MatchAtStart("x").__rmul__, 2)
 
 if __name__=="__main__":
     unittest.main()

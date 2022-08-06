@@ -1,3 +1,5 @@
+
+
 class NeitherStringNorPregexException(Exception):
     '''
     This exception is thrown whenever an argument is neither a "Pregex" \
@@ -9,7 +11,6 @@ class NeitherStringNorPregexException(Exception):
         The class's constructor.
         '''
         super().__init__("The argument that was provided is neither a string nor a subtype of \"Pregex\".")
-
 
 
 class NeitherCharNorTokenException(Exception):
@@ -150,7 +151,7 @@ class CannotBeUnionedException(Exception):
         :param bool are_both_classes: Indicates whether both "Pregex" instances are of type "__Class".
         '''
         m = f"Classes and negated classes cannot be unioned together." if are_both_classes \
-            else f"Objects of type {type(pre1)} and {type(pre2)} cannot be combined."
+            else f"Objects of type \"{type(pre1).__name__}\" and \"{type(pre2).__name__}\" cannot be combined."
         super().__init__(m)
 
 
@@ -170,6 +171,24 @@ class CannotBeSubtractedException(Exception):
         '''
         m = f"Classes and negated classes cannot be subtracted from one another" if are_both_classes \
             else f"Objects of type {type(pre1)} and {type(pre2)} cannot be subtracted from one another."
+        super().__init__(m)
+
+
+class GlobalWordCharSubtractionException(Exception):
+    '''
+    This exception is thrown whenever one tries to subtract from an instance of \
+    either one of "AnyWordChar" or "AnyButWordChar" classes, for which parameter \
+    "is_global" has been set to "true".
+    '''
+
+    def __init__(self, pre):
+        '''
+        The class's constructor.
+
+        :param AnyWordChar | AnyButWordChar pre: An instance of either one of the two classes.
+        '''
+        m = f"Cannot subtract from an instance of class \"{type(pre).__name__}\"" + \
+             " for which parameter \"is_global\" has been set to \"True\"."
         super().__init__(m)
 
 

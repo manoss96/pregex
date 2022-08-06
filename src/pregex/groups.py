@@ -8,9 +8,9 @@ class __Group(_pre.Pregex):
     Constitutes the base class for classes "Capture" and "Group".
     '''
     def __init__(self, pre: _pre.Pregex or str, transform) -> _pre.Pregex:
-        pre = transform(__class__._to_pregex(pre))
-        super().__init__(str(pre), escape=False)
-        self._set_type(__class__._PatternType.Group)
+        pattern = transform(__class__._to_pregex(pre))
+        super().__init__(pattern, escape=False)
+        self._set_type(_pre._Type.Group)
 
 
 class Capture(__Group):

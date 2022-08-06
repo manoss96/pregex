@@ -1,14 +1,19 @@
 import unittest
-from pregex.exceptions import NonFixedWidthPatternException
-from pregex.pre import Pregex
 from pregex.assertions import *
-from pregex.quantifiers import *
+from pregex.pre import Pregex, _Type
+from pregex.quantifiers import Exactly, Optional
+from pregex.exceptions import NonFixedWidthPatternException
 
 
 TEST_STR = "test"
 pre1 = Pregex("PRE1")
 pre2 = Pregex("PRE2")
 
+
+class Test__Assertion(unittest.TestCase):
+
+    def test_assertion_class_type(self):
+        self.assertEqual(MatchAtStart("x")._get_type(), _Type.Assertion)
 
 class TestMatchAtStart(unittest.TestCase):
     

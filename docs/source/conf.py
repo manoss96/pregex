@@ -18,11 +18,11 @@ sys.path.insert(0, os.path.abspath('../../src/pregex/'))
 # -- Project information -----------------------------------------------------
 
 project = 'pregex'
-copyright = '2022, Emmanouil Stoumpos'
-author = 'Emmanouil Stoumpos'
+copyright = '2022, Manos Stoumpos'
+author = 'Manos Stoumpos'
 
 # The full version, including alpha/beta/rc tags
-release = '1.3.0'
+release = '1.4.0'
 
 
 # -- General configuration ---------------------------------------------------

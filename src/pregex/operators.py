@@ -9,12 +9,13 @@ class __Operator(_pre.Pregex):
     :raises LessThanTwoArgumentsException: Less than two arguments are provided.
     '''
 
-    def __init__(self, pres: tuple[_pre.Pregex or str], transform, type) -> _pre.Pregex:
+    def __init__(self, pres: tuple[_pre.Pregex or str], transform, type: _pre._Type) -> _pre.Pregex:
         if len(pres) < 2:
             raise _exceptions.LessThanTwoArgumentsException()
         result = __class__._to_pregex(pres[0])
         for pre in pres[1:]:
-            result = transform(result, __class__._to_pregex(pre))
+            result = _pre.Pregex(transform(result, __class__._to_pregex(pre)), escape=False)
+            result._set_type(type)
         super().__init__(str(result), escape=False)
         self._set_type(type)
 
@@ -36,7 +37,7 @@ class Concat(__Operator):
 
         :raises LessThanTwoArgumentsException: Less than two arguments are provided.
         '''
-        super().__init__(pres, lambda pre1, pre2: pre1._concat(pre2), __class__._PatternType.Other)
+        super().__init__(pres, lambda pre1, pre2: pre1._concat(pre2), _pre._Type.Concat)
 
 
 class Either(__Operator):
@@ -66,4 +67,4 @@ class Either(__Operator):
             stop the moment it matches either one of the alternatives, starting from \
             the left-most pattern and continuing on to the right until a match occurs.
         '''
-        super().__init__(pres, lambda pre1, pre2: pre1._either(pre2), __class__._PatternType.Either)
+        super().__init__(pres, lambda pre1, pre2: pre1._either(pre2), _pre._Type.Alternation)

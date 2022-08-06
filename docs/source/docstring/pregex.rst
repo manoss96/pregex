@@ -2,9 +2,9 @@ pregex.pre
 -----------------
 This module contains a single class, namely "Pregex", which constitutes the base
 class for every other class within the "pregex" package. This means that all methods
-of this class are also defined for every other class as well.
+of this class are also inherited by every other class as well.
 
-**Converting a string to a Pregex instance**
+**Converting a string into a Pregex instance**
 
 In general, one can wrap any string within a "Pregex" instance by passing it as a 
 parameter to the class's constructor. By doing this, any characters of the provided
@@ -30,9 +30,9 @@ However, you probably won't need to do this often since any string that interact
    pre1 = Optional(Pregex("Hello."))
    pre2 = Optional("Hello.")
 
-Finally, you should also know that character-escaping can also be disabled when wrapping a string
-within a "Pregex" instance. This can be used for example in order to explicitly define
-your own RegEx patterns:
+Finally, you should know that character-escaping can also be disabled when wrapping
+a string within a “Pregex” instance. This can be used for example in order to
+explicitly define your own RegEx patterns:
 
 .. code-block:: python
 
@@ -40,8 +40,7 @@ your own RegEx patterns:
 
    pre = Pregex("[a-z].?", escape=False)
 
-   print(pre.get_pattern()) # This prints '[a-z].?'
-
+   print(pre.get_pattern()) # This prints '[a-z].?'   
 
 **Concatenating patterns with "+"**
 
@@ -82,9 +81,9 @@ indicates that a pattern is to be repeated an exact number of times:
 
    from pregex.pre import Pregex
 
-   pre = 3 * Pregex("Hi")
+   pre = 3 * Pregex("a")
 
-   print(pre.get_pattern()) # This prints '(?:Hi){3}'
+   print(pre.get_pattern()) # This prints 'a{3}'
 
 Now that you've taken a first look at the "Pregex" class, check out its
 methods below to see what else this class has to offer!
@@ -302,7 +301,7 @@ so that said pattern is also captured separately whenever a match occurs.
 
    pre = AnyLetter() + Capture(AnyLetter()) + AnyLetter()
 
-   print(pre.get_captured_groups("abc def")) # This prints "[('b'), ('e')]"
+   print(pre.get_captures("abc def")) # This prints "[('b'), ('e')]"
 
 
 .. automodule:: pregex.groups

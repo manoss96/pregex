@@ -1,11 +1,18 @@
 import unittest
 from pregex.groups import *
-from pregex.pre import Pregex
 from pregex.tokens import Backslash
+from pregex.pre import Pregex, _Type
 from pregex.exceptions import NonStringArgumentException, InvalidCapturingGroupNameException
 
 
 TEST_STR = "test"
+
+
+class Test__Group(unittest.TestCase):
+
+    def test_group_class_type(self):
+        self.assertEqual(Capture("x")._get_type(), _Type.Group)
+
 
 class TestCapture(unittest.TestCase):
 
