@@ -30,7 +30,7 @@ class __Class(_pre.Pregex):
     def __init__(self, pattern: str, is_negated: bool, simplify_word: bool = False) -> '__Class':
 
         super().__init__(__class__.__simplify(pattern, is_negated, simplify_word), escape=False)
-        self._set_type(_pre._Type.Class)
+        #self._set_type(_pre._Type.Class)
         self.__is_negated = is_negated
         self.__verbose = pattern
 
@@ -219,6 +219,7 @@ class __Class(_pre.Pregex):
             return set(f"{rng[0]}-{rng[1]}" for rng in ranges), set(chars)        
 
         ranges = reduce_ranges(ranges)
+
         ranges, chars = reduce_chars(list(ranges), list(chars))
 
         result =  __class__.__modify_classes(ranges.union(chars), escape=True)
@@ -391,7 +392,7 @@ class __Class(_pre.Pregex):
         classes = pattern[start_index:-1]
 
         # Extract classes separately.
-        ranges, chars = __class__.__extract_ranges(classes), __class__.__extract_chars(classes)
+        ranges, chars = __class__.__separate_classes(classes)
 
         # Escape their characters if you must.
         if unescape:
@@ -401,27 +402,19 @@ class __Class(_pre.Pregex):
         return ranges, chars
 
 
-    def __extract_ranges(classes: 'str') -> set[str]:
+    def __separate_classes(classes: 'str') -> tuple[set[str], set[str]]:
         '''
-        Extracts all ranges from the provided character class pattern and returns \
-        a set containing them.
+        Extracts all classes from the provided character class pattern and \
+        returns them separated into ranges and characters.
 
         :param str classes: One or more string character class patterns.
         '''
-        return set(_re.findall(
-            r"(?:\\(?:\[|\]|\^|\$|\-|\/|\\)|[^\[\]\^\$\-\/\\])-(?:\\(?:\[|\]|\^|\$|\-|\/|\\)|[^\[\]\^\$\-\/\\])",
-            classes, flags=_re.DOTALL))
-
-
-    def __extract_chars(classes: str) -> set[str]:
-        '''
-        Extracts all individual characters from the provided character class pattern \
-        and returns a set containing them.
-
-        :param str classes: One or more string character class patterns.
-        '''
-        return set(_re.findall(r"(?<!.\-)(?:\\(?:\[|\]|\^|\$|\-|\/|\\)|[^\[\]\^\$\-\/\\])(?!\-.)",
-            classes, flags=_re.DOTALL))
+        range_pattern = \
+            r"(?:\\(?:\[|\]|\^|\$|\-|\/|[a-z]|\\)|[^\[\]\^\$\-\/\\])" + \
+            r"-(?:\\(?:\[|\]|\^|\$|\-|\/|[a-z]|\\)|[^\[\]\^\$\-\/\\])"
+        ranges = set(_re.findall(range_pattern, classes))
+        classes = _re.sub(pattern=range_pattern, repl="", string=classes)
+        return (ranges, set(_re.findall(r"\\?.", classes, flags=_re.DOTALL)))
 
     
     def __modify_classes(classes: set[str], escape: bool) -> set[str]:
@@ -711,9 +704,9 @@ class AnyBetween(__Class):
         is neither a "token" class instance nor a single-character string.
     :raises InvalidRangeException: A non-valid range is provided.
 
-    :note: Any pair of characters "start", "end" constitutes a valid range, \
-        provided that the integer code point of "end" is greater than the \
-        integer code point of "start", as defined by the Unicode Standard.
+    :note: Any pair of characters "start", "end" constitutes a valid range \
+        as long as that the code point of "end" is greater than the code \
+        point of "start", as defined by the Unicode Standard.
     '''
 
     def __init__(self, start: str, end: str) -> 'AnyBetween':
@@ -727,9 +720,9 @@ class AnyBetween(__Class):
             is neither a "token" class instance nor a single-character string.
         :raises InvalidRangeException: A non-valid range is provided.
 
-        :note: Any pair of characters "start", "end" constitutes a valid range, \
-            provided that the integer code point of "end" is greater than the \
-            integer code point of "start", as defined by the Unicode Standard.
+        :note: Any pair of characters "start", "end" constitutes a valid range \
+            as long as that the code point of "end" is greater than the code \
+            point of "start", as defined by the Unicode Standard.
         '''
         for c in (start, end):
             if isinstance(c, (str, _pre.Pregex)):
@@ -756,9 +749,9 @@ class AnyButBetween(__Class):
         is neither a "token" class instance nor a single-character string.
     :raises InvalidRangeException: A non-valid range is provided.
 
-    :note: Any pair of characters "start", "end" constitutes a valid range, \
-        provided that the integer code point of "end" is greater than the \
-        integer code point of "start", as defined by the Unicode Standard.
+    :note: Any pair of characters "start", "end" constitutes a valid range \
+        as long as that the code point of "end" is greater than the code \
+        point of "start", as defined by the Unicode Standard.
     '''
 
     def __init__(self, start: str, end: str) -> 'AnyButBetween':
@@ -772,9 +765,9 @@ class AnyButBetween(__Class):
             is neither a "token" class instance nor a single-character string.
         :raises InvalidRangeException: A non-valid range is provided.
 
-        :note: Any pair of characters "start", "end" constitutes a valid range, \
-            provided that the integer code point of "end" is greater than the \
-            integer code point of "start", as defined by the Unicode Standard.
+        :note: Any pair of characters "start", "end" constitutes a valid range \
+            as long as that the code point of "end" is greater than the code \
+            point of "start", as defined by the Unicode Standard.
         '''
         for c in (start, end):
             if isinstance(c, (str, _pre.Pregex)):

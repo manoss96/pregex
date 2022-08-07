@@ -1,2 +1,2 @@
 myst-parser==0.18.0
-pregex==1.4.1
+pregex==1.4.2

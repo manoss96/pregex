@@ -8,22 +8,20 @@ class _Type(_enum.Enum):
     '''
     The type of the "Pregex" instance's underlying RegEx pattern.
     '''
-    Literal = 0
-    Alternation = 1
-    Assertion = 2
-    Class = 3
-    Concat = 4
-    Custom = 5
-    Group = 6
-    Quantifier = 7
-    Token = 8
+    Alternation = 0
+    Assertion = 1
+    Class = 2
+    Group = 3
+    Other = 4
+    Quantifier = 5
+    Token = 6
 
 
 class Pregex():
     '''
     Wraps the provided pattern within a "Pregex" instance.
 
-    :param str | Pregex pattern: The pattern that is to be wrapped within an instance of this class.
+    :param str pattern: The pattern that is to be wrapped within an instance of this class.
     :param bool escape: Indicates whether to escape the provided pattern or not. Defaults to 'True'.
 
     :raises NonStringArgumentException: Parameter 'pattern' is not a string.
@@ -38,13 +36,11 @@ class Pregex():
     :schema: __groupping_rules[type] => (on_concat, on_quantify)
     '''
     __groupping_rules: dict[_Type, str] = {
-        _Type.Literal: (False, True),
+        _Type.Alternation: (True, True),
         _Type.Assertion : (False, None),
         _Type.Class: (False, False),
-        _Type.Concat: (False, True),
-        _Type.Custom: (True, True),
         _Type.Group: (False, False),
-        _Type.Alternation: (True, True),
+        _Type.Other: (False, True),
         _Type.Quantifier: (False, True),
         _Type.Token: (False, False),
     }
@@ -59,7 +55,7 @@ class Pregex():
         '''
         Wraps the provided pattern within a "Pregex" instance.
 
-        :param str | Pregex pattern: The pattern that is to be wrapped within an instance of this class.
+        :param str pattern: The pattern that is to be wrapped within an instance of this class.
         :param bool escape: Indicates whether to escape the provided pattern or not. Defaults to 'True'.
 
         :raises NonStringArgumentException: Parameter 'pattern' is not a string.
@@ -70,11 +66,9 @@ class Pregex():
             raise _exceptions.NonStringArgumentException()
         if escape:
             self.__pattern = __class__.__escape(pattern)
-            self.__type = _Type.Literal if len(pattern.replace("\\", "", 1)) > 1 \
-                else _Type.Token
         else:
             self.__pattern = pattern
-            self.__type = _Type.Custom
+        self.__type = __class__.__infer_type(self.__pattern)
         self.__compiled: _re.Pattern = None
 
 
@@ -167,11 +161,11 @@ class Pregex():
         Generates tuples, one tuple per match, where each tuple contains \
         all of its corresponding match's captured groups. In case there exists \
         a capturing group within the pattern that has not been captured by a match, \
-        then that group's corresponding value will be 'None'.
+        then that capture's corresponding value will be 'None'.
 
         :param str text: The piece of text that is to be searched for matches.
-        :param bool include_empty: Indicates whether to include empty groups into the results. \
-            Defaults to 'True'.
+        :param bool include_empty: Indicates whether to include empty captures into the \
+            results. Defaults to 'True'.
         '''
         for match in self.__iterate_match_objects(text):
             yield match.groups() if include_empty else \
@@ -183,12 +177,12 @@ class Pregex():
         Generates lists of tuples, one list per match, where each tuple contains one \
         of its corresponding match's captured groups along with its exact position \
         within the text. In case there exists a capturing group within the pattern that \
-        has not been captured by a match, then that group's corresponding tuple will be \
+        has not been captured by a match, then that capture's corresponding tuple will be \
         '(None, -1, -1)'.
 
         :param str text: The piece of text that is to be searched for matches.
-        :param bool include_empty: Indicates whether to include empty groups into the results. \
-            Defaults to 'True'.
+        :param bool include_empty: Indicates whether to include empty captures into the \
+            results. Defaults to 'True'.
         :param bool relative_to_match: If 'True', then each group's position-indices are calculated \
             relative to the group's corresponding match, not to the whole string. Defaults to 'False'.
         '''
@@ -228,11 +222,11 @@ class Pregex():
         Returns a list of tuples, one tuple per match, where each tuple contains \
         all of its corresponding match's captured groups. In case there exists \
         a capturing group within the pattern that has not been captured by a match, \
-        then that group's corresponding value will be 'None'.
+        then that capture's corresponding value will be 'None'.
 
         :param str text: The piece of text that is to be searched for matches.
-        :param bool include_empty: Indicates whether to include empty groups into the results. \
-            Defaults to 'True'.
+        :param bool include_empty: Indicates whether to include empty captures into the \
+            results. Defaults to 'True'.
         '''
         return list(group for group in self.iterate_captures(text, include_empty))
 
@@ -242,12 +236,12 @@ class Pregex():
         Returns a list containing lists of tuples, one list per match, where each \
         tuple contains one of its corresponding match's captured groups along with \
         its exact position within the text. In case there exists a capturing group \
-        within the pattern that has not been captured by a match, then that group's \
+        within the pattern that has not been captured by a match, then that capture's \
         corresponding tuple will be '(None, -1, -1)'.
 
         :param str text: The piece of text that is to be searched for matches.
-        :param bool include_empty: Indicates whether to include empty groups into the results. \
-            Defaults to 'True'.
+        :param bool include_empty: Indicates whether to include empty captures into the \
+            results. Defaults to 'True'.
         :param bool relative_to_match: If 'True', then each group's position-indices are calculated \
             relative to the group's corresponding match, not to the whole string. Defaults to 'False'.
         '''
@@ -320,13 +314,6 @@ class Pregex():
         Returns this instance's type.
         '''
         return self.__type
-
-
-    def _set_type(self, type: _Type) -> None:
-        '''
-        Returns this instance's type.
-        '''
-        self.__type = type
 
 
     def _concat_conditional_group(self) -> str:
@@ -413,9 +400,7 @@ class Pregex():
         :param Pregex | str pre1: The string or a "Pregex" instance at the left side of the concatenation.
         :param Pregex | str pre2: The string or a "Pregex" instance at the right side of the concatenation.
         '''
-        pre = __class__(__class__._to_pregex(pre1)._concat(__class__._to_pregex(pre2)), escape=False)
-        pre._set_type(_Type.Concat)
-        return pre
+        return __class__(__class__._to_pregex(pre1)._concat(__class__._to_pregex(pre2)), escape=False)
 
 
     def __mul__(self, n: int) -> 'Pregex':
@@ -435,9 +420,7 @@ class Pregex():
             raise _exceptions.NonIntegerArgumentException(n)
         if n < 1:
             raise _exceptions.NonPositiveArgumentException(n)
-        pre = __class__(self._exactly(n), escape=False)
-        pre._set_type(_Type.Quantifier)
-        return pre
+        return __class__(self._exactly(n), escape=False)
 
 
     def __rmul__(self, n: int) -> 'Pregex':
@@ -457,9 +440,7 @@ class Pregex():
             raise _exceptions.NonIntegerArgumentException(n)
         if n < 1:
             raise _exceptions.NonPositiveArgumentException(n)
-        pre = __class__(self._exactly(n), escape=False)
-        pre._set_type(_Type.Quantifier)
-        return pre
+        return __class__(self._exactly(n), escape=False)
 
 
     def __get_group_on_concat_rule(self) -> bool:
@@ -497,7 +478,59 @@ class Pregex():
         pattern = pattern.replace("\\", "\\\\")
         for c in {'^', '$', '(', ')', '[', ']', '{', '}', '?', '+', '*', '.', '|', '/'}:
             pattern = pattern.replace(c, f"\\{c}")
-        return pattern
+        return pattern            
+
+    
+    def __infer_type(pattern: str) -> _Type:
+        '''
+        Examines the provided RegEx pattern and returns its type.
+
+        :param str pattern: The RegEx pattern that is to be examined.
+        '''
+        if _re.fullmatch(r"\\?.", pattern, flags=__class__.__flags) is not None:
+            return _Type.Token if _re.fullmatch(r"\.|\\(?:w|d|s)",
+                pattern, flags=__class__.__flags | _re.IGNORECASE) is None \
+                else _Type.Class
+        elif _re.fullmatch(r"\[.+\]", pattern) is not None:
+            return _Type.Class
+        elif _re.fullmatch(r"(?:\^|\\A|\\b|\(\?<(?:=|!).+\)).+|.+(?:\$|\\Z|\\b|\(\?(?:=|!).+\))",
+            pattern, flags=__class__.__flags) is not None:
+            return _Type.Assertion
+        elif _re.fullmatch(r".+(?:\?|\*|\+|(?<!\\)\{.{1,3}(?<!\\)\})",
+            pattern, flags=__class__.__flags) is not None:
+            return _Type.Quantifier
+        elif __class__.__is_group(pattern):
+            return _Type.Group
+        else:
+            pattern = _re.sub(pattern=r"(?<!\\)\((?:(?<=\\)\)|[^\)])+\|(?:(?<=\\)\)|[^\)])+(?<!\\)\)",
+                repl="", string=pattern)
+            if len(_re.split(pattern=r"(?<!\\)\|", string=pattern)) > 1:
+                return _Type.Alternation
+        return _Type.Other
+
+
+    def __is_group(pattern) -> bool:
+        '''
+        Looks at the underlying pattern of this instance, and returns either \
+        "True" or "False", depending on whether the provided RegEx pattern \
+        represents a group or not.
+
+        :param str pattern: The pattern that is to be examined.
+        '''
+        if pattern.startswith('(') and pattern.endswith(')'):
+            n_open = 0
+            for i in range(1, len(pattern) - 1):
+                prev_char, curr_char = pattern[i-1], pattern[i]
+                if prev_char != "\\": 
+                    if curr_char == ')':
+                        if n_open == 0:
+                            return False
+                        else:
+                            n_open -= 1
+                    if curr_char == '(':
+                        n_open += 1
+            return n_open == 0
+        return False
 
 
     '''

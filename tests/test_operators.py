@@ -21,7 +21,7 @@ class Test__Operator(unittest.TestCase):
 class TestConcat(unittest.TestCase):
 
     def test_concat_class_type(self):
-        self.assertEqual(Concat("a", "b")._get_type(), _Type.Concat)
+        self.assertEqual(Concat("a", "b")._get_type(), _Type.Other)
     
     def test_concat_on_str(self):
         self.assertEqual(str(Concat(TEST_STR_1, TEST_STR_2, TEST_STR_3)), f"{TEST_STR_1}{TEST_STR_2}{TEST_STR_3}")

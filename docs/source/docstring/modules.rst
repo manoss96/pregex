@@ -2,7 +2,7 @@
 pregex
 *******
 
-In this page you can learn about each one of PRegEx's core modules
+In this page you can learn about each one of pregex's core modules
 and how to effectively use them in order to build complex RegEx patterns.
 
 Before diving into the modules themselves, it is important to know that due to the
@@ -27,7 +27,7 @@ Take a look at the example below to better understand how this works:
 
 	pre = op.Either("Hello", "Bye") + " World" + qu.Optional("!")
 
-	print(pre.get_pattern()) # This prints "(?:Hello|Bye) World\!?"
+	print(pre.get_pattern()) # This prints "(?:Hello|Bye) World!?"
 
 
 It is recommended that you follow this practice as besides the fact that

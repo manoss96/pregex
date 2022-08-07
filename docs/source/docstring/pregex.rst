@@ -2,7 +2,7 @@ pregex.pre
 -----------------
 This module contains a single class, namely "Pregex", which constitutes the base
 class for every other class within the "pregex" package. This means that all methods
-of this class are also inherited by every other class as well.
+of this class are inherited by every other class as well.
 
 **Converting a string into a Pregex instance**
 
@@ -139,7 +139,7 @@ of the bitwise OR operator "|", as depicted within the code snippet below:
    from pregex.classes import AnyDigit, AnyLowercaseLetter
 
    pre = AnyDigit() | AnyLowercaseLetter()
-   print(pre.get_pattern()) # This will print "[0-9a-z]"
+   print(pre.get_pattern()) # This will print "[\da-z]"
 
 The same goes for negated classes as well:
 
@@ -148,7 +148,7 @@ The same goes for negated classes as well:
    from pregex.classes import AnyButDigit, AnyButLowercaseLetter
 
    pre = AnyButDigit() | AnyButLowercaseLetter()
-   print(pre.get_pattern()) # This will print "[^0-9a-z]"
+   print(pre.get_pattern()) # This will print "[^\da-z]"
 
 However, attempting to get the union of a regular class and a negated class
 causes a "CannotBeUnionedException" to be thrown.
@@ -160,7 +160,8 @@ causes a "CannotBeUnionedException" to be thrown.
    pre = AnyDigit() | AnyButLowercaseLetter() # This is not OK!
 
 Lastly, it also possible to union a regular class with a token, that is,
-any string of length one or any class within the "tokens" module:
+any string of length one or any instance of a class that is part of the
+"tokens" module:
 
 .. code-block:: python
 
@@ -185,12 +186,12 @@ within an "AnyButFrom" class instance in order to do the same:
 
 **Subtracting Classes**
 
-Subtraction is another operation that is exclusive to classes and is achieved via
-the overloaded subtraction operator "-". This feature comes in handy when one wishes
-to construct a class that would be tiresome to construct otherwise. Consider for
-example the class of all word characters except for the alphabetic characters "Cc" and
-"Gg", as well as for the digit "3". Constructing said class via subtraction is
-extremely easy:
+Subtraction is another operation that is exclusive to classes and it is made possible
+via the overloaded subtraction operator "-". This feature comes in handy when one
+wishes to construct a class that would be tiresome to construct otherwise. Consider
+for example the class of all word characters except for alphabetic characters "Cc"
+and "Gg", as well as for the digit "3". Constructing said class via subtraction
+is extremely easy:
 
 .. code-block:: python
 
@@ -198,9 +199,9 @@ extremely easy:
 
    pre = AnyWordChar() - AnyFrom('C', 'c', 'G', 'g', '3')
 
-Below we see this operation's resulting pattern, from which it becomes evident
-that building the following pattern through multiple class unions would be
-more time consuming and, more importantly, prone to errors.
+Below we are able to see this operation's resulting pattern, from which it becomes
+evident that building said pattern pattern through multiple class unions would be
+more time consuming, and more importantly, prone to errors.
 
 .. code-block:: python
 
@@ -265,11 +266,11 @@ The result is entirely the same and which one you'll use is just a matter of cho
 pregex.groups
 ------------------------
 This module contains all necessary classes that are used to construct both capturing
-and non-capturing groups, as well as any other classes that relate to further
-group-related concepts, such as backreferences and conditionals. In general,
-one should not have to concern themselves with pattern-grouping, as patterns are
-automatically grouped into non-capturing groups whenever this is deemed necessary.
-Consider for instance the following code snippet:
+and non-capturing groups, as well as any other class that relates to group-related
+concepts, such as backreferences and conditionals. In general, one should not have
+to concern themselves with pattern-grouping, as patterns are automatically grouped
+into non-capturing groups whenever this is deemed necessary. Consider for instance
+the following code snippet:
 
 .. code-block:: python
 

@@ -170,13 +170,13 @@ class TestPregex(unittest.TestCase):
     Test Protected Methods
     '''
     def test_pregex_on__concat_conditional_group(self):
-        self.assertEqual(self.pre1._concat_conditional_group(), f"(?:{self.pre1})")
+        self.assertEqual(self.pre1._concat_conditional_group(), f"{self.pre1}")
 
     def test_pregex_on__quantify_conditional_group(self):
         self.assertEqual(self.pre1._quantify_conditional_group(), f"(?:{self.pre1})")
 
     def test_pregex_on_addition_operator(self):
-        self.assertEqual(str(self.pre1 + self.pre2), f"(?:{self.pre1})(?:{self.pre2})")
+        self.assertEqual(str(self.pre1 + self.pre2), f"{self.pre1}{self.pre2}")
         l1, l2 = "a", "b"
         self.assertEqual(str(Pregex(l1) + Pregex(l2)), l1 + l2)
         l1, l2 = "|", "?"
@@ -188,12 +188,12 @@ class TestPregex(unittest.TestCase):
     '''
     def test_pregex_on_pregex_str_addition(self):
         s = "TEST"
-        self.assertEqual(str(self.pre1 + s), f"(?:{self.PATTERN}){s}")
-        self.assertEqual(str(s + self.pre1), f"{s}(?:{self.PATTERN})")
+        self.assertEqual(str(self.pre1 + s), f"{self.PATTERN}{s}")
+        self.assertEqual(str(s + self.pre1), f"{s}{self.PATTERN}")
 
     def test_pregex_on_pregex_pregex_addition(self):
-        self.assertEqual(str(self.pre1 + self.pre2), f"(?:{self.PATTERN})(?:{self.PATTERN})")
-        self.assertEqual(str(self.pre2 + self.pre1), f"(?:{self.PATTERN})(?:{self.PATTERN})")
+        self.assertEqual(str(self.pre1 + self.pre2), f"{self.PATTERN}{self.PATTERN}")
+        self.assertEqual(str(self.pre2 + self.pre1), f"{self.PATTERN}{self.PATTERN}")
 
     def test_pregex_on_multiplication(self):
         self.assertEqual(str(self.pre1.__mul__(1)), self.PATTERN)

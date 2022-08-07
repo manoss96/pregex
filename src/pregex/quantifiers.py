@@ -13,7 +13,6 @@ class __Quantifier(_pre.Pregex):
             raise _exceptions.CannotBeQuantifiedException(pre)
         pattern = transform(__class__._to_pregex(pre), is_greedy)
         super().__init__(pattern, escape=False)
-        self._set_type(_pre._Type.Quantifier)
 
 
 class Optional(__Quantifier):

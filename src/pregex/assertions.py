@@ -9,7 +9,6 @@ class __Assertion(_pre.Pregex):
     '''
     def __init__(self, pattern: str):
         super().__init__(pattern, escape=False)
-        self._set_type(_pre._Type.Assertion)
 
 
 

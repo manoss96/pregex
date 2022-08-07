@@ -190,6 +190,9 @@ class TestAny(unittest.TestCase):
     def test_any(self):
         self.assertEqual(str(Any()), ".")
 
+        def test_any_on_type(self):
+            self.assertEqual(Any()._get_type(), _Type.Class)
+
     def test_any_on_newline_match(self):
         self.assertTrue(Any().get_matches("\n"), ["\n"])
 
@@ -228,6 +231,9 @@ class TestAnyDigit(unittest.TestCase):
     def test_any_digit(self):
         self.assertEqual(str(AnyDigit()), "\d")
 
+    def test_any_digit_on_type(self):
+        self.assertEqual(AnyDigit()._get_type(), _Type.Class)
+
 
 class TestAnyWordChar(unittest.TestCase):
 
@@ -236,6 +242,10 @@ class TestAnyWordChar(unittest.TestCase):
     def test_any_word_char(self):
         self.assertTrue(str(AnyWordChar(is_global=False)) in self.perms)
         self.assertEqual(str(AnyWordChar(is_global=True)), "\w")
+
+    def test_any_word_char_on_type(self):
+        self.assertEqual(AnyWordChar(is_global=False)._get_type(), _Type.Class)
+        self.assertEqual(AnyWordChar(is_global=True)._get_type(), _Type.Class)
 
     def test_any_word_char_match_on_foreign_characters(self):
         self.assertEqual((6 * AnyWordChar(is_global=False)).get_matches("Øदάö大Б"), [])
@@ -275,6 +285,9 @@ class TestAnyWhitespace(unittest.TestCase):
 
     def test_any_whitespace(self):
         self.assertEqual(str(AnyWhitespace()), "\s")
+
+    def test_any_whitespace_on_type(self):
+        self.assertEqual(AnyWhitespace()._get_type(), _Type.Class)
 
     def test_any_whitespace_combine_with_subsets(self):
         self.assertEqual(str(AnyWhitespace() | AnyFrom(" ", "\r")), "\s")
@@ -348,6 +361,9 @@ class TestAnyButDigit(unittest.TestCase):
         self.assertEqual(str(~AnyDigit()), pattern)
         self.assertEqual(str(AnyButDigit()), pattern)
 
+    def test_any_but_digit_on_type(self):
+        self.assertEqual(AnyButDigit()._get_type(), _Type.Class)
+
 
 class TestAnyButWordChar(unittest.TestCase):
 
@@ -357,6 +373,10 @@ class TestAnyButWordChar(unittest.TestCase):
         self.assertTrue(str(AnyButWordChar(is_global=False))
             in get_negated_permutations("A-Z", "a-z", "\d", "_"))
         self.assertEqual(str(AnyButWordChar(is_global=True)), "\W")
+
+    def test_any_but_word_chr_on_type(self):
+        self.assertEqual(AnyButWordChar(is_global=False)._get_type(), _Type.Class)
+        self.assertEqual(AnyButWordChar(is_global=True)._get_type(), _Type.Class)
 
     def test_any_word_char_foreign_char_exception(self):
         with self.assertRaises(GlobalWordCharSubtractionException):
@@ -394,6 +414,9 @@ class TestAnyButWhitespace(unittest.TestCase):
         pattern = "\S"
         self.assertEqual(str(~AnyWhitespace()), pattern)
         self.assertEqual(str(AnyButWhitespace()), pattern)
+
+    def test_any_but_whitespace_on_type(self):
+        self.assertEqual(AnyButWhitespace()._get_type(), _Type.Class)
 
 
 class TestAnyButBetween(unittest.TestCase):

@@ -10,7 +10,6 @@ class __Group(_pre.Pregex):
     def __init__(self, pre: _pre.Pregex or str, transform) -> _pre.Pregex:
         pattern = transform(__class__._to_pregex(pre))
         super().__init__(pattern, escape=False)
-        self._set_type(_pre._Type.Group)
 
 
 class Capture(__Group):

@@ -15,7 +15,6 @@ class __Token(_pre.Pregex):
         :param str pattern: The pattern representing the token.
         '''
         super().__init__(pattern, escape=False)
-        self._set_type(_pre._Type.Token)
 
 
 class Backslash(__Token):
