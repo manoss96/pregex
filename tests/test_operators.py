@@ -59,6 +59,13 @@ class TestEither(unittest.TestCase):
 
     def test_either_class_type(self):
         self.assertEqual(Either("a", "b")._get_type(), _Type.Alternation)
+        self.assertEqual(Either("a", "|", "b")._get_type(), _Type.Alternation)
+        self.assertNotEqual(("a" + Either("a", "b"))._get_type(), _Type.Alternation)
+        self.assertNotEqual(("a|" + Either("a", "b"))._get_type(), _Type.Alternation)
+        self.assertNotEqual((Either("a", "b") + "b")._get_type(), _Type.Alternation)
+        self.assertNotEqual((Either("a", "b") + "|b")._get_type(), _Type.Alternation)
+        self.assertNotEqual(("a" + Either("a", "b") + "b")._get_type(), _Type.Alternation)
+        self.assertNotEqual(("a|" + Either("a", "b") + "|b")._get_type(), _Type.Alternation)
 
     def test_either_on_str(self):
         self.assertEqual(str(Either(TEST_STR_1, TEST_STR_2, TEST_STR_3)), f"{TEST_STR_1}|{TEST_STR_2}|{TEST_STR_3}")

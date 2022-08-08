@@ -21,6 +21,9 @@ class TestCapture(unittest.TestCase):
     def test_capture_on_str(self):
         self.assertEqual(str(Capture(TEST_STR)), f"({TEST_STR})")
 
+    def test_capture_on_type(self):
+        self.assertEqual(Capture("a")._get_type(), _Type.Group)
+
     def test_capture_on_literal(self):
         literal = Pregex(TEST_STR)
         self.assertEqual(str(Capture(literal)), f"({literal})")
@@ -102,6 +105,9 @@ class TestGroup(unittest.TestCase):
     def test_group_on_str(self):
         self.assertEqual(str(Group(TEST_STR)), f"(?:{TEST_STR})")
 
+    def test_group_on_type(self):
+        self.assertEqual(Group("a")._get_type(), _Type.Group)
+
     def test_group_on_literal(self):
         literal = Pregex(TEST_STR)
         self.assertEqual(str(Group(literal)), f"(?:{literal})")
@@ -157,6 +163,9 @@ class TestBackreference(unittest.TestCase):
         name = "name"
         self.assertEqual(str(Backreference(name)), f"(?P={name})")
 
+    def test_backreference_on_type(self):
+        self.assertEqual(Backreference("a")._get_type(), _Type.Group)
+
     def test_backreference_on_non_string_name_exception(self):
         invalid_type_names = [1, 1.5, True, Pregex("z")]
         for name in invalid_type_names:
@@ -185,6 +194,8 @@ class TestConditional(unittest.TestCase):
     def test_conditional(self):
         self.assertEqual(str(Conditional(self.name, self.then_pre)), f"(?({self.name}){self.then_pre})")
 
+    def test_conditional_on_type(self):
+        self.assertEqual(Conditional("a", "b")._get_type(), _Type.Group)
 
     def test_conditional_with_else_pre(self):
         self.assertEqual(str(Conditional(self.name, self.then_pre, self.else_pre)),

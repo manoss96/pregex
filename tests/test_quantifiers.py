@@ -13,10 +13,8 @@ TEST_STR_LEN_N = "test"
 TEST_LITERAL_LEN_1 = Pregex(TEST_STR_LEN_1)
 TEST_LITERAL_LEN_N = Pregex(TEST_STR_LEN_N)
 
-class Test__Quantifier(unittest.TestCase):
 
-    def test_quantifier_class_type(self):
-        self.assertEqual(Optional("a")._get_type(), _Type.Quantifier)
+class Test__Quantifier(unittest.TestCase):
 
     def test_neither_pregex_nor_str(self):
         for arg in (1, 1.56, True):
@@ -44,13 +42,13 @@ class Test__Quantifier(unittest.TestCase):
         optional = Optional(TEST_STR_LEN_N)
         self.assertEqual(str(Optional(optional)), f"(?:{optional})?")
 
-    def test_quantifier_on_anchor_assertion_exception(self):
+    def test_quantifier_on_assertion_exception(self):
         mat = MatchAtStart("a")
-        self.assertRaises(CannotBeQuantifiedException, Optional, mat)
-
-    def test_quantifier_on_look_around_assertion(self):
-        followed_by = FollowedBy("a", "b")
-        self.assertRaises(CannotBeQuantifiedException, Optional, followed_by)
+        self.assertRaises(CannotBeQuantifiedException, Indefinite, mat)
+        try:
+            _ = Optional(mat)
+        except CannotBeQuantifiedException:
+            self.fail("Applying \"Optional\" on an assertion raised an exception!")
 
 
 class TestOptional(unittest.TestCase):
@@ -69,6 +67,11 @@ class TestOptional(unittest.TestCase):
 
     def test_optional_on_laziness(self):
         self.assertEqual(str(Optional(TEST_LITERAL_LEN_N, is_greedy=False)), f"(?:{TEST_STR_LEN_N})??")
+
+    def test_optional_on_type(self):
+        self.assertEqual(Optional("a")._get_type(), _Type.Quantifier)
+        self.assertEqual(Optional("abc")._get_type(), _Type.Quantifier)
+        self.assertNotEqual(Pregex("abc?", escape=False)._get_type(), _Type.Quantifier)
 
     def test_optional_on_match(self):
         self.assertTrue(("a" + Optional("a") + "a").get_matches("aaa") == ["aaa"])
@@ -95,6 +98,11 @@ class TestIndefinite(unittest.TestCase):
     def test_indefinite_on_laziness(self):
         self.assertEqual(str(Indefinite(TEST_LITERAL_LEN_N, is_greedy=False)), f"(?:{TEST_STR_LEN_N})*?")
 
+    def test_indefinite_on_type(self):
+        self.assertEqual(Indefinite("a")._get_type(), _Type.Quantifier)
+        self.assertEqual(Indefinite("abc")._get_type(), _Type.Quantifier)
+        self.assertNotEqual(Pregex("abc*", escape=False)._get_type(), _Type.Quantifier)
+
 
 class TestOneOrMore(unittest.TestCase):
     
@@ -112,6 +120,11 @@ class TestOneOrMore(unittest.TestCase):
 
     def test_one_or_more_on_laziness(self):
         self.assertEqual(str(OneOrMore(TEST_LITERAL_LEN_N, is_greedy=False)), f"(?:{TEST_STR_LEN_N})+?")
+
+    def test_one_or_more_on_type(self):
+        self.assertEqual(OneOrMore("a")._get_type(), _Type.Quantifier)
+        self.assertEqual(OneOrMore("abc")._get_type(), _Type.Quantifier)
+        self.assertNotEqual(Pregex("abc+", escape=False)._get_type(), _Type.Quantifier)
         
 
 class TestExactly(unittest.TestCase):
@@ -135,8 +148,12 @@ class TestExactly(unittest.TestCase):
             self.assertEqual(str(Exactly(TEST_LITERAL_LEN_N, val)), f"(?:{TEST_LITERAL_LEN_N}){{{val}}}")
 
     def test_exactly_on_value_1(self):
-        val = 1
-        self.assertEqual(str(Exactly(TEST_LITERAL_LEN_N, val)), f"{TEST_LITERAL_LEN_N}")
+        self.assertEqual(str(Exactly(TEST_LITERAL_LEN_N, 1)), f"{TEST_LITERAL_LEN_N}")
+
+    def test_exactly_on_type(self):
+        self.assertEqual(Exactly("a", n=2)._get_type(), _Type.Quantifier)
+        self.assertEqual(Exactly("abc", n=2)._get_type(), _Type.Quantifier)
+        self.assertNotEqual(Pregex("abc{2}", escape=False)._get_type(), _Type.Quantifier)
 
     def test_exactly_on_invalid_type_values(self):
         for val in ["s", 1.1, True]:
@@ -178,6 +195,11 @@ class TestAtLeast(unittest.TestCase):
         val = 3
         self.assertEqual(str(AtLeast(TEST_LITERAL_LEN_N, val, is_greedy=False)), f"(?:{TEST_LITERAL_LEN_N}){{{val},}}?")
 
+    def test_at_least_on_type(self):
+        self.assertEqual(AtLeast("a", n=2)._get_type(), _Type.Quantifier)
+        self.assertEqual(AtLeast("abc", n=2)._get_type(), _Type.Quantifier)
+        self.assertNotEqual(Pregex("abc{2,}", escape=False)._get_type(), _Type.Quantifier)
+
     def test_at_least_on_invalid_type_values(self):
         for val in ["s", 1.1, True]:
             self.assertRaises(NonIntegerArgumentException, AtLeast, TEST_STR_LEN_1, val)
@@ -185,6 +207,7 @@ class TestAtLeast(unittest.TestCase):
     def test_at_least_on_invalid_values(self):
         for val in [-10, -1]:
             self.assertRaises(NegativeArgumentException, AtLeast, TEST_STR_LEN_1, val)
+
 
 class TestAtMost(unittest.TestCase):
 
@@ -213,6 +236,11 @@ class TestAtMost(unittest.TestCase):
     def test_at_most_on_laziness(self):
         val = 3
         self.assertEqual(str(AtMost(TEST_LITERAL_LEN_N, val, is_greedy=False)), f"(?:{TEST_LITERAL_LEN_N}){{,{val}}}?")
+
+    def test_at_most_on_type(self):
+        self.assertEqual(AtMost("a", n=2)._get_type(), _Type.Quantifier)
+        self.assertEqual(AtMost("abc", n=2)._get_type(), _Type.Quantifier)
+        self.assertNotEqual(Pregex("abc{,2}", escape=False)._get_type(), _Type.Quantifier)
 
     def test_at_most_on_invalid_type_values(self):
         for val in ["s", 1.1, True]:
@@ -248,7 +276,13 @@ class TestAtLeastAtMost(unittest.TestCase):
 
     def test_at_least_at_most_on_laziness(self):
         min, max = 3, 5
-        self.assertEqual(str(AtLeastAtMost(TEST_LITERAL_LEN_N, min, max, is_greedy=False)), f"(?:{TEST_LITERAL_LEN_N}){{{min},{max}}}?")
+        self.assertEqual(str(AtLeastAtMost(TEST_LITERAL_LEN_N, min, max, is_greedy=False)),
+            f"(?:{TEST_LITERAL_LEN_N}){{{min},{max}}}?")
+
+    def test_at_least_at_most_on_type(self):
+        self.assertEqual(AtLeastAtMost("a", min=1, max=2)._get_type(), _Type.Quantifier)
+        self.assertEqual(AtLeastAtMost("abc", min=1, max=2)._get_type(), _Type.Quantifier)
+        self.assertNotEqual(Pregex("abc{1,2}", escape=False)._get_type(), _Type.Quantifier)
 
     def test_at_least_at_most_on_invalid_type_values(self):
         for val in ["s", 1.1, True]:

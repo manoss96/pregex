@@ -142,16 +142,15 @@ class CannotBeUnionedException(Exception):
     either with a negated class (or regular class) or an object of different type.
     '''
 
-    def __init__(self, pre1, pre2, are_both_classes: bool):
+    def __init__(self, pre, are_both_classes: bool):
         '''
         The class's constructor.
 
-        :param Pregex pre1: The "Pregex" instance because of which this exception was thrown.
-        :param Pregex pre2: The "Pregex" instance because of which this exception was thrown.
+        :param Pregex pre: The "Pregex" instance because of which this exception was thrown.
         :param bool are_both_classes: Indicates whether both "Pregex" instances are of type "__Class".
         '''
         m = f"Classes and negated classes cannot be unioned together." if are_both_classes \
-            else f"Objects of type \"{type(pre1).__name__}\" and \"{type(pre2).__name__}\" cannot be combined."
+            else f"Instance of type \"{type(pre).__name__}\" cannot be unioned with a class."
         super().__init__(m)
 
 
@@ -161,16 +160,15 @@ class CannotBeSubtractedException(Exception):
     either from a negated class (or regular class) or an object of different type.
     '''
 
-    def __init__(self, pre1, pre2, are_both_classes: bool):
+    def __init__(self, pre, are_both_classes: bool):
         '''
         The class's constructor.
 
-        :param Pregex pre1: The "Pregex" instance because of which this exception was thrown.
-        :param Pregex pre2: The "Pregex" instance because of which this exception was thrown.
+        :param Pregex pre: The "Pregex" instance because of which this exception was thrown.
         :param bool are_both_classes: Indicates whether both "Pregex" instances are of type "__Class".
         '''
-        m = f"Classes and negated classes cannot be subtracted from one another" if are_both_classes \
-            else f"Objects of type {type(pre1)} and {type(pre2)} cannot be subtracted from one another."
+        m = f"Classes and negated classes cannot be subtracted from one another." if are_both_classes \
+            else f"Instance of type \"{type(pre).__name__}\" cannot be subtracted from a class."
         super().__init__(m)
 
 
@@ -238,7 +236,9 @@ class CannotBeQuantifiedException(Exception):
 
         :param __Assertion pre: The "__Assertion" instance because of which this exception was thrown.
         '''
-        super().__init__(f"Instance of type {type(pre)} is not quantifiable.")
+        m = f"Instances of class \"{type(pre).__name__}\" are not quantifiable,"
+        m += " with the sole exception to this being the \"Optional\" quantifier \"?\"."
+        super().__init__(m)
 
 
 class NonFixedWidthPatternException(Exception):
@@ -255,8 +255,10 @@ class NonFixedWidthPatternException(Exception):
         :param __Lookaround lookbehind: The "__Lookaround" instance because of which this exception was thrown.
         :param Pregex pre: The "Pregex" instance because of which this exception was thrown.
         '''
-        super().__init__(f"Instance of type {type(lookbehind)} cannot receive an instance of type {type(pre)} in "
-            "place of parameter \"pre2\" as the latter represents a pattern whose width is not fixed.")
+        m = f"Instances of class \"{type(lookbehind).__name__}\" cannot receive an instance of "
+        m += f"class \"{type(pre).__name__}\" in place of parameter \"pre2\" as the latter represents"
+        m += " a pattern whose width is not fixed."
+        super().__init__(m)
 
 
 

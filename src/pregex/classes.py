@@ -30,7 +30,6 @@ class __Class(_pre.Pregex):
     def __init__(self, pattern: str, is_negated: bool, simplify_word: bool = False) -> '__Class':
 
         super().__init__(__class__.__simplify(pattern, is_negated, simplify_word), escape=False)
-        #self._set_type(_pre._Type.Class)
         self.__is_negated = is_negated
         self.__verbose = pattern
 
@@ -110,7 +109,7 @@ class __Class(_pre.Pregex):
             elif isinstance(pre, _pre.Pregex) and pre._get_type() == _pre._Type.Token:
                 pre = AnyFrom(pre)
         if not issubclass(pre.__class__, __class__):
-            raise _exceptions.CannotBeUnionedException(self, pre, False)
+            raise _exceptions.CannotBeUnionedException(pre, False)
         return __class__.__or(self, pre)
 
 
@@ -128,7 +127,7 @@ class __Class(_pre.Pregex):
             elif isinstance(pre, _pre.Pregex) and pre._get_type() == _pre._Type.Token:
                 pre = AnyFrom(pre)
         if not issubclass(pre.__class__, __class__):
-            raise _exceptions.CannotBeUnionedException(pre, self, False)
+            raise _exceptions.CannotBeUnionedException(pre, False)
         return __class__.__or(pre, self)
 
 
@@ -141,7 +140,7 @@ class __Class(_pre.Pregex):
         :raises CannotBeUnionedException: 'pre1' is a different type of class than 'pre2'.
         '''
         if  pre1.__is_negated != pre2.__is_negated:
-            raise _exceptions.CannotBeUnionedException(pre1, pre2, True)
+            raise _exceptions.CannotBeUnionedException(pre2, True)
         if isinstance(pre1, Any) or isinstance(pre2, Any):
             return Any()
 
@@ -243,7 +242,7 @@ class __Class(_pre.Pregex):
             elif isinstance(pre, _pre.Pregex) and pre._get_type() == _pre._Type.Token:
                 pre = AnyFrom(pre)
         if not issubclass(pre.__class__, __class__):
-            raise _exceptions.CannotBeSubtractedException(self, pre, False)
+            raise _exceptions.CannotBeSubtractedException(pre, False)
         return __class__.__sub(self, pre)
 
 
@@ -261,7 +260,7 @@ class __Class(_pre.Pregex):
             elif isinstance(pre, _pre.Pregex) and pre._get_type() == _pre._Type.Token:
                 pre = AnyFrom(pre)
         if not issubclass(pre.__class__, __class__):
-            raise _exceptions.CannotBeSubtractedException(pre, self, False)
+            raise _exceptions.CannotBeSubtractedException(pre, False)
         return __class__.__sub(pre, self)
 
 
@@ -275,7 +274,7 @@ class __Class(_pre.Pregex):
         :raises EmptyClassException: 'pre2' is an instance of class "Any".
         '''
         if  pre1.__is_negated != pre2.__is_negated:
-            raise _exceptions.CannotBeSubtractedException(pre1, pre2, True)
+            raise _exceptions.CannotBeSubtractedException(pre2, True)
         if isinstance(pre2, Any):
             raise _exceptions.EmptyClassException(pre1, pre2)
         if isinstance(pre1, Any):

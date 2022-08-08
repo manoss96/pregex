@@ -9,7 +9,7 @@ class __Quantifier(_pre.Pregex):
     :raises CannotBeQuantifiedException: This class is applied to an instance that represents an "assertion" pattern.
     '''
     def __init__(self, pre: _pre.Pregex or str, is_greedy: bool, transform) -> '__Quantifier':
-        if issubclass(pre.__class__, _pre.Pregex) and pre._get_type() == _pre._Type.Assertion:
+        if (not isinstance(self, Optional)) and issubclass(pre.__class__, _pre.Pregex) and pre._get_type() == _pre._Type.Assertion:
             raise _exceptions.CannotBeQuantifiedException(pre)
         pattern = transform(__class__._to_pregex(pre), is_greedy)
         super().__init__(pattern, escape=False)

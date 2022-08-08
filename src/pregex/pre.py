@@ -37,7 +37,7 @@ class Pregex():
     '''
     __groupping_rules: dict[_Type, str] = {
         _Type.Alternation: (True, True),
-        _Type.Assertion : (False, None),
+        _Type.Assertion : (False, True),
         _Type.Class: (False, False),
         _Type.Group: (False, False),
         _Type.Other: (False, True),
@@ -319,7 +319,7 @@ class Pregex():
     def _concat_conditional_group(self) -> str:
         '''
         Returns this instance's pattern wrapped within a non-capturing group
-        only if the instance's "concat_groupping_rule" is set to "True".
+        only if the instance's group-on-concat rule is set to "True".
         '''
         return self._non_capturing_group() if self.__get_group_on_concat_rule() else str(self)
 
@@ -327,7 +327,7 @@ class Pregex():
     def _quantify_conditional_group(self) -> str:
         '''
         Returns this instance's pattern wrapped within a non-capturing group
-        only if the instance's "quantify_groupping_rule" is set to "True".
+        only if the instance's group-on-quantify rule is set to "True".
         '''
         return self._non_capturing_group() if self.__get_group_on_quantify_rule() else str(self)
 
@@ -496,13 +496,14 @@ class Pregex():
         elif _re.fullmatch(r"(?:\^|\\A|\\b|\(\?<(?:=|!).+\)).+|.+(?:\$|\\Z|\\b|\(\?(?:=|!).+\))",
             pattern, flags=__class__.__flags) is not None:
             return _Type.Assertion
-        elif _re.fullmatch(r".+(?:\?|\*|\+|(?<!\\)\{.{1,3}(?<!\\)\})",
+        elif _re.fullmatch(r"(?:\\.|\([^\(\)]+\)|[^\\])(?:\?|\*|\+|\{(?:\d+|\d+,|,\d+|\d+,\d+)\})",
             pattern, flags=__class__.__flags) is not None:
             return _Type.Quantifier
         elif __class__.__is_group(pattern):
             return _Type.Group
         else:
-            pattern = _re.sub(pattern=r"(?<!\\)\((?:(?<=\\)\)|[^\)])+\|(?:(?<=\\)\)|[^\)])+(?<!\\)\)",
+            pattern = _re.sub(
+                pattern=r"(?<!\\)\((?:(?<=\\)\)|[^\)])+\|(?:(?<=\\)\)|[^\)])+(?<!\\)\)",
                 repl="", string=pattern)
             if len(_re.split(pattern=r"(?<!\\)\|", string=pattern)) > 1:
                 return _Type.Alternation

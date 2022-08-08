@@ -17,9 +17,6 @@ def get_negated_permutations(*classes: str):
 
 class Test__Class(unittest.TestCase):
 
-    def test_class_class_type(self):
-        self.assertEqual(Any()._get_type(), _Type.Class)
-
     def test_any_class_bitwise_or(self):
         self.assertTrue(str(AnyLowercaseLetter() | AnyDigit()) \
             in get_permutations("a-z", "\d"))
@@ -190,8 +187,8 @@ class TestAny(unittest.TestCase):
     def test_any(self):
         self.assertEqual(str(Any()), ".")
 
-        def test_any_on_type(self):
-            self.assertEqual(Any()._get_type(), _Type.Class)
+    def test_any_on_type(self):
+        self.assertEqual(Any()._get_type(), _Type.Class)
 
     def test_any_on_newline_match(self):
         self.assertTrue(Any().get_matches("\n"), ["\n"])
@@ -213,17 +210,26 @@ class TestAnyLetter(unittest.TestCase):
     def test_any_letter(self):
         self.assertEqual(AnyLetter()._get_verbose_pattern(), "[a-zA-Z]")
 
+    def test_any_letter_on_type(self):
+        self.assertEqual(AnyLetter()._get_type(), _Type.Class)
+
 
 class TestAnyLowercaseLetter(unittest.TestCase):
 
     def test_any_lowercase_letter(self):
         self.assertEqual(str(AnyLowercaseLetter()), "[a-z]")
 
+    def test_any_lowercase_letter_on_type(self):
+        self.assertEqual(AnyLowercaseLetter()._get_type(), _Type.Class)
+
 
 class TestAnyUppercaseLetter(unittest.TestCase):
 
     def test_any_uppercase_letter(self):
         self.assertEqual(str(AnyUppercaseLetter()), "[A-Z]")
+
+    def test_any_uppercase_letter_on_type(self):
+        self.assertEqual(AnyUppercaseLetter()._get_type(), _Type.Class)
         
 
 class TestAnyDigit(unittest.TestCase):
@@ -280,6 +286,9 @@ class TestAnyPunctuation(unittest.TestCase):
     def test_any_punctuation(self):
         self.assertEqual(str(AnyPunctuation()._get_verbose_pattern()), '[!-\/:-@\[-`{-~]')
 
+    def test_any_punctuation_on_type(self):
+        self.assertEqual(AnyPunctuation()._get_type(), _Type.Class)
+
 
 class TestAnyWhitespace(unittest.TestCase):
 
@@ -302,6 +311,9 @@ class TestAnyBetween(unittest.TestCase):
         for start, end in [("a", "c"), ("1", "5"), ("!", ")"), (Copyright(), Registered())]:
             self.assertEqual(str(AnyBetween(start, end)), f"[{start}-{end}]")
 
+    def test_any_between_on_type(self):
+        self.assertEqual(AnyBetween("a", "z")._get_type(), _Type.Class)
+
     def test_any_between_on_match(self):
         text = "a-b\\0Agpz"
         self.assertEqual(AnyBetween("a", "k").get_matches(text), ['a', 'b', 'g'])
@@ -321,6 +333,10 @@ class TestAnyFrom(unittest.TestCase):
         tokens = ("a", "c", Backslash(), Pregex("!"))
         self.assertTrue(str(AnyFrom(*tokens)) in get_permutations("a", "c", "\\\\", "!"))
 
+    def test_any_from_on_type(self):
+        self.assertEqual(AnyFrom("a", "b")._get_type(), _Type.Class)
+        self.assertNotEqual(AnyFrom("a")._get_type(), _Type.Class)
+
     def test_any_from_on_match(self):
         text = "a-\\0A"
         self.assertEqual(AnyFrom("a", "A", Backslash()).get_matches(text), ['a', '\\', 'A'])
@@ -337,6 +353,9 @@ class TestAnyButLetter(unittest.TestCase):
         self.assertEqual((~AnyLetter())._get_verbose_pattern(), pattern)
         self.assertEqual(AnyButLetter()._get_verbose_pattern(), pattern)
 
+    def test_any_but_letter_on_type(self):
+        self.assertEqual(AnyButLetter()._get_type(), _Type.Class)
+
 
 class TestAnyButLowercaseLetter(unittest.TestCase):
 
@@ -345,6 +364,9 @@ class TestAnyButLowercaseLetter(unittest.TestCase):
         self.assertEqual(str(~AnyLowercaseLetter()), pattern)
         self.assertEqual(str(AnyButLowercaseLetter()), pattern)
 
+    def test_any_but_lowercase_letter_on_type(self):
+        self.assertEqual(AnyButLowercaseLetter()._get_type(), _Type.Class)
+
 
 class TestAnyButUppercaseLetter(unittest.TestCase):
 
@@ -352,6 +374,9 @@ class TestAnyButUppercaseLetter(unittest.TestCase):
         pattern = "[^A-Z]"
         self.assertEqual(str(~AnyUppercaseLetter()), pattern)
         self.assertEqual(str(AnyButUppercaseLetter()), pattern)
+
+    def test_any_but_uppercase_letter_on_type(self):
+        self.assertEqual(AnyButUppercaseLetter()._get_type(), _Type.Class)
         
 
 class TestAnyButDigit(unittest.TestCase):
@@ -374,7 +399,7 @@ class TestAnyButWordChar(unittest.TestCase):
             in get_negated_permutations("A-Z", "a-z", "\d", "_"))
         self.assertEqual(str(AnyButWordChar(is_global=True)), "\W")
 
-    def test_any_but_word_chr_on_type(self):
+    def test_any_but_word_char_on_type(self):
         self.assertEqual(AnyButWordChar(is_global=False)._get_type(), _Type.Class)
         self.assertEqual(AnyButWordChar(is_global=True)._get_type(), _Type.Class)
 
@@ -403,9 +428,12 @@ class TestAnyButPunctuation(unittest.TestCase):
 
     perms = get_negated_permutations("!-\/", ":-@", "\[-`", "{-~")
 
-    def test_any_but_punctuation_char(self):
+    def test_any_but_punctuation(self):
         self.assertTrue((~AnyPunctuation())._get_verbose_pattern() in self.perms)
         self.assertTrue(AnyButPunctuation()._get_verbose_pattern() in self.perms) 
+
+    def test_any_but_punctuation_on_type(self):
+        self.assertEqual(AnyButPunctuation()._get_type(), _Type.Class)
 
 
 class TestAnyButWhitespace(unittest.TestCase):
@@ -425,6 +453,9 @@ class TestAnyButBetween(unittest.TestCase):
         for start, end in [("a", "c"), ("1", "5"), (Copyright(), Registered())]:
             self.assertEqual(str(AnyButBetween(start, end)), f"[^{start}-{end}]")
             self.assertEqual(str(~AnyBetween(start, end)), f"[^{start}-{end}]")
+
+    def test_any_but_between_on_type(self):
+        self.assertEqual(AnyButBetween(start="a", end="z")._get_type(), _Type.Class)
 
     def test_any_between_on_match(self):
         text = "a-b\\0Agpz"
@@ -451,6 +482,10 @@ class TestAnyButFrom(unittest.TestCase):
         self.assertTrue(str(~AnyFrom(*tokens)) in get_negated_permutations("a", "c", "\\\\", "!"))
         self.assertTrue(str(AnyButFrom(*tokens)) in get_negated_permutations("a", "c", "\\\\", "!"))
 
+    def test_any_but_from_on_type(self):
+        self.assertEqual(AnyButFrom("a", "b")._get_type(), _Type.Class)
+        self.assertEqual(AnyButFrom("a")._get_type(), _Type.Class)
+
     def test_any_from_on_match(self):
         text = "a-\\0A"
         self.assertEqual(AnyButFrom("a", "A", Backslash()).get_matches(text), ['-', '0'])
@@ -472,6 +507,9 @@ class TestAnyGermanLetter(unittest.TestCase):
             agl = agl.replace(c, "")
         self.assertTrue(agl, "")
 
+    def test_any_german_letter_on_type(self):
+        self.assertEqual(AnyGermanLetter()._get_type(), _Type.Class)
+
     def test_any_german_letter_on_matches(self):
         self.assertEqual((3 * AnyGermanLetter()).get_matches("für"), ["für"])
 
@@ -485,6 +523,9 @@ class TestAnyButGermanLetter(unittest.TestCase):
             agl = agl.replace(c, "")
         self.assertTrue(agl, "")
 
+    def test_any_but_german_letter_on_type(self):
+        self.assertEqual(AnyButGermanLetter()._get_type(), _Type.Class)
+
     def test_any_but_german_letter_on_matches(self):
         self.assertEqual((3 * AnyButGermanLetter()).get_matches("für"), [])
 
@@ -493,6 +534,9 @@ class TestAnyGreekLetter(unittest.TestCase):
 
     def test_any_greek_letter(self):
         self.assertTrue(str(AnyGreekLetter()) in get_permutations("Ά", "Έ-ώ"))
+
+    def test_any_greek_letter_on_type(self):
+        self.assertEqual(AnyGreekLetter()._get_type(), _Type.Class)
 
     def test_any_greek_letter_on_matches(self):
         self.assertEqual((4 * AnyGreekLetter()).get_matches("Γειά"), ["Γειά"])
@@ -503,6 +547,9 @@ class TestAnyButGreekLetter(unittest.TestCase):
     def test_any_but_greek_letter(self):
         self.assertTrue(str(AnyButGreekLetter()) in get_negated_permutations("Ά", "Έ-ώ"))
 
+    def test_any_but_greek_letter_on_type(self):
+        self.assertEqual(AnyButGreekLetter()._get_type(), _Type.Class)
+
     def test_any_but_greek_letter_on_matches(self):
         self.assertEqual(AnyButGreekLetter().get_matches("Γειά"), [])
 
@@ -512,6 +559,9 @@ class TestCyrillicLetter(unittest.TestCase):
     def test_any_cyrillic_letter(self):
         self.assertTrue(str(AnyCyrillicLetter()) in get_permutations("Ѐ-ӿ"))
 
+    def test_any_cyrillic_letter_on_type(self):
+        self.assertEqual(AnyCyrillicLetter()._get_type(), _Type.Class)
+
     def test_any_cyrillic_letter_on_matches(self):
         self.assertEqual((6 * AnyCyrillicLetter()).get_matches("Привет"), ["Привет"])
 
@@ -520,6 +570,9 @@ class TestCyrillicLetter(unittest.TestCase):
 
     def test_any_but_cyrillic_letter(self):
         self.assertTrue(str(AnyButCyrillicLetter()) in get_negated_permutations("Ѐ-ӿ"))
+
+    def test_any_but_cyrillic_letter_on_type(self):
+        self.assertEqual(AnyButCyrillicLetter()._get_type(), _Type.Class)
 
     def test_any_but_cyrillic_letter_on_matches(self):
         self.assertEqual((6 * AnyButCyrillicLetter()).get_matches("Привет"), [])
