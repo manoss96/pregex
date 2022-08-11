@@ -554,7 +554,7 @@ class TestAnyButGreekLetter(unittest.TestCase):
         self.assertEqual(AnyButGreekLetter().get_matches("Γειά"), [])
 
 
-class TestCyrillicLetter(unittest.TestCase):
+class TestAnyCyrillicLetter(unittest.TestCase):
 
     def test_any_cyrillic_letter(self):
         self.assertTrue(str(AnyCyrillicLetter()) in get_permutations("Ѐ-ӿ"))
@@ -566,7 +566,7 @@ class TestCyrillicLetter(unittest.TestCase):
         self.assertEqual((6 * AnyCyrillicLetter()).get_matches("Привет"), ["Привет"])
 
 
-class TestCyrillicLetter(unittest.TestCase):
+class TestAnyButCyrillicLetter(unittest.TestCase):
 
     def test_any_but_cyrillic_letter(self):
         self.assertTrue(str(AnyButCyrillicLetter()) in get_negated_permutations("Ѐ-ӿ"))
@@ -576,6 +576,30 @@ class TestCyrillicLetter(unittest.TestCase):
 
     def test_any_but_cyrillic_letter_on_matches(self):
         self.assertEqual((6 * AnyButCyrillicLetter()).get_matches("Привет"), [])
+
+
+class TestAnyCJK(unittest.TestCase):
+
+    def test_any_cjk(self):
+        self.assertTrue(str(AnyCJK()) in get_permutations("\u4e00-\u9fd5"))
+
+    def test_any_cjk_on_type(self):
+        self.assertEqual(AnyCJK()._get_type(), _Type.Class)
+
+    def test_any_cjk_on_matches(self):
+        self.assertEqual((2 * AnyCJK()).get_matches("你好"), ["你好"])
+
+
+class TestAnyButCJK(unittest.TestCase):
+
+    def test_any_but_cjk(self):
+        self.assertTrue(str(AnyButCJK()) in get_negated_permutations("\u4e00-\u9fd5"))
+
+    def test_any_but_cjk_on_type(self):
+        self.assertEqual(AnyButCJK()._get_type(), _Type.Class)
+
+    def test_any_but_cjk_on_matches(self):
+        self.assertEqual((2 * AnyButCJK()).get_matches("你好"), [])
 
 
 if __name__=="__main__":

@@ -6,14 +6,14 @@ There are two main ways to contribute to pregex:
 
 1. **Bug Hunting**: It is more probable than not that there are currently 
    a number of bugs silently waiting to be discovered! If you happen to stumble
-   upon one of them while using pregex, please raise an Issue labeled as **bug**,
+   upon one of them while using pregex, please raise an issue labeled as **bug**,
    in which you report your findings as well as explain how one can reproduce
    the bug. Furthermore, if you're up for a challenge you can even create a
    new branch just for the issue and try to tackle the problem yourself!
 
 2. **Propose an addition/modification**: Everything good can be even better!
    If you have an idea that you think might improve pregex, you can raise an
-   Issue labeled as **enhancement**, in which you discuss your idea.
+   issue labeled as **enhancement**, in which you discuss your idea.
 
 You can raise an issue by visiting the [Issues Page][issues-page].
 

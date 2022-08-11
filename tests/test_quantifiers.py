@@ -3,7 +3,7 @@ from pregex.quantifiers import *
 from pregex.pre import Pregex, _Type
 from pregex.operators import Concat, Either
 from pregex.classes import AnyLowercaseLetter
-from pregex.assertions import FollowedBy, MatchAtStart
+from pregex.assertions import MatchAtStart
 from pregex.exceptions import NeitherStringNorPregexException, NonPositiveArgumentException, \
     NegativeArgumentException, MinGreaterThanMaxException, NonIntegerArgumentException, \
     CannotBeQuantifiedException

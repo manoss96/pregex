@@ -46,12 +46,12 @@ http_protocol = Optional("http" + Optional('s') + "://")
 
 www = Optional("www.")
 
-any_alphanum = AnyLetter() | AnyDigit()
+alphanum = AnyLetter() | AnyDigit()
 
 domain_name = \
-    any_alphanum + \
-    AtLeastAtMost(any_alphanum | AnyFrom("-", "."), min=1, max=61) + \
-    any_alphanum
+    alphanum + \
+    AtLeastAtMost(alphanum | AnyFrom("-", "."), min=1, max=61) + \
+    alphanum
 
 tld = "." + Either("com", "org")
 
@@ -78,11 +78,11 @@ This is the pattern that we just built. Yikes!
 (?:https?:\/\/)?(?:(?:www\.)?([A-za-z\d][A-Za-z\d\-.]{1,61}[A-Za-z\d])\.(?:com|org)|(?:\d{1,3}\.){3}\d{1,3}:\d{4})
 ```
 
-Besides from having access to its underlying pattern, we can use a Pregex instance to find matches within a string. Consider for example the following piece of text:
+Besides from having access to its underlying pattern, we can use a Pregex instance to find matches within a piece of text. Consider for example the following string:
 ```python
 text = "text--192.168.1.1:8000--text--http://www.wikipedia.orghttps://youtube.com--text"
 ```
-We can scan the above string for any possible matches by invoking the instance's "get_matches" method:
+By invoking the instance's "get_matches" method, we are able to scan the above string for any possible matches:
 ```python
 matches = pre.get_matches(text)
 ```

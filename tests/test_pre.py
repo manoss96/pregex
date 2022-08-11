@@ -175,6 +175,9 @@ class TestPregex(unittest.TestCase):
     def test_pregex_on__quantify_conditional_group(self):
         self.assertEqual(self.pre1._quantify_conditional_group(), f"(?:{self.pre1})")
 
+    def test_pregex_on__assert_conditional_group(self):
+        self.assertEqual(self.pre1._assert_conditional_group(), f"{self.pre1}")
+
     def test_pregex_on_addition_operator(self):
         self.assertEqual(str(self.pre1 + self.pre2), f"{self.pre1}{self.pre2}")
         l1, l2 = "a", "b"

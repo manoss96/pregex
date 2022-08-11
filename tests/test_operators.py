@@ -49,7 +49,7 @@ class TestConcat(unittest.TestCase):
         mat = MatchAtStart("a")
         self.assertEqual(str(Concat(mat, TEST_STR_1)), f"{mat}{TEST_STR_1}")
 
-    def test_quantifier_on_lookaround_assertion(self):
+    def test_concat_on_lookaround_assertion(self):
         followed_by = FollowedBy("a", "b")
         self.assertEqual(str(Concat(followed_by, TEST_STR_1)), f"{followed_by}{TEST_STR_1}")
 

@@ -107,6 +107,7 @@ class TestGroup(unittest.TestCase):
 
     def test_group_on_type(self):
         self.assertEqual(Group("a")._get_type(), _Type.Group)
+        self.assertNotEqual((Group("a") + Group("b"))._get_type(), _Type.Group)
 
     def test_group_on_literal(self):
         literal = Pregex(TEST_STR)

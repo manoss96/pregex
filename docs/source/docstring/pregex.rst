@@ -8,7 +8,7 @@ of this class are inherited by every other class as well.
 
 In general, one can wrap any string within a "Pregex" instance by passing it as a 
 parameter to the class's constructor. By doing this, any characters of the provided
-string that might need escaping are automatically escaped.
+string that require escaping are automatically escaped.
 
 .. code-block:: python
 
@@ -102,7 +102,7 @@ that the provided pattern matches only when it is found at the start of the stri
 while "NotFollowedBy" asserts that any match with the provided pattern must not be followed
 by some other specified pattern. Another thing you should keep in mind is that assertions
 cannot be quantified, as attempting that will cause a "CannotBeQuantifiedException"
-exception to be thrown.
+exception to be thrown. The only exception to this is the "Optional" quantifier "?".
 
 
 .. automodule:: pregex.assertions
@@ -199,9 +199,9 @@ is extremely easy:
 
    pre = AnyWordChar() - AnyFrom('C', 'c', 'G', 'g', '3')
 
-Below we are able to see this operation's resulting pattern, from which it becomes
-evident that building said pattern pattern through multiple class unions would be
-more time consuming, and more importantly, prone to errors.
+Below we are able to see this operation's resulting pattern, from which it
+becomes evident that building said pattern through multiple class unions would
+be more time consuming, and more importantly, prone to errors.
 
 .. code-block:: python
 

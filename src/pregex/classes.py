@@ -1,5 +1,4 @@
 import re as _re
-from xmlrpc.client import Boolean
 import pregex.pre as _pre
 import pregex.exceptions as _exceptions
 from string import whitespace as _whitespace
@@ -599,7 +598,7 @@ class AnyWordChar(__Class):
         self.__is_global = is_global
 
 
-    def _is_global(self) -> Boolean:
+    def _is_global(self) -> bool:
         '''
         Returns "True" if this instance supports matching foreign alphabetic \
         characters, else returns "False".
@@ -634,7 +633,7 @@ class AnyButWordChar(__Class):
         self.__is_global = is_global
 
 
-    def _is_global(self) -> Boolean:
+    def _is_global(self) -> bool:
         '''
         Returns "True" if this instance also excludes foreign alphabetic \
         characters from matching, else returns "False".
@@ -920,3 +919,31 @@ class AnyButCyrillicLetter(__Class):
         Matches any character except for characters in the Cyrillic alphabet.
         '''
         super().__init__('[^Ѐ-ӿ]', is_negated=True)
+
+
+class AnyCJK(__Class):
+    '''
+    Matches any character defined within the "CJK Unified Ideographs" \
+    Unicode block.
+    '''
+
+    def __init__(self) -> 'AnyCyrillicLetter':
+        '''
+        Matches any character defined within the "CJK Unified Ideographs" \
+        Unicode block.
+        '''
+        super().__init__('[\u4e00-\u9fd5]', is_negated=False)
+
+    
+class AnyButCJK(__Class):
+    '''
+    Matches any character except for those defined within the \
+    "CJK Unified Ideographs" Unicode block.
+    '''
+
+    def __init__(self) -> 'AnyCyrillicLetter':
+        '''
+        Matches any character except for those defined within the \
+        "CJK Unified Ideographs" Unicode block.
+        '''
+        super().__init__('[^\u4e00-\u9fd5]', is_negated=True)
