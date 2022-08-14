@@ -198,6 +198,14 @@ class TestAtLeast(unittest.TestCase):
         val = 3
         self.assertEqual(str(AtLeast(TEST_LITERAL_LEN_N, val, is_greedy=False)), f"(?:{TEST_LITERAL_LEN_N}){{{val},}}?")
 
+    def test_at_least_on_value_0(self):
+        val = 0
+        self.assertEqual(str(AtLeast(TEST_LITERAL_LEN_N, val, is_greedy=False)), f"(?:{TEST_LITERAL_LEN_N})*?")  
+
+    def test_at_least_on_lazy_value_1(self):
+        val = 1
+        self.assertEqual(str(AtLeast(TEST_LITERAL_LEN_N, val, is_greedy=False)), f"(?:{TEST_LITERAL_LEN_N})+?")
+
     def test_at_least_on_type(self):
         self.assertEqual(AtLeast("a", n=2)._get_type(), _Type.Quantifier)
         self.assertEqual(AtLeast("abc", n=2)._get_type(), _Type.Quantifier)
@@ -230,15 +238,31 @@ class TestAtMost(unittest.TestCase):
 
     def test_at_most_on_len_n_literal(self):
         for val in self.VALID_VALUES:
-            self.assertEqual(str(AtMost(TEST_LITERAL_LEN_N, val)), f"(?:{TEST_LITERAL_LEN_N}){{,{val}}}") 
+            self.assertEqual(str(AtMost(TEST_LITERAL_LEN_N, val)), f"(?:{TEST_LITERAL_LEN_N}){{,{val}}}")
+
+    def test_at_most_on_value_0(self):
+        val = 0
+        self.assertEqual(str(AtMost(TEST_LITERAL_LEN_N, val)), "")
 
     def test_at_most_on_value_1(self):
         val = 1
         self.assertEqual(str(AtMost(TEST_LITERAL_LEN_N, val)), f"(?:{TEST_LITERAL_LEN_N})?")
 
+    def test_at_most_on_value_None(self):
+        val = None
+        self.assertEqual(str(AtMost(TEST_LITERAL_LEN_N, val)), f"(?:{TEST_LITERAL_LEN_N})*")
+
     def test_at_most_on_laziness(self):
         val = 3
         self.assertEqual(str(AtMost(TEST_LITERAL_LEN_N, val, is_greedy=False)), f"(?:{TEST_LITERAL_LEN_N}){{,{val}}}?")
+
+    def test_at_most_on_lazy_value_1(self):
+        val = 1
+        self.assertEqual(str(AtMost(TEST_LITERAL_LEN_N, val, is_greedy=False)), f"(?:{TEST_LITERAL_LEN_N})??")
+
+    def test_at_most_on_lazy_value_None(self):
+        val = None
+        self.assertEqual(str(AtMost(TEST_LITERAL_LEN_N, val, is_greedy=False)), f"(?:{TEST_LITERAL_LEN_N})*?")
 
     def test_at_most_on_type(self):
         self.assertEqual(AtMost("a", n=2)._get_type(), _Type.Quantifier)
@@ -250,8 +274,8 @@ class TestAtMost(unittest.TestCase):
             self.assertRaises(NonIntegerArgumentException, AtMost, TEST_STR_LEN_1, val)
 
     def test_at_most_on_invalid_values(self):
-        for val in [-10, -1, 0]:
-            self.assertRaises(NonPositiveArgumentException, AtMost, TEST_STR_LEN_1, val)
+        for val in [-10, -1]:
+            self.assertRaises(NegativeArgumentException, AtMost, TEST_STR_LEN_1, val)
 
 class TestAtLeastAtMost(unittest.TestCase):
 
@@ -273,18 +297,69 @@ class TestAtLeastAtMost(unittest.TestCase):
         for min, max in self.VALID_VALUES:
             self.assertEqual(str(AtLeastAtMost(TEST_LITERAL_LEN_N, min, max)), f"(?:{TEST_LITERAL_LEN_N}){{{min},{max}}}")
 
-    def test_at_least_at_most_on_min_equal_to_max(self):
-        min, max = 4, 4
-        self.assertEqual(str(AtLeastAtMost(TEST_LITERAL_LEN_N, min, max)), f"(?:{TEST_LITERAL_LEN_N}){{{min}}}")
-
     def test_at_least_at_most_on_min_equal_to_max_equal_to_zero(self):
         min, max = 0, 0
         self.assertEqual(str(AtLeastAtMost(TEST_LITERAL_LEN_N, min, max)), "")
+
+    def test_at_least_at_most_on_min_equal_to_zero_max_equal_to_1(self):
+        min, max = 0, 1
+        self.assertEqual(str(AtLeastAtMost(TEST_LITERAL_LEN_N, min, max)), f"(?:{TEST_LITERAL_LEN_N})?")
+
+    def test_at_least_at_most_on_min_equal_to_zero_max_greater_than_1(self):
+        min, max = 0, 2
+        self.assertEqual(str(AtLeastAtMost(TEST_LITERAL_LEN_N, min, max)), f"(?:{TEST_LITERAL_LEN_N}){{,{max}}}")
+
+    def test_at_least_at_most_on_min_equal_to_zero_max_equal_to_None(self):
+        min, max = 0, None
+        self.assertEqual(str(AtLeastAtMost(TEST_LITERAL_LEN_N, min, max)), f"(?:{TEST_LITERAL_LEN_N})*")
+
+    def test_at_least_at_most_on_min_equal_to_max_equal_to_one(self):
+        min, max = 1, 1
+        self.assertEqual(str(AtLeastAtMost(TEST_LITERAL_LEN_N, min, max)), str(TEST_LITERAL_LEN_N))
+
+    def test_at_least_at_most_on_min_equal_to_one_max_equal_to_None(self):
+        min, max = 1, None
+        self.assertEqual(str(AtLeastAtMost(TEST_LITERAL_LEN_N, min, max)), f"(?:{TEST_LITERAL_LEN_N})+")
+
+    def test_at_least_at_most_on_min_equal_to_max(self):
+        min, max = 2, 2
+        self.assertEqual(str(AtLeastAtMost(TEST_LITERAL_LEN_N, min, max)), f"(?:{TEST_LITERAL_LEN_N}){{{min}}}")
+
+    def test_at_least_at_most_on_min_equal_to_two_max_equal_to_None(self):
+        min, max = 2, None
+        self.assertEqual(str(AtLeastAtMost(TEST_LITERAL_LEN_N, min, max)), f"(?:{TEST_LITERAL_LEN_N}){{{min},}}")
 
     def test_at_least_at_most_on_laziness(self):
         min, max = 3, 5
         self.assertEqual(str(AtLeastAtMost(TEST_LITERAL_LEN_N, min, max, is_greedy=False)),
             f"(?:{TEST_LITERAL_LEN_N}){{{min},{max}}}?")
+
+    def test_at_least_at_most_on_lazy_min_equal_to_zero_max_equal_to_1(self):
+        min, max = 0, 1
+        self.assertEqual(str(AtLeastAtMost(TEST_LITERAL_LEN_N, min, max, is_greedy=False)), f"(?:{TEST_LITERAL_LEN_N})??")
+
+    def test_at_least_at_most_on_lazy_min_equal_to_zero_max_greater_than_1(self):
+        min, max = 0, 2
+        self.assertEqual(str(AtLeastAtMost(TEST_LITERAL_LEN_N, min, max, is_greedy=False)), f"(?:{TEST_LITERAL_LEN_N}){{,{max}}}?")
+
+    def test_at_least_at_most_on_lazy_min_equal_to_zero_max_equal_to_None(self):
+        min, max = 0, None
+        self.assertEqual(str(AtLeastAtMost(TEST_LITERAL_LEN_N, min, max, is_greedy=False)),
+            f"(?:{TEST_LITERAL_LEN_N})*?")
+
+    def test_at_least_at_most_on_lazy_min_equal_to_one_max_equal_to_None(self):
+        min, max = 1, None
+        self.assertEqual(str(AtLeastAtMost(TEST_LITERAL_LEN_N, min, max, is_greedy=False)),
+        f"(?:{TEST_LITERAL_LEN_N})+?")
+
+    def test_at_least_at_most_on_lazy_min_equal_to_two_max_equal_to_None(self):
+        min, max = 2, None
+        self.assertEqual(str(AtLeastAtMost(TEST_LITERAL_LEN_N, min, max, is_greedy=False)),
+            f"(?:{TEST_LITERAL_LEN_N}){{{min},}}?")
+
+    def test_at_least_at_most_on_lazy_min_equal_to_max(self):
+        min, max = 2, 2
+        self.assertEqual(str(AtLeastAtMost(TEST_LITERAL_LEN_N, min, max, is_greedy=False)), f"(?:{TEST_LITERAL_LEN_N}){{{min}}}")
 
     def test_at_least_at_most_on_type(self):
         self.assertEqual(AtLeastAtMost("a", min=1, max=2)._get_type(), _Type.Quantifier)

@@ -216,6 +216,31 @@ class TestPregex(unittest.TestCase):
             self.assertRaises(NonIntegerArgumentException, self.pre1.__rmul__, val)
         self.assertRaises(CannotBeQuantifiedException, MatchAtStart("x").__rmul__, 2)
 
+    '''
+    Test Pregex's "__infer_type".
+    '''
+    def test_pregex_infer_type(self):
+        self.assertEqual(Pregex("abc|acd", escape=False)._get_type(), _Type.Alternation)
+        self.assertEqual(Pregex("(abc|acd)|(ab)?", escape=False)._get_type(), _Type.Alternation)
+        self.assertEqual(Pregex("(?<!a)b|c", escape=False)._get_type(), _Type.Alternation)
+        self.assertEqual(Pregex("(?<!a)b", escape=False)._get_type(), _Type.Assertion)
+        self.assertEqual(Pregex("(?<=[(\s])a", escape=False)._get_type(), _Type.Assertion)
+        self.assertEqual(Pregex("(?<!a)(?:b|c)", escape=False)._get_type(), _Type.Assertion)
+        self.assertEqual(Pregex("(?<![)])(?:b|c)", escape=False)._get_type(), _Type.Assertion)
+        self.assertEqual(Pregex("(?<!\))(?:b|c)", escape=False)._get_type(), _Type.Assertion)
+        self.assertEqual(Pregex("[(.z;!\]]", escape=False)._get_type(), _Type.Class)
+        self.assertEqual(Pregex("[\[a\]]", escape=False)._get_type(), _Type.Class)
+        self.assertEqual(Pregex("(abc|acd)", escape=False)._get_type(), _Type.Group)
+        self.assertEqual(Pregex("(a\\\\\))", escape=False)._get_type(), _Type.Group)
+        self.assertEqual(Pregex("(?abc)", escape=False)._get_type(), _Type.Group)
+        self.assertEqual(Pregex("\w\s", escape=False)._get_type(), _Type.Other)
+        self.assertEqual(Pregex("([A-Za-z_])[0-9]+([a-z]?)", escape=False)._get_type(), _Type.Other)
+        self.assertEqual(Pregex("(?abc)(abc)", escape=False)._get_type(), _Type.Other)
+        self.assertEqual(Pregex("(abc|acd)\|(ab)?", escape=False)._get_type(), _Type.Other)
+        self.assertEqual(Pregex("((abc|acd)|(ab))\\{1234,1245\\}", escape=False)._get_type(), _Type.Other)
+        self.assertEqual(Pregex("((abc|acd)|(ab))?", escape=False)._get_type(), _Type.Quantifier)
+        self.assertEqual(Pregex("((abc|acd)|(ab)){1234,1245}", escape=False)._get_type(), _Type.Quantifier)
+
 
 class TestEmpty(unittest.TestCase):
 

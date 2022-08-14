@@ -75,7 +75,7 @@ regex = pre.get_pattern()
 
 This is the pattern that we just built. Yikes!
 ```
-(?:https?:\/\/)?(?:(?:www\.)?([A-za-z\d][A-Za-z\d\-.]{1,61}[A-Za-z\d])\.(?:com|org)|(?:\d{1,3}\.){3}\d{1,3}:\d{4})
+(?:https?:\/\/)?(?:(?:www\.)?([A-Za-z\d][A-Za-z\d\-.]{1,61}[A-Za-z\d])\.(?:com|org)|(?:\d{1,3}\.){3}\d{1,3}:\d{4})
 ```
 
 Besides from having access to its underlying pattern, we can use a Pregex instance to find matches within a piece of text. Consider for example the following string:

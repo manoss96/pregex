@@ -179,16 +179,17 @@ class AtMost(__Quantifier):
 
     :param Pregex | str pre: The pattern that is to be matched, provided either as a string \
         or wrapped within a "Pregex" subtype instance.
-    :param int n: The maximum number of times that the provided pattern is to be matched.
+    :param int n | None: The maximum number of times that the provided pattern is to be matched.
     :param bool is_greedy: Indicates whether to declare this quantifier as greedy. \
         When declared as such, the regex engine will try to match \
         the expression as many times as possible. Defaults to 'True'.
 
     :raises NonIntegerArgumentException: Parameter "n" is not an integer.
-    :raises NonPositiveArgumentException: Parameter "n" is less than one.
+    :raises NegativeArgumentException: Parameter "n" is less than zero.
     :raises CannotBeQuantifiedException: This class is applied to an instance that represents an "assertion" pattern.
 
-    :note: Providing the value zero as parameter "n" results in the "Empty" pattern.
+    :note: Setting "n" equal to "None" indicates that there is no upper limit to the number of \
+        times the pattern is to be repeated.
     '''
 
     def __init__(self, pre: _pre.Pregex or str, n: int, is_greedy: bool = True) -> _pre.Pregex:
@@ -197,21 +198,23 @@ class AtMost(__Quantifier):
 
         :param Pregex | str pre: The pattern that is to be matched, provided either as a string \
             or wrapped within a "Pregex" subtype instance.
-        :param int n: The maximum number of times that the provided pattern is to be matched.
+        :param int n | None: The maximum number of times that the provided pattern is to be matched.
         :param bool is_greedy: Indicates whether to declare this quantifier as greedy. \
             When declared as such, the regex engine will try to match \
             the expression as many times as possible. Defaults to 'True'.
 
         :raises NonIntegerArgumentException: Parameter "n" is not an integer.
-        :raises NonPositiveArgumentException: Parameter "n" is less than one.
+        :raises NegativeArgumentException: Parameter "n" is less than zero.
         :raises CannotBeQuantifiedException: This class is applied to an instance that represents an "assertion" pattern.
 
-        :note: Providing the value zero as parameter "n" results in the "Empty" pattern.
+        :note: Setting "n" equal to "None" indicates that there is no upper limit to the number of \
+            times the pattern is to be repeated.
         '''
         if not isinstance(n, int) or isinstance(n, bool):
-            raise _ex.NonIntegerArgumentException(n)
-        if n < 1:
-            raise _ex.NonPositiveArgumentException("n", n)
+            if n is not None:
+                raise _ex.NonIntegerArgumentException(n)
+        elif n < 0:
+            raise _ex.NegativeArgumentException("n", n)
         super().__init__(pre, is_greedy, lambda pre, is_greedy: pre._at_most(n, is_greedy))
 
 
@@ -222,7 +225,7 @@ class AtLeastAtMost(__Quantifier):
     :param Pregex | str pre: The pattern that is to be matched, provided either as a string \
         or wrapped within a "Pregex" subtype instance.
     :param int min: The minimum number of times that the provided pattern is to be matched.
-    :param int max: The maximum number of times that the provided pattern is to be matched.
+    :param int | None max: The maximum number of times that the provided pattern is to be matched.
     :param bool is_greedy: Indicates whether to declare this quantifier as greedy. \
         When declared as such, the regex engine will try to match \
         the expression as many times as possible. Defaults to 'True'.
@@ -233,7 +236,8 @@ class AtLeastAtMost(__Quantifier):
     :raises CannotBeQuantifiedException: This class is applied to an instance that represents an "assertion" pattern.
 
     :note: Parameter "is_greedy" has no effect in the case that "min" equals "max".
-    :note: Providing the value zero as both parameter "min" and "max" results in the "Empty" pattern.
+    :note: Setting "max" equal to "None" indicates that there is no upper limit to the number of \
+        times the pattern is to be repeated.
     '''
 
     def __init__(self, pre: _pre.Pregex or str, min: int, max: int, is_greedy: bool = True) -> _pre.Pregex:
@@ -254,15 +258,17 @@ class AtLeastAtMost(__Quantifier):
         :raises CannotBeQuantifiedException: This class is applied to an instance that represents an "assertion" pattern.
 
         :note: Parameter "is_greedy" has no effect in the case that "min" equals "max".
-        :note: Providing the value zero as both parameter "min" and "max" results in the "Empty" pattern.
+        :note: Setting "max" equal to "None" indicates that there is no upper limit to the number of \
+            times the pattern is to be repeated.
         '''
         if not isinstance(min, int) or isinstance(min, bool):
             raise _ex.NonIntegerArgumentException(min)
-        if not isinstance(max, int) or isinstance(max, bool):
-            raise _ex.NonIntegerArgumentException(max)
-        if min < 0:
+        elif min < 0:
             raise _ex.NegativeArgumentException("min", min)
-        if max < 0:
+        elif not isinstance(max, int) or isinstance(max, bool):
+            if max is not None:
+                raise _ex.NonIntegerArgumentException(max)
+        elif max < 0:
             raise _ex.NegativeArgumentException("max", max)
         elif max < min:
             raise _ex.MinGreaterThanMaxException(min, max)

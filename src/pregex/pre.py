@@ -488,16 +488,15 @@ class Pregex():
         pattern = pattern.replace("\\", "\\\\")
         for c in {'^', '$', '(', ')', '[', ']', '{', '}', '?', '+', '*', '.', '|', '/'}:
             pattern = pattern.replace(c, f"\\{c}")
-        return pattern            
+        return pattern   
 
-    
+
     def __infer_type(pattern: str) -> _Type:
         '''
         Examines the provided RegEx pattern and returns its type.
 
         :param str pattern: The RegEx pattern that is to be examined.
         '''
-
         def remove_groups(pattern: str, repl: str = ""):
             '''
             Removes all groups from the provided pattern, and replaces them with 'repl'.
@@ -540,8 +539,6 @@ class Pregex():
 
         if pattern == "":
             return _Type.Empty
-        elif __is_group(pattern):
-            return _Type.Group
         elif _re.fullmatch(r"\\?.", pattern, flags=__class__.__flags) is not None:
             if _re.fullmatch(r"\.|\\(?:w|d|s)", pattern,
                 flags=__class__.__flags | _re.IGNORECASE) is not None:
@@ -551,11 +548,17 @@ class Pregex():
                 return _Type.Assertion
             else:
                 return _Type.Token
-        elif _re.fullmatch(r"\[.+\]", pattern) is not None:
-            return _Type.Class
 
-        # Remove any groups.
-        temp = remove_groups(pattern)
+        # Simplify classes by removing extra characters.
+        pattern = _re.sub(r"\[.+?(?<!\\)\]", "[a]", pattern)
+
+        if pattern == "[a]":
+            return _Type.Class
+        elif __is_group(pattern):
+            return _Type.Group
+
+        # Replace every group with a simple character.
+        temp = remove_groups(pattern, repl="G")
 
         if len(_re.split(pattern=r"(?<!\\)\|", string=temp)) > 1:
                 return _Type.Alternation
@@ -645,12 +648,16 @@ class Pregex():
         Applies quantifier "{,n}" on this instance's underlying pattern and \
         returns the resulting pattern as a string.
 
-        :param int n: The maximum number of times that the provided pattern is to be matched.
+        :param int | None n: The maximum number of times that the provided pattern is to be matched.
         :param bool is_greedy: Determines whether to declare this quantifier as greedy. \
             When declared as such, the regex engine will try to match \
             the expression as many times as possible. Defaults to 'True'.
         '''
-        if n == 1:
+        if n == None:
+            return self._indefinite(is_greedy)
+        elif n == 0:
+            return self._exactly(n)
+        elif n == 1:
             return self._optional(is_greedy)
         else:
             return f"{self._quantify_conditional_group()}{{,{n}}}{'' if is_greedy else '?'}"
@@ -662,15 +669,17 @@ class Pregex():
         returns the resulting pattern as a string.
 
         :param int min: The minimum number of times that the provided pattern is to be matched.
-        :param int max: The maximum number of times that the provided pattern is to be matched.
+        :param int | None max: The maximum number of times that the provided pattern is to be matched.
         :param bool is_greedy: Determines whether to declare this quantifier as greedy. \
             When declared as such, the regex engine will try to match \
             the expression as many times as possible. Defaults to 'True'.
         '''
         if min == max:
             return self._exactly(min)
-        elif min == 0 and max == 1:
-            return self._optional(is_greedy)
+        elif min == 0:
+            return self._at_most(max, is_greedy)
+        elif max is None:
+            return self._at_least(min, is_greedy)
         else:
             return f"{self._quantify_conditional_group()}{{{min},{max}}}{'' if is_greedy else '?'}"
 
