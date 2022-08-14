@@ -1,6 +1,6 @@
 import re as _re
 import pregex.pre as _pre
-import pregex.exceptions as _exceptions
+import pregex.exceptions as _ex
 
 
 class __Group(_pre.Pregex):
@@ -52,9 +52,9 @@ class Capture(__Group):
             - Creating a named capturing group out of a named capturing group, changes the group's name.
         '''
         if not isinstance(name, str):
-            raise _exceptions.NonStringArgumentException()
+            raise _ex.NonStringArgumentException()
         if name != '' and _re.fullmatch("[A-Za-z_]\w*", name) is None:
-            raise _exceptions.InvalidCapturingGroupNameException(name)
+            raise _ex.InvalidCapturingGroupNameException(name)
         super().__init__(pre, lambda pre: pre._capturing_group(name))
         self.name = name
 
@@ -111,9 +111,9 @@ class Backreference(__Group):
             with a non-digit character.
         '''
         if not isinstance(name, str):
-            raise _exceptions.NonStringArgumentException()
+            raise _ex.NonStringArgumentException()
         if _re.fullmatch("[A-Za-z_][A-Za-z_0-9]*", name) is None:
-            raise _exceptions.InvalidCapturingGroupNameException(name)
+            raise _ex.InvalidCapturingGroupNameException(name)
         super().__init__(name, lambda s : f"(?P={s})")
 
     
@@ -153,7 +153,7 @@ class Conditional(__Group):
             with a non-digit character.
         '''
         if not isinstance(name, str):
-            raise _exceptions.NonStringArgumentException()
+            raise _ex.NonStringArgumentException()
         if _re.fullmatch("[A-Za-z_][\w]*", name) is None:
-            raise _exceptions.InvalidCapturingGroupNameException(name)
+            raise _ex.InvalidCapturingGroupNameException(name)
         super().__init__(name, lambda s: f"(?({s}){pre1}{'|' + str(pre2) if pre2 != '' else ''})")

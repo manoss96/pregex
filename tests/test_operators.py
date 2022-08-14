@@ -1,6 +1,6 @@
 import unittest
 from pregex.operators import *
-from pregex.pre import Pregex, _Type
+from pregex.pre import Pregex, Empty, _Type
 from pregex.quantifiers import Exactly
 from pregex.classes import AnyLowercaseLetter
 from pregex.assertions import FollowedBy, MatchAtStart
@@ -53,6 +53,9 @@ class TestConcat(unittest.TestCase):
         followed_by = FollowedBy("a", "b")
         self.assertEqual(str(Concat(followed_by, TEST_STR_1)), f"{followed_by}{TEST_STR_1}")
 
+    def test_concat_on_empty_token(self):
+        self.assertEqual(str(Concat(TEST_STR_1, Empty())), TEST_STR_1)
+
 
 
 class TestEither(unittest.TestCase):
@@ -88,6 +91,9 @@ class TestEither(unittest.TestCase):
     def test_either_on_class(self):
         any_ll = AnyLowercaseLetter()
         self.assertEqual(str(Either(any_ll, TEST_STR_3)), f"{any_ll}|{TEST_STR_3}")
+
+    def test_either_on_empty_token(self):
+        self.assertEqual(str(Either(TEST_STR_1, Empty(), TEST_STR_2)), f"{TEST_STR_1}|{TEST_STR_2}")
 
 
 if __name__=="__main__":

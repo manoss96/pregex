@@ -86,7 +86,7 @@ class Dollar(__Token):
         '''
          Matches the dollar sign "$".
         '''
-        super().__init__("\\\u0024") 
+        super().__init__("\\\u0024")
 
 
 class Euro(__Token):

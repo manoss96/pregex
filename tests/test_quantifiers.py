@@ -150,6 +150,9 @@ class TestExactly(unittest.TestCase):
     def test_exactly_on_value_1(self):
         self.assertEqual(str(Exactly(TEST_LITERAL_LEN_N, 1)), f"{TEST_LITERAL_LEN_N}")
 
+    def test_exactly_on_value_0(self):
+        self.assertEqual(str(Exactly(TEST_LITERAL_LEN_N, 0)), "")
+
     def test_exactly_on_type(self):
         self.assertEqual(Exactly("a", n=2)._get_type(), _Type.Quantifier)
         self.assertEqual(Exactly("abc", n=2)._get_type(), _Type.Quantifier)
@@ -160,8 +163,8 @@ class TestExactly(unittest.TestCase):
             self.assertRaises(NonIntegerArgumentException, Exactly, TEST_STR_LEN_1, val)
 
     def test_exactly_on_invalid_values(self):
-        for val in [-10, -1, 0]:
-            self.assertRaises(NonPositiveArgumentException, Exactly, TEST_STR_LEN_1, val)
+        for val in [-10, -1]:
+            self.assertRaises(NegativeArgumentException, Exactly, TEST_STR_LEN_1, val)
 
 class TestAtLeast(unittest.TestCase):
 
@@ -274,6 +277,10 @@ class TestAtLeastAtMost(unittest.TestCase):
         min, max = 4, 4
         self.assertEqual(str(AtLeastAtMost(TEST_LITERAL_LEN_N, min, max)), f"(?:{TEST_LITERAL_LEN_N}){{{min}}}")
 
+    def test_at_least_at_most_on_min_equal_to_max_equal_to_zero(self):
+        min, max = 0, 0
+        self.assertEqual(str(AtLeastAtMost(TEST_LITERAL_LEN_N, min, max)), "")
+
     def test_at_least_at_most_on_laziness(self):
         min, max = 3, 5
         self.assertEqual(str(AtLeastAtMost(TEST_LITERAL_LEN_N, min, max, is_greedy=False)),
@@ -289,15 +296,15 @@ class TestAtLeastAtMost(unittest.TestCase):
             self.assertRaises(NonIntegerArgumentException, AtLeastAtMost, TEST_STR_LEN_1, min=val, max=10)
             self.assertRaises(NonIntegerArgumentException, AtLeastAtMost, TEST_STR_LEN_1, min=2, max=val)
 
-    def test_at_least_at_most_on_negative_min(self):
+    def test_at_least_at_most_on_negative_min_exception(self):
         min, max = -1, 1
         self.assertRaises(NegativeArgumentException, AtLeastAtMost, TEST_STR_LEN_1, min, max) 
 
-    def test_at_least_at_most_on_non_positive_max(self):
-        min, max = 0, 0
-        self.assertRaises(NonPositiveArgumentException, AtLeastAtMost, TEST_STR_LEN_1, min, max) 
+    def test_at_least_at_most_on_negative_max_exception(self):
+        min, max = 1, -1
+        self.assertRaises(NegativeArgumentException, AtLeastAtMost, TEST_STR_LEN_1, min, max) 
 
-    def test_at_least_at_most_on_non_positive_max(self):
+    def test_at_least_at_most_on_min_greater_than_max_exception(self):
         min, max = 5, 3
         self.assertRaises(MinGreaterThanMaxException, AtLeastAtMost, TEST_STR_LEN_1, min, max)
 

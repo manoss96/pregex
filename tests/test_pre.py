@@ -1,7 +1,7 @@
 import re
 import unittest
-from pregex.pre import Pregex
-from pregex.assertions import MatchAtStart
+from pregex.pre import Pregex, Empty, _Type
+from pregex.assertions import MatchAtStart, WordBoundary, NonWordBoundary
 from pregex.exceptions import CannotBeQuantifiedException, NegativeArgumentException, \
     NonStringArgumentException, NonIntegerArgumentException, NonPositiveArgumentException
 
@@ -201,7 +201,8 @@ class TestPregex(unittest.TestCase):
     def test_pregex_on_multiplication(self):
         self.assertEqual(str(self.pre1.__mul__(1)), self.PATTERN)
         self.assertEqual(str(self.pre1.__mul__(2)), f"(?:{self.PATTERN}){{2}}")
-        self.assertRaises(NonPositiveArgumentException, self.pre1.__mul__, 0)
+        self.assertEqual(str(self.pre1.__mul__(0)), "")
+        self.assertRaises(NegativeArgumentException, self.pre1.__mul__, -1)
         for val in ["s", 1.1, True]:
             self.assertRaises(NonIntegerArgumentException, self.pre1.__mul__, val)
         self.assertRaises(CannotBeQuantifiedException, MatchAtStart("x").__mul__, 2)
@@ -209,10 +210,72 @@ class TestPregex(unittest.TestCase):
     def test_pregex_on_right_side_multiplication(self):
         self.assertEqual(str(self.pre1.__rmul__(1)), self.PATTERN)
         self.assertEqual(str(self.pre1.__rmul__(2)), f"(?:{self.PATTERN}){{2}}")
-        self.assertRaises(NonPositiveArgumentException, self.pre1.__rmul__, 0)
+        self.assertEqual(str(self.pre1.__rmul__(0)), "")
+        self.assertRaises(NegativeArgumentException, self.pre1.__rmul__, -1)
         for val in ["s", 1.1, True]:
             self.assertRaises(NonIntegerArgumentException, self.pre1.__rmul__, val)
         self.assertRaises(CannotBeQuantifiedException, MatchAtStart("x").__rmul__, 2)
+
+
+class TestEmpty(unittest.TestCase):
+
+    pre = Empty()
+    text = "text"
+
+    def test_empty(self):
+        self.assertEqual(str(Empty()), "")
+
+    def test_empty_on_type(self):
+        self.assertEqual(Empty()._get_type(), _Type.Empty)
+
+    def test_empty_on_match(self):
+        self.assertTrue(Empty().get_matches("") == [""])
+
+    def test_empty_on_addition(self):
+        self.assertEqual(str(self.pre + self.text), f"{self.text}")
+        self.assertEqual(str(self.text + self.pre), f"{self.text}")
+
+    def test_empty_on_multiplication(self):
+        self.assertEqual(str(3 * self.pre), f"{self.pre}")
+        self.assertEqual(str(self.pre * 3), f"{self.pre}")
+
+    def test_empty_on_quantifiers(self):
+        self.assertEqual(self.pre._optional(), f"{self.pre}")
+        self.assertEqual(self.pre._indefinite(), f"{self.pre}")
+        self.assertEqual(self.pre._one_or_more(), f"{self.pre}")
+        self.assertEqual(self.pre._exactly(n=3), f"{self.pre}")
+        self.assertEqual(self.pre._at_least(n=3), f"{self.pre}")
+        self.assertEqual(self.pre._at_most(n=3), f"{self.pre}")
+        self.assertEqual(self.pre._at_least_at_most(min=3, max=5), f"{self.pre}")
+
+    def test_empty_on_groups(self):
+        self.assertEqual(self.pre._capturing_group(), f"{self.pre}")
+        self.assertEqual(self.pre._non_capturing_group(), f"{self.pre}")
+
+    def test_empty_on_operators(self):
+        other = Pregex("abc")
+        self.assertEqual(self.pre._concat(other), f"{other}")
+        self.assertEqual(self.pre._either(other), f"{other}")
+
+    def test_empty_on_anchor_assertions(self):
+        self.assertEqual(self.pre._match_at_start(), "\\A")
+        self.assertEqual(self.pre._match_at_line_start(), "^")
+        self.assertEqual(self.pre._match_at_end(), "\\Z")
+        self.assertEqual(self.pre._match_at_line_end(), "$")
+        self.assertEqual(str(self.pre + WordBoundary()), "\\b")
+        self.assertEqual(str(WordBoundary() + self.pre), "\\b")
+        self.assertEqual(str(WordBoundary() + self.pre + WordBoundary()), "\\b\\b")
+        self.assertEqual(str(self.pre + NonWordBoundary()), "\\B")
+        self.assertEqual(str(NonWordBoundary() + self.pre), "\\B")
+        self.assertEqual(str(NonWordBoundary() + self.pre + NonWordBoundary()), "\\B\\B")
+
+    def test_empty_on_lookaround_assertions(self):
+        other = Pregex("abc")
+        self.assertEqual(self.pre._followed_by(other), f"(?={other})")
+        self.assertEqual(self.pre._not_followed_by(other), f"(?!{other})")
+        self.assertEqual(self.pre._preceded_by(other), f"(?<={other})")
+        self.assertEqual(self.pre._not_preceded_by(other), f"(?<!{other})")
+
 
 if __name__=="__main__":
     unittest.main()

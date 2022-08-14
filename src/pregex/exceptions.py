@@ -44,13 +44,14 @@ class NegativeArgumentException(Exception):
     This exception is thrown whenever an argument is a negative number.
     '''
 
-    def __init__(self, n: int):
+    def __init__(self, name: str, value: int):
         '''
         The class's constructor.
 
-        :param int n: The integer because of which this exception was thrown.
+        :param str name: The name of the argument that caused the exception.
+        :param int n: The value of the argument that caused the exception.
         '''
-        super().__init__(f"Argument of value \"{n}\" is less than zero.")
+        super().__init__(f"Argument \"{name}\" of value \"{value}\" can't be negative.")
 
 
 class NonPositiveArgumentException(Exception):
@@ -59,13 +60,14 @@ class NonPositiveArgumentException(Exception):
     a negative number or the number zero.
     '''
 
-    def __init__(self, n: int):
+    def __init__(self, name: str, value: int):
         '''
         The class's constructor.
 
-        :param int n: The integer because of which this exception was thrown.
+        :param str name: The name of the argument that caused the exception.
+        :param int n: The value of the argument that caused the exception.
         '''
-        super().__init__(f"Argument of value \"{n}\" is non-positive.")
+        super().__init__(f"Argument \"{name}\" of value \"{value}\" can't be less than one.")
 
 
 class MinGreaterThanMaxException(Exception):
@@ -81,13 +83,13 @@ class MinGreaterThanMaxException(Exception):
         :param int min: The integer because of which this exception was thrown.
         :param int max: The integer because of which this exception was thrown.
         '''
-        super().__init__(f"Minimum value \"{min}\" is greater than maximum value \"{max}\.")
+        super().__init__(f"Minimum value \"{min}\" is greater than maximum value \"{max}\".")
 
 
 class LessThanTwoArgumentsException(Exception):
     '''
-    This exception is thrown whenever a single argument \
-    was provided to a method which requires at least two.
+    This exception is thrown whenever one or none arguments were
+    provided to a method or class constructor requiring at least two.
     '''
 
     def __init__(self):
@@ -95,6 +97,21 @@ class LessThanTwoArgumentsException(Exception):
         The class's constructor.
         '''
         super().__init__("This constructor requires at least two arguments.")
+
+
+class ZeroArgumentsException(Exception):
+    '''
+    This exception is thrown whenever no arguments were \
+    provided to a method which requires at least two.
+    '''
+
+    def __init__(self, pre):
+        '''
+        The class's constructor.
+
+        '''
+        m = f"No arguments were provided to class constructor \"{type(pre).__name__}\"."
+        super().__init__(m)
 
 
 class InvalidCapturingGroupNameException(Exception):
@@ -210,7 +227,7 @@ class EmptyClassException(Exception):
 
 class InvalidRangeException(Exception):
     '''
-    This exception is thrown whenever there were provided a tuple \
+    This exception is thrown whenever there was provided a pair \
     of values "start" and "end", where "start" comes after "end".
     '''
 
@@ -243,9 +260,8 @@ class CannotBeQuantifiedException(Exception):
 
 class NonFixedWidthPatternException(Exception):
     '''
-    This exception is thrown whenever an non-fixed-width pattern
-    is being provided as parameter "pre2" to either "PrecededBy"
-    or "NotPrecededBy".
+    This exception is thrown whenever a non-fixed-width pattern is being
+    provided as lookbehind-pattern to either "PrecededBy" or "NotPrecededBy".
     '''
 
     def __init__(self, lookbehind, pre):
@@ -256,8 +272,8 @@ class NonFixedWidthPatternException(Exception):
         :param Pregex pre: The "Pregex" instance because of which this exception was thrown.
         '''
         m = f"Instances of class \"{type(lookbehind).__name__}\" cannot receive an instance of "
-        m += f"class \"{type(pre).__name__}\" in place of parameter \"pre2\" as the latter represents"
-        m += " a pattern whose width is not fixed."
+        m += f"class \"{type(pre).__name__}\" in place of a lookbehind-restriction-pattern as the"
+        m += " latter represents a pattern whose width is not fixed."
         super().__init__(m)
 
 

@@ -17,7 +17,7 @@ More specifically:
 - Module **pregex.operators** is imported as **op**.
 - Module **pregex.quantifiers** is imported as **qu**.
 - Module **pregex.tokens** is imported as **tk**.
-- Class **pregex.pre.Pregex** is imported as is.
+- Classes **pregex.core.pre.{Pregex, Empty}** are imported as is.
 
 Take a look at the example below to better understand how this works:
 

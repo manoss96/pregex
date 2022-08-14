@@ -1,8 +1,8 @@
 pregex.pre
 -----------------
-This module contains a single class, namely "Pregex", which constitutes the base
-class for every other class within the "pregex" package. This means that all methods
-of this class are inherited by every other class as well.
+This module contains the "Pregex" class, which constitutes the base class for every
+other class within the "pregex" package. This means that all methods of this class
+are inherited by every other class as well.
 
 **Converting a string into a Pregex instance**
 

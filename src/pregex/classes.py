@@ -1,6 +1,6 @@
 import re as _re
 import pregex.pre as _pre
-import pregex.exceptions as _exceptions
+import pregex.exceptions as _ex
 from string import whitespace as _whitespace
 
 
@@ -108,7 +108,7 @@ class __Class(_pre.Pregex):
             elif isinstance(pre, _pre.Pregex) and pre._get_type() == _pre._Type.Token:
                 pre = AnyFrom(pre)
         if not issubclass(pre.__class__, __class__):
-            raise _exceptions.CannotBeUnionedException(pre, False)
+            raise _ex.CannotBeUnionedException(pre, False)
         return __class__.__or(self, pre)
 
 
@@ -126,7 +126,7 @@ class __Class(_pre.Pregex):
             elif isinstance(pre, _pre.Pregex) and pre._get_type() == _pre._Type.Token:
                 pre = AnyFrom(pre)
         if not issubclass(pre.__class__, __class__):
-            raise _exceptions.CannotBeUnionedException(pre, False)
+            raise _ex.CannotBeUnionedException(pre, False)
         return __class__.__or(pre, self)
 
 
@@ -139,7 +139,7 @@ class __Class(_pre.Pregex):
         :raises CannotBeUnionedException: 'pre1' is a different type of class than 'pre2'.
         '''
         if  pre1.__is_negated != pre2.__is_negated:
-            raise _exceptions.CannotBeUnionedException(pre2, True)
+            raise _ex.CannotBeUnionedException(pre2, True)
         if isinstance(pre1, Any) or isinstance(pre2, Any):
             return Any()
 
@@ -241,7 +241,7 @@ class __Class(_pre.Pregex):
             elif isinstance(pre, _pre.Pregex) and pre._get_type() == _pre._Type.Token:
                 pre = AnyFrom(pre)
         if not issubclass(pre.__class__, __class__):
-            raise _exceptions.CannotBeSubtractedException(pre, False)
+            raise _ex.CannotBeSubtractedException(pre, False)
         return __class__.__sub(self, pre)
 
 
@@ -259,7 +259,7 @@ class __Class(_pre.Pregex):
             elif isinstance(pre, _pre.Pregex) and pre._get_type() == _pre._Type.Token:
                 pre = AnyFrom(pre)
         if not issubclass(pre.__class__, __class__):
-            raise _exceptions.CannotBeSubtractedException(pre, False)
+            raise _ex.CannotBeSubtractedException(pre, False)
         return __class__.__sub(pre, self)
 
 
@@ -273,13 +273,13 @@ class __Class(_pre.Pregex):
         :raises EmptyClassException: 'pre2' is an instance of class "Any".
         '''
         if  pre1.__is_negated != pre2.__is_negated:
-            raise _exceptions.CannotBeSubtractedException(pre2, True)
+            raise _ex.CannotBeSubtractedException(pre2, True)
         if isinstance(pre2, Any):
-            raise _exceptions.EmptyClassException(pre1, pre2)
+            raise _ex.EmptyClassException(pre1, pre2)
         if isinstance(pre1, Any):
             return ~ pre2
         if isinstance(pre1, (AnyWordChar, AnyButWordChar)) and pre1._is_global():
-            raise _exceptions.GlobalWordCharSubtractionException(pre1)
+            raise _ex.GlobalWordCharSubtractionException(pre1)
 
         # Subtract any ranges found in both pre2 and pre1 from pre1.
         def subtract_ranges(ranges1: set[str], ranges2: set[str]) -> tuple[set[str], set[str]]:
@@ -360,7 +360,7 @@ class __Class(_pre.Pregex):
         result = __class__.__modify_classes(ranges1.union(chars1), escape=True)
         
         if len(result) == 0:
-            raise _exceptions.EmptyClassException(pre1, pre2)
+            raise _ex.EmptyClassException(pre1, pre2)
 
         return  __class__(
             f"[{'^' if pre1.__is_negated else ''}{''.join(result)}]",
@@ -725,12 +725,12 @@ class AnyBetween(__Class):
         for c in (start, end):
             if isinstance(c, (str, _pre.Pregex)):
                 if len(str(c).replace("\\", "", 1)) > 1: 
-                    raise _exceptions.NeitherCharNorTokenException()
+                    raise _ex.NeitherCharNorTokenException()
             else:
-                raise _exceptions.NeitherCharNorTokenException() 
+                raise _ex.NeitherCharNorTokenException() 
         start, end = str(start), str(end)
         if ord(start) >= ord(end):
-            raise _exceptions.InvalidRangeException(start, end)
+            raise _ex.InvalidRangeException(start, end)
         start = f"\\{start}" if start in __class__._to_escape else start
         end = f"\\{end}" if end in __class__._to_escape else end
         super().__init__(f"[{start}-{end}]", is_negated=False)
@@ -770,12 +770,12 @@ class AnyButBetween(__Class):
         for c in (start, end):
             if isinstance(c, (str, _pre.Pregex)):
                 if len(str(c).replace("\\", "", 1)) > 1: 
-                    raise _exceptions.NeitherCharNorTokenException()
+                    raise _ex.NeitherCharNorTokenException()
             else:
-                raise _exceptions.NeitherCharNorTokenException() 
+                raise _ex.NeitherCharNorTokenException() 
         start, end = str(start), str(end)
         if ord(start) >= ord(end):
-            raise _exceptions.InvalidRangeException(start, end)
+            raise _ex.InvalidRangeException(start, end)
         start = f"\\{start}" if start in __class__._to_escape else start
         end = f"\\{end}" if end in __class__._to_escape else end
         super().__init__(f"[^{start}-{end}]", is_negated=True)      
@@ -788,6 +788,7 @@ class AnyFrom(__Class):
     :param Pregex | str *chars: One or more characters to match from. Each character must be \
         a string of length one, provided either as is or wrapped within a "tokens" class.
 
+    :raises ZeroArgumentsExceptions: No arguments are provided.
     :raises NeitherCharNorTokenException: At least one of the provided characters is \
         neither a "token" class instance nor a single-character string.
     '''
@@ -799,15 +800,18 @@ class AnyFrom(__Class):
         :param Pregex | str *chars: One or more characters to match from. Each character must be \
             a string of length one, provided either as is or wrapped within a "tokens" class.
 
+        :raises ZeroArgumentsExceptions: No arguments are provided.
         :raises NeitherCharNorTokenException: At least one of the provided characters is \
             neither a "token" class instance nor a single-character string.
         '''
+        if len(chars) == 0:
+            raise _ex.ZeroArgumentsException(self)
         for c in chars:
             if isinstance(c, (str, _pre.Pregex)):
                 if len(str(c).replace("\\", "", 1)) > 1: 
-                    raise _exceptions.NeitherCharNorTokenException()
+                    raise _ex.NeitherCharNorTokenException()
             else:
-                raise _exceptions.NeitherCharNorTokenException()
+                raise _ex.NeitherCharNorTokenException()
         chars = tuple((f"\\{c}" if c in __class__._to_escape else c) \
             if isinstance(c, str) else str(c) for c in chars)
         super().__init__(f"[{''.join(chars)}]", is_negated=False)
@@ -820,6 +824,7 @@ class AnyButFrom(__Class):
     :param Pregex | str *chars: One or more characters not to match from. Each character must be \
         a string of length one, provided either as is or wrapped within a "tokens" class.
 
+    :raises ZeroArgumentsExceptions: No arguments are provided.
     :raises NeitherCharNorTokenException: At least one of the provided characters is \
         neither a "token" class instance nor a single-character string.
     '''
@@ -831,15 +836,18 @@ class AnyButFrom(__Class):
         :param Pregex | str *chars: One or more characters not to match from. Each character must be \
             a string of length one, provided either as is or wrapped within a "tokens" class.
 
+        :raises ZeroArgumentsExceptions: No arguments are provided.
         :raises NeitherCharNorTokenException: At least one of the provided characters is \
             neither a "token" class instance nor a single-character string.
         '''
+        if len(chars) == 0:
+            raise _ex.ZeroArgumentsException(self)
         for c in chars:
             if isinstance(c, (str, _pre.Pregex)):
                 if len(str(c).replace("\\", "", 1)) > 1: 
-                    raise _exceptions.NeitherCharNorTokenException()
+                    raise _ex.NeitherCharNorTokenException()
             else:
-                raise _exceptions.NeitherCharNorTokenException() 
+                raise _ex.NeitherCharNorTokenException() 
         chars = tuple((f"\{c}" if c in __class__._to_escape else c)
             if isinstance(c, str) else str(c) for c in chars)
         super().__init__(f"[^{''.join(chars)}]", is_negated=True)
@@ -927,7 +935,7 @@ class AnyCJK(__Class):
     Unicode block.
     '''
 
-    def __init__(self) -> 'AnyCyrillicLetter':
+    def __init__(self) -> 'AnyCJK':
         '''
         Matches any character defined within the "CJK Unified Ideographs" \
         Unicode block.
@@ -941,7 +949,7 @@ class AnyButCJK(__Class):
     "CJK Unified Ideographs" Unicode block.
     '''
 
-    def __init__(self) -> 'AnyCyrillicLetter':
+    def __init__(self) -> 'AnyButCJK':
         '''
         Matches any character except for those defined within the \
         "CJK Unified Ideographs" Unicode block.

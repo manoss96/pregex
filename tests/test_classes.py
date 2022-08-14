@@ -2,9 +2,10 @@ import unittest
 from pregex.classes import *
 from itertools import permutations
 from pregex.pre import Pregex, _Type
-from pregex.tokens import Backslash, Copyright, Newline, Registered, Trademark
+from pregex.tokens import Backslash, Copyright, Newline, Registered
 from pregex.exceptions import GlobalWordCharSubtractionException,  NeitherCharNorTokenException, \
-    CannotBeUnionedException, CannotBeSubtractedException, InvalidRangeException, EmptyClassException
+    CannotBeUnionedException, CannotBeSubtractedException, InvalidRangeException, EmptyClassException, \
+    ZeroArgumentsException
 
 
 def get_permutations(*classes: str):
@@ -341,6 +342,9 @@ class TestAnyFrom(unittest.TestCase):
         text = "a-\\0A"
         self.assertEqual(AnyFrom("a", "A", Backslash()).get_matches(text), ['a', '\\', 'A'])
 
+    def test_any_from_on_zero_argumentd_exception(self):
+        self.assertRaises(ZeroArgumentsException, AnyFrom)
+
     def test_any_from_on_neither_char_nor_token_exception(self):
         for t in ("aa", True, 1, 1.1):
             self.assertRaises(NeitherCharNorTokenException, AnyFrom, t)
@@ -490,6 +494,9 @@ class TestAnyButFrom(unittest.TestCase):
         text = "a-\\0A"
         self.assertEqual(AnyButFrom("a", "A", Backslash()).get_matches(text), ['-', '0'])
         self.assertEqual((~AnyFrom("a", "A", Backslash())).get_matches(text), ['-', '0'])
+
+    def test_any_but_from_on_zero_argumentd_exception(self):
+        self.assertRaises(ZeroArgumentsException, AnyButFrom)
 
     def test_any_but_from_on_neither_char_nor_token_exception(self):
         for non_token in ("aa", True, 1, 1.1):
