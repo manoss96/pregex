@@ -294,13 +294,18 @@ class __Class(_pre.Pregex):
                         break
             i += 1
 
+        chars_set = set()
+
         for c in chars:
             if len(c) > 1:
                 ranges.add(f"{c[0]}-{c[-1]}")
-                chars.remove(c)
+            else:
+                chars_set.add(c)
 
-        chars = __class__.__modify_classes(set(chars), escape=True)
+        chars = __class__.__modify_classes(chars_set, escape=True)
         ranges = __class__.__modify_classes(ranges, escape=True)
+
+        return ranges, chars
 
         return ranges, chars
 

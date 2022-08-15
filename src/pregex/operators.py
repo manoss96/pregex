@@ -1,4 +1,3 @@
-from pydoc import doc
 import pregex.pre as _pre
 import pregex.exceptions as _ex
 
