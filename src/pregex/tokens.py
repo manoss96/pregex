@@ -1,16 +1,30 @@
 import pregex.pre as _pre
 
 
+__doc__ = """
+This module contains a number of classes that represent special characters.
+Each token represents one and only one character. It is recommended that you
+use these classes instead of providing their corresponding characters as strings
+on your own, as this might lead to all sorts of errors due to escaping.
+
+Classes & methods
+===========================================
+
+Below are listed all classes within :py:mod:`pregex.tokens`
+along with any possible methods they may possess.
+"""
+
+
 class __Token(_pre.Pregex):
     '''
-    Constitutes the base class for every class within "quantifiers.py".
+    Constitutes the base class for all classes that are part of this module.
 
     :param str pattern: The pattern representing the token.
     '''
 
     def __init__(self, pattern: str) -> '__Token':
         '''
-        Constitutes the base class for every class within "quantifiers.py".
+        Constitutes the base class for all classes that are part of this module.
 
         :param str pattern: The pattern representing the token.
         '''

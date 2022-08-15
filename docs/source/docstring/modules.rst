@@ -1,23 +1,23 @@
-*******
++++++++
 pregex
-*******
++++++++
 
 In this page you can learn about each one of pregex's core modules
 and how to effectively use them in order to build complex RegEx patterns.
 
 Before diving into the modules themselves, it is important to know that due to the
 large number of classes contained within this package, one can simply include
-**from pregex import \*** at the top of their Python script, which results
+``from pregex import *`` at the top of their Python script, which results
 in all of pregex's core modules being imported by using short aliases.
 More specifically:
 
-- Module **pregex.assert** is imported as **asr**.
-- Module **pregex.classes** is imported as **cl**.
-- Module **pregex.groups** is imported as **gr**.
-- Module **pregex.operators** is imported as **op**.
-- Module **pregex.quantifiers** is imported as **qu**.
-- Module **pregex.tokens** is imported as **tk**.
-- Classes **pregex.core.pre.{Pregex, Empty}** are imported as is.
+- Module :py:mod:`pregex.assertions` is imported as **asr**.
+- Module :py:mod:`pregex.classes` is imported as **cl**.
+- Module :py:mod:`pregex.groups` is imported as **gr**.
+- Module :py:mod:`pregex.operators` is imported as **op**.
+- Module :py:mod:`pregex.quantifiers` is imported as **qu**.
+- Module :py:mod:`pregex.tokens` is imported as **tk**.
+- Classes :class:`~pregex.pre.Pregex` and :class:`~pregex.pre.Empty` are imported as is.
 
 Take a look at the example below to better understand how this works:
 

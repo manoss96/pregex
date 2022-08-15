@@ -21,18 +21,15 @@ class Test__Class(unittest.TestCase):
     def test_any_class_bitwise_or(self):
         self.assertTrue(str(AnyLowercaseLetter() | AnyDigit()) \
             in get_permutations("a-z", "\d"))
-        self.assertTrue(str(AnyFrom("a", "b") | AnyFrom("c", "d")) \
-            in get_permutations("a", "b", "c", "d"))
+        self.assertEqual(str(AnyFrom("a", "b") | AnyFrom("c", "d")), "[a-d]")
 
     def test_any_class_bitwise_or_with_subset(self):
         self.assertTrue(str(AnyLetter() | AnyLowercaseLetter()) \
             in get_permutations("a-z", "A-Z"))
-        self.assertTrue(str(AnyFrom("a", "b", "c") | AnyFrom("a", "b")) \
-            in get_permutations("a", "b", "c"))
+        self.assertEqual(str(AnyFrom("a", "b", "c") | AnyFrom("a", "b")), "[a-c]")
 
     def test_any_class_bitwise_or_with_intersection(self):
-        self.assertTrue(str(AnyFrom("a", "b") | AnyFrom("b", "c")) \
-            in get_permutations("a", "b", "c"))
+        self.assertEqual(str(AnyFrom("a", "b") | AnyFrom("b", "c")), "[a-c]")
 
     def test_any_class_bitwise_or_with_overlapping_ranges(self):
         self.assertTrue(str(AnyBetween("a", "d") | AnyBetween("b", "k")) == "[a-k]")
@@ -68,7 +65,7 @@ class Test__Class(unittest.TestCase):
 
     def test_any_class_subtraction_with_tokens(self):
         self.assertTrue(str(AnyDigit() - '5') in get_permutations("0-4", "6-9"))
-        self.assertTrue(str(AnyWhitespace() - Newline()) in get_permutations(" ", "\r", "\t", "\x0b", "\x0c"))
+        self.assertTrue(str(AnyWhitespace() - Newline()) in get_permutations(" ", "\t", "\x0b-\r"))
 
     def test_any_class_complex_subtraction(self):
         self.assertTrue(str(AnyWordChar() - AnyBetween('b', 'd')) in 
@@ -103,18 +100,15 @@ class TestNegated__Class(unittest.TestCase):
     def test_any_but_class_bitwise_or(self):
         self.assertTrue(str(AnyButLowercaseLetter() | AnyButDigit()) \
             in get_negated_permutations("a-z", "\d"))
-        self.assertTrue(str(AnyButFrom("a", "b") | AnyButFrom("c", "d")) \
-            in get_negated_permutations("a", "b", "c", "d"))
+        self.assertEqual(str(AnyButFrom("a", "b") | AnyButFrom("c", "d")), "[^a-d]")
 
     def test_any_but_class_bitwise_or_with_subset(self):
         self.assertTrue(str(AnyButLetter() | ~AnyLowercaseLetter()) \
             in get_negated_permutations("a-z", "A-Z"))
-        self.assertTrue(str(AnyButFrom("a", "b", "c") | AnyButFrom("a", "b")) \
-            in get_negated_permutations("a", "b", "c"))
+        self.assertEqual(str(AnyButFrom("a", "b", "c") | AnyButFrom("a", "b")), "[^a-c]")
 
     def test_any_but_class_bitwise_or_with_intersection(self):
-        self.assertTrue(str(AnyButFrom("a", "b") | AnyButFrom("b", "c")) \
-            in get_negated_permutations("a", "b", "c"))
+        self.assertEqual(str(AnyButFrom("a", "b") | AnyButFrom("b", "c")), "[^a-c]")
 
     def test_any_but_class_bitwise_or_with_overlapping_ranges(self):
         self.assertTrue(str(AnyButBetween("a", "d") | AnyButBetween("b", "k")) == "[^a-k]")
