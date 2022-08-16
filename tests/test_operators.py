@@ -4,18 +4,12 @@ from pregex.pre import Pregex, Empty, _Type
 from pregex.quantifiers import Exactly
 from pregex.classes import AnyLowercaseLetter
 from pregex.assertions import FollowedBy, MatchAtStart
-from pregex.exceptions import LessThanTwoArgumentsException
+from pregex.exceptions import NotEnoughArgumentsException
 
 
 TEST_STR_1 = "test1"
 TEST_STR_2 = "test2"
 TEST_STR_3 = "test3"
-
-
-class Test__Operator(unittest.TestCase):
-
-    def test_operator_on_few_arguments(self):
-        self.assertRaises(LessThanTwoArgumentsException, Concat, TEST_STR_1)
 
 
 class TestConcat(unittest.TestCase):
@@ -56,6 +50,8 @@ class TestConcat(unittest.TestCase):
     def test_concat_on_empty_token(self):
         self.assertEqual(str(Concat(TEST_STR_1, Empty())), TEST_STR_1)
 
+    def test_concat_on_not_enough_arguments_exception(self):
+        self.assertRaises(NotEnoughArgumentsException, Concat, TEST_STR_1)
 
 
 class TestEither(unittest.TestCase):
@@ -94,6 +90,9 @@ class TestEither(unittest.TestCase):
 
     def test_either_on_empty_token(self):
         self.assertEqual(str(Either(TEST_STR_1, Empty(), TEST_STR_2)), f"{TEST_STR_1}|{TEST_STR_2}")
+
+    def test_either_on_not_enough_arguments_exception(self):
+        self.assertRaises(NotEnoughArgumentsException, Either, TEST_STR_1)
 
 
 if __name__=="__main__":

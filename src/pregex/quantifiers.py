@@ -8,7 +8,7 @@ matched a number of times, with each class representing a slightly different
 pattern-repetition rule.
 
 Classes & methods
-===========================================
+-------------------------------------------
 
 Below are listed all classes within :py:mod:`pregex.quantifiers`
 along with any possible methods they may possess.
@@ -132,8 +132,8 @@ class Exactly(__Quantifier):
         or wrapped within a ``Pregex`` subtype instance.
     :param int n: The exact number of times that the provided pattern is to be matched.
 
-    :raises NonIntegerArgumentException: Parameter ``n`` is not an integer.
-    :raises NegativeArgumentException: Parameter ``n`` is less than zero.
+    :raises InvalidArgumentTypeException: Parameter ``n`` is not an integer.
+    :raises InvalidArgumentValueException: Parameter ``n`` is less than zero.
     :raises CannotBeQuantifiedException: This class is applied to an "assertion" pattern.
     '''
 
@@ -145,14 +145,16 @@ class Exactly(__Quantifier):
             or wrapped within a ``Pregex`` subtype instance.
         :param int n: The exact number of times that the provided pattern is to be matched.
 
-        :raises NonIntegerArgumentException: Parameter ``n`` is not an integer.
-        :raises NegativeArgumentException: Parameter ``n`` is less than zero.
+        :raises InvalidArgumentTypeException: Parameter ``n`` is not an integer.
+        :raises InvalidArgumentValueException: Parameter ``n`` is less than zero.
         :raises CannotBeQuantifiedException: This class is applied to an "assertion" pattern.
         '''
         if not isinstance(n, int) or isinstance(n, bool):
-            raise _ex.NonIntegerArgumentException(n)
+            message = "Provided argument \"n\" is not an integer."
+            raise _ex.InvalidArgumentTypeException(message)
         if n < 0:
-            raise _ex.NegativeArgumentException("n", n)
+            message = "Parameter \"n\" isn't allowed to be negative."
+            raise _ex.InvalidArgumentValueException(message)
         super().__init__(pre, False, lambda pre, _: pre._exactly(n))
 
 
@@ -167,8 +169,8 @@ class AtLeast(__Quantifier):
         When declared as such, the regex engine will try to match \
         the expression as many times as possible. Defaults to ``True``.
 
-    :raises NonIntegerArgumentException: Parameter ``n`` is not an integer.
-    :raises NegativeArgumentException: Parameter ``n`` is less than zero.
+    :raises InvalidArgumentTypeException: Parameter ``n`` is not an integer.
+    :raises InvalidArgumentValueException: Parameter ``n`` is less than zero.
     :raises CannotBeQuantifiedException: This class is applied to an "assertion" pattern.
     '''
 
@@ -183,14 +185,16 @@ class AtLeast(__Quantifier):
             When declared as such, the regex engine will try to match \
             the expression as many times as possible. Defaults to ``True``.
 
-        :raises NonIntegerArgumentException: Parameter ``n`` is not an integer.
-        :raises NegativeArgumentException: Parameter ``n`` is less than zero.
+        :raises InvalidArgumentTypeException: Parameter ``n`` is not an integer.
+        :raises InvalidArgumentValueException: Parameter ``n`` is less than zero.
         :raises CannotBeQuantifiedException: This class is applied to an "assertion" pattern.
         '''
         if not isinstance(n, int) or isinstance(n, bool):
-            raise _ex.NonIntegerArgumentException(n)
+            message = "Provided argument \"n\" is not an integer."
+            raise _ex.InvalidArgumentTypeException(message)
         if n < 0:
-            raise _ex.NegativeArgumentException("n", n)
+            message = "Parameter \"n\" isn't allowed to be negative."
+            raise _ex.InvalidArgumentValueException(message)
         super().__init__(pre, is_greedy, lambda pre, is_greedy: pre._at_least(n, is_greedy))
 
 
@@ -205,8 +209,8 @@ class AtMost(__Quantifier):
         When declared as such, the regex engine will try to match \
         the expression as many times as possible. Defaults to ``True``.
 
-    :raises NonIntegerArgumentException: Parameter ``n`` is not an integer.
-    :raises NegativeArgumentException: Parameter ``n`` is less than zero.
+    :raises InvalidArgumentTypeException: Parameter ``n`` is not an integer.
+    :raises InvalidArgumentValueException: Parameter ``n`` is less than zero.
     :raises CannotBeQuantifiedException: This class is applied to an "assertion" pattern.
 
     :note: Setting ``n`` equal to ``None`` indicates that there is no upper limit to the number of \
@@ -224,8 +228,8 @@ class AtMost(__Quantifier):
             When declared as such, the regex engine will try to match \
             the expression as many times as possible. Defaults to ``True``.
 
-        :raises NonIntegerArgumentException: Parameter ``n`` is not an integer.
-        :raises NegativeArgumentException: Parameter ``n`` is less than zero.
+        :raises InvalidArgumentTypeException: Parameter ``n`` is not an integer.
+        :raises InvalidArgumentValueException: Parameter ``n`` is less than zero.
         :raises CannotBeQuantifiedException: This class is applied to an "assertion" pattern.
 
         :note: Setting ``n`` equal to ``None`` indicates that there is no upper limit to the number of \
@@ -233,9 +237,11 @@ class AtMost(__Quantifier):
         '''
         if not isinstance(n, int) or isinstance(n, bool):
             if n is not None:
-                raise _ex.NonIntegerArgumentException(n)
+                message = "Provided argument \"n\" is neither an integer nor \"None\"."
+                raise _ex.InvalidArgumentTypeException(message)
         elif n < 0:
-            raise _ex.NegativeArgumentException("n", n)
+            message = "Parameter \"n\" isn't allowed to be negative."
+            raise _ex.InvalidArgumentValueException(message)
         super().__init__(pre, is_greedy, lambda pre, is_greedy: pre._at_most(n, is_greedy))
 
 
@@ -251,9 +257,9 @@ class AtLeastAtMost(__Quantifier):
         When declared as such, the regex engine will try to match \
         the expression as many times as possible. Defaults to ``True``.
 
-    :raises NonIntegerArgumentException: Either one of parameters ``min`` or ``max`` is not an integer.
-    :raises NegativeArgumentException: Either parameter ``min`` or ``max`` is less than zero.
-    :raises MinGreaterThanMaxException: Parameter ``min`` is greater than parameter ``max``.
+    :raises InvalidArgumentTypeException: Either one of parameters ``min`` or ``max`` is not an integer.
+    :raises InvalidArgumentValueException: Either parameter ``min`` or ``max`` is less than zero, \
+        or parameter ``min`` has a greater value than parameter ``max``.
     :raises CannotBeQuantifiedException: This class is applied to an "assertion" pattern.
 
     :note: 
@@ -274,9 +280,9 @@ class AtLeastAtMost(__Quantifier):
             When declared as such, the regex engine will try to match \
             the expression as many times as possible. Defaults to ``True``.
 
-        :raises NonIntegerArgumentException: Either one of parameters ``min`` or ``max`` is not an integer.
-        :raises NegativeArgumentException: Either parameter ``min`` or ``max`` is less than zero.
-        :raises MinGreaterThanMaxException: Parameter ``min`` is greater than parameter ``max``.
+        :raises InvalidArgumentTypeException: Either one of parameters ``min`` or ``max`` is not an integer.
+        :raises InvalidArgumentValueException: Either parameter ``min`` or ``max`` is less than zero, \
+            or parameter ``min`` has a greater value than parameter ``max``.
         :raises CannotBeQuantifiedException: This class is applied to an "assertion" pattern.
 
         :note: 
@@ -285,14 +291,20 @@ class AtLeastAtMost(__Quantifier):
                 times the pattern is to be repeated.
         '''
         if not isinstance(min, int) or isinstance(min, bool):
-            raise _ex.NonIntegerArgumentException(min)
+            message = "Provided argument \"min\" is not an integer."
+            raise _ex.InvalidArgumentTypeException(message)
         elif min < 0:
-            raise _ex.NegativeArgumentException("min", min)
+            message = "Parameter \"min\" isn't allowed to be negative."
+            raise _ex.InvalidArgumentValueException(message)
         elif not isinstance(max, int) or isinstance(max, bool):
             if max is not None:
-                raise _ex.NonIntegerArgumentException(max)
+                message = "Provided argument \"max\" is neither an integer nor \"None\"."
+                raise _ex.InvalidArgumentTypeException(message)
         elif max < 0:
-            raise _ex.NegativeArgumentException("max", max)
+            message = "Parameter \"max\" isn't allowed to be negative."
+            raise _ex.InvalidArgumentValueException(message)
         elif max < min:
-            raise _ex.MinGreaterThanMaxException(min, max)
+            message = "The value of parameter \"max\" isn't allowed to be"
+            message += " less than the value of parameter \"min\"."
+            raise _ex.InvalidArgumentValueException(message)
         super().__init__(pre, is_greedy, lambda pre, is_greedy: pre._at_least_at_most(min, max, is_greedy))

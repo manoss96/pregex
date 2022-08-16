@@ -9,7 +9,7 @@ every other class within `pregex`. This means that all methods of this class are
 inherited by every other class as well.
 
 Converting a string into a Pregex instance
-===========================================
+--------------------------------------------
 In general, one can wrap any string within a Pregex instance by passing it as a 
 parameter to the class's constructor. By doing this, any characters of the provided
 string that require escaping are automatically escaped.
@@ -47,7 +47,7 @@ explicitly define your own RegEx patterns:
    print(pre.get_pattern()) # This prints '[a-z].?'   
 
 Concatenating patterns with `+`
-===========================================
+-------------------------------------------
 Instead of using class :class:`~pregex.operators.Concat` in order to concatenate
 Pregex instances, one is also able to make use of the overloaded addition operator ``+``
 as seen in the example below:
@@ -75,7 +75,7 @@ is at least one Pregex instance involved in the operation:
 Concatenating patterns this way is encouraged as it leads to much more easy-to-read code.
 
 Repeating patterns with `*`
-===========================================
+-------------------------------------------
 :class:`Pregex` has one more overloaded operator, namely the multiplication
 operator ``*``, which essentially replaces the functionality of class 
 :class:`~pregex.quantifiers.Exactly`. By using this operator on a Pregex instance,
@@ -90,7 +90,7 @@ one indicates that a pattern is to be repeated an exact number of times:
    print(pre.get_pattern()) # This prints 'a{3}'
 
 Classes & methods
-===========================================
+-------------------------------------------
 
 Below are listed all classes within :py:mod:`pregex.pre`
 along with any possible methods they may possess.
@@ -118,7 +118,7 @@ class Pregex():
     :param str pattern: The pattern that is to be wrapped within an instance of this class.
     :param bool escape: Determines whether to escape the provided pattern or not. Defaults to ``True``.
 
-    :raises NonStringArgumentException: Parameter ``pattern`` is not a string.
+    :raises InvalidArgumentTypeException: Parameter ``pattern`` is not a string.
 
     :note: This class constitutes the base class for every other class within the `pregex` package.
     '''
@@ -154,12 +154,13 @@ class Pregex():
         :param str pattern: The pattern that is to be wrapped within an instance of this class.
         :param bool escape: Determines whether to escape the provided pattern or not. Defaults to ``True``.
 
-        :raises NonStringArgumentException: Parameter ``pattern`` is not a string.
+        :raises InvalidArgumentTypeException: Parameter ``pattern`` is not a string.
 
         :note: This class constitutes the base class for every other class within the `pregex` package.
         '''
         if not isinstance(pattern, str):
-            raise _ex.NonStringArgumentException()
+            message = "Provided argument \"pattern\" is not a string."
+            raise _ex.InvalidArgumentTypeException(message)
         if escape:
             self.__pattern = __class__.__escape(pattern)
         else:
@@ -356,10 +357,11 @@ class Pregex():
             starting from left to right. A value of ``0`` indicates that \
             all matches must be replaced. Defaults to ``0``.
 
-        :raises NegativeArgumentException: Parameter ``count`` is less than zero.
+        :raises InvalidArgumentValueException: Parameter ``count`` is less than zero.
         '''
         if count < 0:
-            raise _ex.NegativeArgumentException("count", count)
+            message = "Parameter \"count\" can't be negative."
+            raise _ex.InvalidArgumentValueException(message)
         return _re.sub(str(self), repl, text, count, flags=self.__flags)
 
 
@@ -446,7 +448,7 @@ class Pregex():
 
         :param Pregex | str: Either a string or a ``Pregex`` instance.
 
-        :raises NeitherStringNorPregexException: If ``pre`` is neither a string nor a \
+        :raises InvalidArgumentTypeException: Argument ``pre`` is neither a string nor a \
             ``Pregex`` class instance.
         '''
         if isinstance(pre, str):
@@ -454,7 +456,8 @@ class Pregex():
         elif issubclass(pre.__class__, __class__):
             return pre
         else:
-            raise _ex.NeitherStringNorPregexException()
+            message = "Parameter \"pre\" must either be a string or an instance of \"Pregex\"."
+            raise _ex.InvalidArgumentTypeException(message)
 
 
     ''' 
@@ -506,16 +509,18 @@ class Pregex():
         :param int n: This parameter indicates the number of times that ``self`` \
             is to be matched.
 
-        :raises NonIntegerArgumentException: Parameter ``n`` is not an integer.
-        :raises NegativeArgumentException: Parameter ``n`` is less than zero.
+        :raises InvalidArgumentTypeException: Parameter ``n`` is not an integer.
+        :raises InvalidArgumentValueException: Parameter ``n`` is less than zero.
         :raises CannotBeQuantifiedException: ``self`` represents an "assertion" pattern.
         '''
         if self.__type == _Type.Assertion:
             raise _ex.CannotBeQuantifiedException(self)
         if not isinstance(n, int) or isinstance(n, bool):
-            raise _ex.NonIntegerArgumentException(n)
+            message = "Provided argument \"n\" is not an integer."
+            raise _ex.InvalidArgumentTypeException(message)
         if n < 0:
-            raise _ex.NegativeArgumentException("n", n)
+            message = "Using multiplication operator with a negative integer is not allowed."
+            raise _ex.InvalidArgumentValueException(message)
         return __class__(self._exactly(n), escape=False)
 
 
@@ -526,16 +531,18 @@ class Pregex():
         :param int n: This parameter indicates the number of times that ``self`` \
             is to be matched.
 
-        :raises NonIntegerArgumentException: Parameter ``n`` is not an integer.
-        :raises NegativeArgumentException: Parameter ``n`` is less than zero.
+        :raises InvalidArgumentTypeException: Parameter ``n`` is not an integer.
+        :raises InvalidArgumentValueException: Parameter ``n`` is less than zero.
         :raises CannotBeQuantifiedException: ``self`` represents an "assertion" pattern.
         '''
         if self.__type == _Type.Assertion:
             raise _ex.CannotBeQuantifiedException(self)
         if not isinstance(n, int) or isinstance(n, bool):
-            raise _ex.NonIntegerArgumentException(n)
+            message = "Provided argument \"n\" is not an integer."
+            raise _ex.InvalidArgumentTypeException(message)
         if n < 0:
-            raise _ex.NegativeArgumentException("n", n)
+            message = "Using multiplication operator with a negative integer is not allowed."
+            raise _ex.InvalidArgumentValueException(message)
         return __class__(self._exactly(n), escape=False)
 
 
@@ -970,13 +977,15 @@ class Empty(Pregex):
 
         :param int n: Does nothing.
 
-        :raises NonIntegerArgumentException: Parameter ``n`` is not an integer.
-        :raises NegativeArgumentException: Parameter ``n`` is less than zero.
+        :raises InvalidArgumentTypeException: Parameter ``n`` is not an integer.
+        :raises InvalidArgumentValueException: Parameter ``n`` is less than zero.
         '''
         if not isinstance(n, int) or isinstance(n, bool):
-            raise _ex.NonIntegerArgumentException(n)
+            message = "Provided argument \"n\" is not an integer."
+            raise _ex.InvalidArgumentTypeException(message)
         if n < 0:
-            raise _ex.NegativeArgumentException("n", n)
+            message = "Using multiplication operator with a negative integer is not allowed."
+            raise _ex.InvalidArgumentValueException(message)
         return self
 
 
@@ -986,13 +995,15 @@ class Empty(Pregex):
 
         :param int n: Does nothing.
 
-        :raises NonIntegerArgumentException: Parameter ``n`` is not an integer.
-        :raises NegativeArgumentException: Parameter ``n`` is less than zero.
+        :raises InvalidArgumentTypeException: Parameter ``n`` is not an integer.
+        :raises InvalidArgumentValueException: Parameter ``n`` is less than zero.
         '''
         if not isinstance(n, int) or isinstance(n, bool):
-            raise _ex.NonIntegerArgumentException(n)
+            message = "Provided argument \"n\" is not an integer."
+            raise _ex.InvalidArgumentTypeException(message)
         if n < 0:
-            raise _ex.NegativeArgumentException("n", n)
+            message = "Using multiplication operator with a negative integer is not allowed."
+            raise _ex.InvalidArgumentValueException(message)
         return self
 
 

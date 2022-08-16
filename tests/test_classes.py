@@ -3,9 +3,9 @@ from pregex.classes import *
 from itertools import permutations
 from pregex.pre import Pregex, _Type
 from pregex.tokens import Backslash, Copyright, Newline, Registered
-from pregex.exceptions import GlobalWordCharSubtractionException,  NeitherCharNorTokenException, \
-    CannotBeUnionedException, CannotBeSubtractedException, InvalidRangeException, EmptyClassException, \
-    ZeroArgumentsException
+from pregex.exceptions import GlobalWordCharSubtractionException, \
+    CannotBeUnionedException, CannotBeSubtractedException, InvalidRangeException, \
+    EmptyClassException, NotEnoughArgumentsException, InvalidArgumentTypeException
 
 
 def get_permutations(*classes: str):
@@ -317,9 +317,9 @@ class TestAnyBetween(unittest.TestCase):
         for start, end in [("z", "a"), ("9", "0"), (")", "!")]:
             self.assertRaises(InvalidRangeException, AnyBetween, start, end)
 
-    def test_any_between_on_neither_char_nor_token_exception(self):
+    def test_any_between_on_invalid_argument_type_exception(self):
         for t in ("aa", True, 1, 1.1):
-            self.assertRaises(NeitherCharNorTokenException, AnyFrom, t, t)
+            self.assertRaises(InvalidArgumentTypeException, AnyFrom, t, t)
 
 
 class TestAnyFrom(unittest.TestCase):
@@ -336,12 +336,12 @@ class TestAnyFrom(unittest.TestCase):
         text = "a-\\0A"
         self.assertEqual(AnyFrom("a", "A", Backslash()).get_matches(text), ['a', '\\', 'A'])
 
-    def test_any_from_on_zero_argumentd_exception(self):
-        self.assertRaises(ZeroArgumentsException, AnyFrom)
+    def test_any_from_on_not_enough_arguments_exception(self):
+        self.assertRaises(NotEnoughArgumentsException, AnyFrom)
 
-    def test_any_from_on_neither_char_nor_token_exception(self):
+    def test_any_from_on_invalid_argument_type_exception(self):
         for t in ("aa", True, 1, 1.1):
-            self.assertRaises(NeitherCharNorTokenException, AnyFrom, t)
+            self.assertRaises(InvalidArgumentTypeException, AnyFrom, t)
 
 
 class TestAnyButLetter(unittest.TestCase):
@@ -460,10 +460,10 @@ class TestAnyButBetween(unittest.TestCase):
         self.assertEqual(AnyButBetween("a", "k").get_matches(text), ['-', '\\', '0', 'A', 'p', 'z'])
         self.assertEqual((~AnyBetween("a", "k")).get_matches(text), ['-', '\\', '0', 'A', 'p', 'z'])
 
-    def test_any_but_between_on_neither_char_nor_token_exception(self):
+    def test_any_but_between_on_invalid_argument_type_exception(self):
         for non_token in ("aa", True, 1, 1.1):
-            self.assertRaises(NeitherCharNorTokenException, AnyButBetween, non_token, non_token)
-            with self.assertRaises(NeitherCharNorTokenException):
+            self.assertRaises(InvalidArgumentTypeException, AnyButBetween, non_token, non_token)
+            with self.assertRaises(InvalidArgumentTypeException):
                 _ = ~AnyBetween(non_token, non_token)
 
     def test_any_but_between_on_invalid_range_exception(self):
@@ -489,14 +489,14 @@ class TestAnyButFrom(unittest.TestCase):
         self.assertEqual(AnyButFrom("a", "A", Backslash()).get_matches(text), ['-', '0'])
         self.assertEqual((~AnyFrom("a", "A", Backslash())).get_matches(text), ['-', '0'])
 
-    def test_any_but_from_on_zero_argumentd_exception(self):
-        self.assertRaises(ZeroArgumentsException, AnyButFrom)
+    def test_any_but_from_on_not_enough_arguments_exception(self):
+        self.assertRaises(NotEnoughArgumentsException, AnyButFrom)
 
-    def test_any_but_from_on_neither_char_nor_token_exception(self):
+    def test_any_but_from_on_invalid_argument_type_exception(self):
         for non_token in ("aa", True, 1, 1.1):
-            with self.assertRaises(NeitherCharNorTokenException):
+            with self.assertRaises(InvalidArgumentTypeException):
                 _ = ~AnyFrom(non_token)
-            self.assertRaises(NeitherCharNorTokenException, AnyButFrom, non_token)
+            self.assertRaises(InvalidArgumentTypeException, AnyButFrom, non_token)
 
 
 class TestAnyGermanLetter(unittest.TestCase):

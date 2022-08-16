@@ -1,6 +1,6 @@
-+++++++
+#########
 pregex
-+++++++
+#########
 
 In this page you can learn about each one of pregex's core modules
 and how to effectively use them in order to build complex RegEx patterns.

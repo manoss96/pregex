@@ -4,9 +4,9 @@ from pregex.pre import Pregex, _Type
 from pregex.operators import Concat, Either
 from pregex.classes import AnyLowercaseLetter
 from pregex.assertions import MatchAtStart
-from pregex.exceptions import NeitherStringNorPregexException, NonPositiveArgumentException, \
-    NegativeArgumentException, MinGreaterThanMaxException, NonIntegerArgumentException, \
+from pregex.exceptions import InvalidArgumentTypeException, InvalidArgumentValueException, \
     CannotBeQuantifiedException
+
 
 TEST_STR_LEN_1 = "t"
 TEST_STR_LEN_N = "test"
@@ -15,10 +15,6 @@ TEST_LITERAL_LEN_N = Pregex(TEST_STR_LEN_N)
 
 
 class Test__Quantifier(unittest.TestCase):
-
-    def test_neither_pregex_nor_str(self):
-        for arg in (1, 1.56, True):
-            self.assertRaises(NeitherStringNorPregexException, Indefinite, arg)
 
     def test_quantifier_on_str(self):
         self.assertEqual(str(Optional(TEST_STR_LEN_N)), f"(?:{TEST_STR_LEN_N})?")
@@ -158,13 +154,13 @@ class TestExactly(unittest.TestCase):
         self.assertEqual(Exactly("abc", n=2)._get_type(), _Type.Quantifier)
         self.assertNotEqual(Pregex("abc{2}", escape=False)._get_type(), _Type.Quantifier)
 
-    def test_exactly_on_invalid_type_values(self):
+    def test_exactly_on_invalid_argument_type_exception(self):
         for val in ["s", 1.1, True]:
-            self.assertRaises(NonIntegerArgumentException, Exactly, TEST_STR_LEN_1, val)
+            self.assertRaises(InvalidArgumentTypeException, Exactly, TEST_STR_LEN_1, val)
 
-    def test_exactly_on_invalid_values(self):
+    def test_exactly_on_invalid_argument_value_exception(self):
         for val in [-10, -1]:
-            self.assertRaises(NegativeArgumentException, Exactly, TEST_STR_LEN_1, val)
+            self.assertRaises(InvalidArgumentValueException, Exactly, TEST_STR_LEN_1, val)
 
 class TestAtLeast(unittest.TestCase):
 
@@ -211,13 +207,13 @@ class TestAtLeast(unittest.TestCase):
         self.assertEqual(AtLeast("abc", n=2)._get_type(), _Type.Quantifier)
         self.assertNotEqual(Pregex("abc{2,}", escape=False)._get_type(), _Type.Quantifier)
 
-    def test_at_least_on_invalid_type_values(self):
+    def test_at_least_on_invalid_argument_type_exception(self):
         for val in ["s", 1.1, True]:
-            self.assertRaises(NonIntegerArgumentException, AtLeast, TEST_STR_LEN_1, val)
+            self.assertRaises(InvalidArgumentTypeException, AtLeast, TEST_STR_LEN_1, val)
 
-    def test_at_least_on_invalid_values(self):
+    def test_at_least_on_invalid_argument_value_exception(self):
         for val in [-10, -1]:
-            self.assertRaises(NegativeArgumentException, AtLeast, TEST_STR_LEN_1, val)
+            self.assertRaises(InvalidArgumentValueException, AtLeast, TEST_STR_LEN_1, val)
 
 
 class TestAtMost(unittest.TestCase):
@@ -269,13 +265,13 @@ class TestAtMost(unittest.TestCase):
         self.assertEqual(AtMost("abc", n=2)._get_type(), _Type.Quantifier)
         self.assertNotEqual(Pregex("abc{,2}", escape=False)._get_type(), _Type.Quantifier)
 
-    def test_at_most_on_invalid_type_values(self):
+    def test_at_most_on_invalid_argument_type_exception(self):
         for val in ["s", 1.1, True]:
-            self.assertRaises(NonIntegerArgumentException, AtMost, TEST_STR_LEN_1, val)
+            self.assertRaises(InvalidArgumentTypeException, AtMost, TEST_STR_LEN_1, val)
 
-    def test_at_most_on_invalid_values(self):
+    def test_at_most_on_invalid_argument_value_exception(self):
         for val in [-10, -1]:
-            self.assertRaises(NegativeArgumentException, AtMost, TEST_STR_LEN_1, val)
+            self.assertRaises(InvalidArgumentValueException, AtMost, TEST_STR_LEN_1, val)
 
 class TestAtLeastAtMost(unittest.TestCase):
 
@@ -366,22 +362,15 @@ class TestAtLeastAtMost(unittest.TestCase):
         self.assertEqual(AtLeastAtMost("abc", min=1, max=2)._get_type(), _Type.Quantifier)
         self.assertNotEqual(Pregex("abc{1,2}", escape=False)._get_type(), _Type.Quantifier)
 
-    def test_at_least_at_most_on_invalid_type_values(self):
+    def test_at_least_at_most_on_invalid_argument_type_exception(self):
         for val in ["s", 1.1, True]:
-            self.assertRaises(NonIntegerArgumentException, AtLeastAtMost, TEST_STR_LEN_1, min=val, max=10)
-            self.assertRaises(NonIntegerArgumentException, AtLeastAtMost, TEST_STR_LEN_1, min=2, max=val)
+            self.assertRaises(InvalidArgumentTypeException, AtLeastAtMost, TEST_STR_LEN_1, min=val, max=10)
+            self.assertRaises(InvalidArgumentTypeException, AtLeastAtMost, TEST_STR_LEN_1, min=2, max=val)
 
-    def test_at_least_at_most_on_negative_min_exception(self):
-        min, max = -1, 1
-        self.assertRaises(NegativeArgumentException, AtLeastAtMost, TEST_STR_LEN_1, min, max) 
-
-    def test_at_least_at_most_on_negative_max_exception(self):
-        min, max = 1, -1
-        self.assertRaises(NegativeArgumentException, AtLeastAtMost, TEST_STR_LEN_1, min, max) 
-
-    def test_at_least_at_most_on_min_greater_than_max_exception(self):
-        min, max = 5, 3
-        self.assertRaises(MinGreaterThanMaxException, AtLeastAtMost, TEST_STR_LEN_1, min, max)
+    def test_at_least_at_most_on_invalid_argument_value_exception(self):
+        self.assertRaises(InvalidArgumentValueException, AtLeastAtMost, TEST_STR_LEN_1, min=-1, max=1)
+        self.assertRaises(InvalidArgumentValueException, AtLeastAtMost, TEST_STR_LEN_1, min=1, max=-1)
+        self.assertRaises(InvalidArgumentValueException, AtLeastAtMost, TEST_STR_LEN_1, min=5, max=3)
 
 
 if __name__=="__main__":

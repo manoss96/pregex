@@ -2,16 +2,11 @@ import unittest
 from pregex.groups import *
 from pregex.tokens import Backslash
 from pregex.pre import Pregex, _Type
-from pregex.exceptions import NonStringArgumentException, InvalidCapturingGroupNameException
+from pregex.exceptions import InvalidArgumentTypeException, \
+    InvalidCapturingGroupNameException
 
 
 TEST_STR = "test"
-
-
-class Test__Group(unittest.TestCase):
-
-    def test_group_class_type(self):
-        self.assertEqual(Capture("x")._get_type(), _Type.Group)
 
 
 class TestCapture(unittest.TestCase):
@@ -89,10 +84,10 @@ class TestCapture(unittest.TestCase):
         group = Group(TEST_STR)
         self.assertEqual(str(Capture(group, self.name)), f"(?P<{self.name}>{str(group)[:-1].replace('(?:', '', 1)})")
 
-    def test_named_capturing_group_on_non_string_name_exception(self):
+    def test_named_capturing_group_on_invalid_argument_type_exception(self):
         invalid_type_names = [1, 1.5, True, Pregex("z")]
         for name in invalid_type_names:
-            self.assertRaises(NonStringArgumentException, Capture, "test", name)
+            self.assertRaises(InvalidArgumentTypeException, Capture, "test", name)
 
     def test_named_capturing_group_on_invalid_name_exception(self):
         invalid_names = ["11zzz", "ald!!", "@%^Fl", "!flflf123", "dld-"]
@@ -167,10 +162,10 @@ class TestBackreference(unittest.TestCase):
     def test_backreference_on_type(self):
         self.assertEqual(Backreference("a")._get_type(), _Type.Group)
 
-    def test_backreference_on_non_string_name_exception(self):
+    def test_backreference_on_invalid_argument_type_exception(self):
         invalid_type_names = [1, 1.5, True, Pregex("z")]
         for name in invalid_type_names:
-            self.assertRaises(NonStringArgumentException, Backreference, name)
+            self.assertRaises(InvalidArgumentTypeException, Backreference, name)
 
     def test_backreference_on_invalid_name_exception(self):
         invalid_names = ["11zzz", "ald!!", "@%^Fl", "!flflf123", "dld-"]
@@ -202,10 +197,10 @@ class TestConditional(unittest.TestCase):
         self.assertEqual(str(Conditional(self.name, self.then_pre, self.else_pre)),
         f"(?({self.name}){self.then_pre}|{self.else_pre})")
 
-    def test_conditional_on_non_string_name_exception(self):
+    def test_conditional_on_invalid_argument_type_exception(self):
         invalid_type_names = [1, 1.5, True, Pregex("z")]
         for name in invalid_type_names:
-            self.assertRaises(NonStringArgumentException, Conditional, name, self.then_pre)
+            self.assertRaises(InvalidArgumentTypeException, Conditional, name, self.then_pre)
 
     def test_conditional_on_invalid_name_exception(self):
         invalid_names = ["11zzz", "ald!!", "@%^Fl", "!flflf123", "dld-"]

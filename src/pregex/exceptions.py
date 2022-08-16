@@ -1,128 +1,71 @@
-
-
-class NeitherStringNorPregexException(Exception):
+class InvalidArgumentValueException(Exception):
     '''
-    This exception is thrown whenever an argument is neither a "Pregex" \
-    instance nor a string, even though it is required to be.
-    '''
+    This exception is thrown whenever an argument of invalid value is provided.
 
-    def __init__(self):
-        '''
-        The class's constructor.
-        '''
-        super().__init__("The argument that was provided is neither a string nor a subtype of \"Pregex\".")
-
-
-class NeitherCharNorTokenException(Exception):
-    '''
-    This exception is thrown whenever an argument is neither an instance \
-    belonging in module "tokens" nor a single character string.
+    :param str message: The message that is to be displayed \
+        along with the exception.
     '''
 
-    def __init__(self):
+    def __init__(self, message):
         '''
-        The class's constructor.
+        This exception is thrown whenever an argument of invalid value is provided.
+
+        :param str message: The message that is to be displayed \
+            along with the exception.
         '''
-        super().__init__("At least one of the provided arguments is neither a string nor a token.")
+        super().__init__(message)
 
 
-class NonStringArgumentException(Exception):
+class InvalidArgumentTypeException(Exception):
     '''
-    This exception is thrown whenever an argument is not a string \
-    even though it is required to be.
-    '''
+    This exception is thrown whenever an argument of invalid type is provided.
 
-    def __init__(self):
-        '''
-        The class's constructor.
-        '''
-        super().__init__("The argument that was provided is not a string.")
-
-
-class NegativeArgumentException(Exception):
-    '''
-    This exception is thrown whenever an argument is a negative number.
+    :param str message: The message that is to be displayed \
+        along with the exception.
     '''
 
-    def __init__(self, name: str, value: int):
+    def __init__(self, message):
         '''
-        The class's constructor.
+        This exception is thrown whenever an argument of invalid type is provided.
 
-        :param str name: The name of the argument that caused the exception.
-        :param int n: The value of the argument that caused the exception.
+        :param str message: The message that is to be displayed \
+            along with the exception.
         '''
-        super().__init__(f"Argument \"{name}\" of value \"{value}\" can't be negative.")
+        super().__init__(message)
 
 
-class NonPositiveArgumentException(Exception):
+class NotEnoughArgumentsException(Exception):
     '''
-    This exception is thrown whenever an argument is either \
-    a negative number or the number zero.
-    '''
+    This exception is thrown whenever an insufficient amount \
+    of arguments is provided.
 
-    def __init__(self, name: str, value: int):
-        '''
-        The class's constructor.
-
-        :param str name: The name of the argument that caused the exception.
-        :param int n: The value of the argument that caused the exception.
-        '''
-        super().__init__(f"Argument \"{name}\" of value \"{value}\" can't be less than one.")
-
-
-class MinGreaterThanMaxException(Exception):
-    '''
-    This exception is thrown whenever there were provided a tuple \
-    of values "min" and "max", where "min" is greater than "max".
+    :param str message: The message that is to be displayed \
+        along with the exception.
     '''
 
-    def __init__(self, min: int, max: int):
+    def __init__(self, message: str):
         '''
-        The class's constructor.
+        This exception is thrown whenever an insufficient amount \
+        of arguments is provided.
 
-        :param int min: The integer because of which this exception was thrown.
-        :param int max: The integer because of which this exception was thrown.
+        :param str message: The message that is to be displayed \
+            along with the exception.
         '''
-        super().__init__(f"Minimum value \"{min}\" is greater than maximum value \"{max}\".")
-
-
-class LessThanTwoArgumentsException(Exception):
-    '''
-    This exception is thrown whenever one or none arguments were
-    provided to a method or class constructor requiring at least two.
-    '''
-
-    def __init__(self):
-        '''
-        The class's constructor.
-        '''
-        super().__init__("This constructor requires at least two arguments.")
-
-
-class ZeroArgumentsException(Exception):
-    '''
-    This exception is thrown whenever no arguments were \
-    provided to a method which requires at least two.
-    '''
-
-    def __init__(self, pre):
-        '''
-        The class's constructor.
-
-        '''
-        m = f"No arguments were provided to class constructor \"{type(pre).__name__}\"."
-        super().__init__(m)
+        super().__init__(message)
 
 
 class InvalidCapturingGroupNameException(Exception):
     '''
     This exception is thrown whenever an invalid name \
     for a capturing group was provided.
+
+    :param str name: The string type argument because of which this exception was thrown.
     '''
 
     def __init__(self, name: str):
         '''
-        The class's constructor.
+        This exception is thrown whenever an invalid name \
+        for a capturing group was provided.
 
         :param str name: The string type argument because of which this exception was thrown.
         '''
@@ -130,26 +73,14 @@ class InvalidCapturingGroupNameException(Exception):
         "name must be an alphanumeric sequence that starts with a non-digit.")
 
 
-class NonIntegerArgumentException(Exception):
-    '''
-    This exception is thrown whenever the provided argument is not an integer.
-    '''
-
-    def __init__(self, arg):
-        '''
-        The class's constructor.
-
-        :param Any arg: The unknown type argument because of which this exception was thrown.
-        '''
-        super().__init__(f"Argument \"{arg}\" is not an integer.")
-
-
 class CannotBeNegatedException(Exception):
     '''
-    This exception is thrown whenever one tries to negate class "Any".
+    This exception is thrown whenever one tries to negate class ``Any``.
     '''
-
     def __init__(self):
+        '''
+        This exception is thrown whenever one tries to negate class ``Any``.
+        '''
         super().__init__(f"Class \"Any\" cannot be negated.")
 
 
@@ -157,14 +88,20 @@ class CannotBeUnionedException(Exception):
     '''
     This exception is thrown whenever one tries to union a class (or negated class) \
     either with a negated class (or regular class) or an object of different type.
+
+    :param Pregex pre: The ``Pregex`` instance because of which this exception was thrown.
+    :param bool are_both_classes: Indicates whether both ``Pregex`` instances are of \ 
+        type ``__Class``.
     '''
 
     def __init__(self, pre, are_both_classes: bool):
         '''
-        The class's constructor.
+        This exception is thrown whenever one tries to union a class (or negated class) \
+        either with a negated class (or regular class) or an object of different type.
 
-        :param Pregex pre: The "Pregex" instance because of which this exception was thrown.
-        :param bool are_both_classes: Indicates whether both "Pregex" instances are of type "__Class".
+        :param Pregex pre: The ``Pregex`` instance because of which this exception was thrown.
+        :param bool are_both_classes: Indicates whether both ``Pregex`` instances are of \ 
+            type ``__Class``.
         '''
         m = f"Classes and negated classes cannot be unioned together." if are_both_classes \
             else f"Instance of type \"{type(pre).__name__}\" cannot be unioned with a class."
@@ -175,14 +112,18 @@ class CannotBeSubtractedException(Exception):
     '''
     This exception is thrown whenever one tries to subtract a class (or negated class) \
     either from a negated class (or regular class) or an object of different type.
+
+    :param Pregex pre: The ``Pregex`` instance because of which this exception was thrown.
+    :param bool are_both_classes: Indicates whether both ``Pregex`` instances are of type ``__Class``.
     '''
 
     def __init__(self, pre, are_both_classes: bool):
         '''
-        The class's constructor.
+        This exception is thrown whenever one tries to subtract a class (or negated class) \
+        either from a negated class (or regular class) or an object of different type.
 
-        :param Pregex pre: The "Pregex" instance because of which this exception was thrown.
-        :param bool are_both_classes: Indicates whether both "Pregex" instances are of type "__Class".
+        :param Pregex pre: The ``Pregex`` instance because of which this exception was thrown.
+        :param bool are_both_classes: Indicates whether both ``Pregex`` instances are of type ``__Class``.
         '''
         m = f"Classes and negated classes cannot be subtracted from one another." if are_both_classes \
             else f"Instance of type \"{type(pre).__name__}\" cannot be subtracted from a class."
@@ -192,13 +133,17 @@ class CannotBeSubtractedException(Exception):
 class GlobalWordCharSubtractionException(Exception):
     '''
     This exception is thrown whenever one tries to subtract from an instance of \
-    either one of "AnyWordChar" or "AnyButWordChar" classes, for which parameter \
-    "is_global" has been set to "true".
+    either one of ``AnyWordChar`` or ``AnyButWordChar`` classes, for which parameter \
+    "is_global" has been set to ``True``.
+
+    :param AnyWordChar | AnyButWordChar pre: An instance of either one of the two classes.
     '''
 
     def __init__(self, pre):
         '''
-        The class's constructor.
+        This exception is thrown whenever one tries to subtract from an instance of \
+        either one of ``AnyWordChar`` or ``AnyButWordChar`` classes, for which parameter \
+        "is_global" has been set to ``True``.
 
         :param AnyWordChar | AnyButWordChar pre: An instance of either one of the two classes.
         '''
@@ -211,14 +156,18 @@ class EmptyClassException(Exception):
     '''
     This exception is thrown whenever one tries to subtract a class (or negated class) \
     from a class (or negated class) which results in an empty class.
+
+    :param Pregex pre1: The ``Pregex`` instance because of which this exception was thrown.
+    :param Pregex pre2: The ``Pregex`` instance because of which this exception was thrown.
     '''
 
     def __init__(self, pre1, pre2):
         '''
-        The class's constructor.
+        This exception is thrown whenever one tries to subtract a class (or negated class) \
+        from a class (or negated class) which results in an empty class.
 
-        :param Pregex pre1: The "Pregex" instance because of which this exception was thrown.
-        :param Pregex pre2: The "Pregex" instance because of which this exception was thrown.
+        :param Pregex pre1: The ``Pregex`` instance because of which this exception was thrown.
+        :param Pregex pre2: The ``Pregex`` instance because of which this exception was thrown.
         '''
         m = f"Cannot subtract class \"{pre2}\" from class \"{pre1}\"" \
             " as this results into an empty class."
@@ -228,12 +177,16 @@ class EmptyClassException(Exception):
 class InvalidRangeException(Exception):
     '''
     This exception is thrown whenever there was provided a pair \
-    of values "start" and "end", where "start" comes after "end".
+    of values ``start`` and ``end``, where ``start`` comes after ``end``.
+
+    :param int start: The integer because of which this exception was thrown.
+    :param int end: The integer because of which this exception was thrown.
     '''
 
     def __init__(self, start, end):
         '''
-        The class's constructor.
+        This exception is thrown whenever there was provided a pair \
+        of values ``start`` and ``end``, where ``start`` comes after ``end``.
 
         :param int start: The integer because of which this exception was thrown.
         :param int end: The integer because of which this exception was thrown.
@@ -244,14 +197,17 @@ class InvalidRangeException(Exception):
 class CannotBeQuantifiedException(Exception):
     '''
     This exception is thrown whenever an instance of a class \
-    that is part of the "assertions" module is being quantified.
+    that is part of the ``assertions`` module is being quantified.
+
+    :param __Assertion pre: The ``__Assertion`` instance because of which this exception was thrown.
     '''
 
     def __init__(self, pre):
         '''
-        The class's constructor.
+        This exception is thrown whenever an instance of a class \
+        that is part of the ``assertions`` module is being quantified.
 
-        :param __Assertion pre: The "__Assertion" instance because of which this exception was thrown.
+        :param __Assertion pre: The ``__Assertion`` instance because of which this exception was thrown.
         '''
         m = f"Instances of class \"{type(pre).__name__}\" are not quantifiable,"
         m += " with the sole exception to this being the \"Optional\" quantifier \"?\"."
@@ -261,15 +217,19 @@ class CannotBeQuantifiedException(Exception):
 class NonFixedWidthPatternException(Exception):
     '''
     This exception is thrown whenever a non-fixed-width pattern is being
-    provided as lookbehind-pattern to either "PrecededBy" or "NotPrecededBy".
+    provided as lookbehind-pattern to either ``PrecededBy`` or ``NotPrecededBy``.
+
+    :param __Lookaround lookbehind: The ``__Lookaround`` instance because of which this exception was thrown.
+    :param Pregex pre: The ``Pregex`` instance because of which this exception was thrown.
     '''
 
     def __init__(self, lookbehind, pre):
         '''
-        The class's constructor.
+        This exception is thrown whenever a non-fixed-width pattern is being
+        provided as lookbehind-pattern to either ``PrecededBy`` or ``NotPrecededBy``.
 
-        :param __Lookaround lookbehind: The "__Lookaround" instance because of which this exception was thrown.
-        :param Pregex pre: The "Pregex" instance because of which this exception was thrown.
+        :param __Lookaround lookbehind: The ``__Lookaround`` instance because of which this exception was thrown.
+        :param Pregex pre: The ``Pregex`` instance because of which this exception was thrown.
         '''
         m = f"Instances of class \"{type(lookbehind).__name__}\" cannot receive an instance of "
         m += f"class \"{type(pre).__name__}\" in place of a lookbehind-restriction-pattern as the"
@@ -277,4 +237,16 @@ class NonFixedWidthPatternException(Exception):
         super().__init__(m)
 
 
+class EmptyNegativeAssertionException(Exception):
+    '''
+    This exception is thrown whenever the ``Empty`` pattern is provided
+    as a negative assertion.
+    '''
 
+    def __init__(self):
+        '''
+        This exception is thrown whenever the ``Empty`` pattern is provided
+        as a negative assertion.
+        '''
+        message = "The empty string can't be provided as a negative lookaround assertion pattern."
+        super().__init__(message)

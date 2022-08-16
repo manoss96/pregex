@@ -2,8 +2,8 @@ import re
 import unittest
 from pregex.pre import Pregex, Empty, _Type
 from pregex.assertions import MatchAtStart, WordBoundary, NonWordBoundary
-from pregex.exceptions import CannotBeQuantifiedException, NegativeArgumentException, \
-    NonStringArgumentException, NonIntegerArgumentException, NonPositiveArgumentException
+from pregex.exceptions import CannotBeQuantifiedException, \
+    InvalidArgumentValueException, InvalidArgumentTypeException
 
 
 class TestPregex(unittest.TestCase):
@@ -67,9 +67,9 @@ class TestPregex(unittest.TestCase):
         for c in {'\\', '^', '$', '(', ')', '[', ']', '{', '}', '?', '+', '*', '.', '|', '/'}:
             self.assertEqual(str(Pregex(c)), f"\{c}")
 
-    def test_pregex_on_non_string_argument(self):
+    def test_pregex_on_invalid_argument_type_exception(self):
         for val in [1, 1.3, True, Pregex("z")]:
-            self.assertRaises(NonStringArgumentException, Pregex, val)
+            self.assertRaises(InvalidArgumentTypeException, Pregex, val)
 
     def test_pregex_on_match(self):
         text = ":\z^l"
@@ -156,7 +156,7 @@ class TestPregex(unittest.TestCase):
         self.assertEqual(self.pre1.replace(self.TEXT, repl), "bb aaa bb bb 99a bb")
         self.assertEqual(self.pre1.replace(self.TEXT, repl, count=1), "bb aaa _9 z9z 99a B0c")
         self.assertEqual(self.pre2.replace(self.TEXT, repl, count=1), "bb aaa _9 z9z 99a B0c")
-        self.assertRaises(NegativeArgumentException, self.pre1.replace, self.TEXT, repl, -1)
+        self.assertRaises(InvalidArgumentValueException, self.pre1.replace, self.TEXT, repl, -1)
 
     def test_pregex_on_split_by_match(self):
         self.assertEqual(self.pre1.split_by_match(self.TEXT), self.SPLIT_BY_MATCH)
@@ -202,18 +202,18 @@ class TestPregex(unittest.TestCase):
         self.assertEqual(str(self.pre1.__mul__(1)), self.PATTERN)
         self.assertEqual(str(self.pre1.__mul__(2)), f"(?:{self.PATTERN}){{2}}")
         self.assertEqual(str(self.pre1.__mul__(0)), "")
-        self.assertRaises(NegativeArgumentException, self.pre1.__mul__, -1)
+        self.assertRaises(InvalidArgumentValueException, self.pre1.__mul__, -1)
         for val in ["s", 1.1, True]:
-            self.assertRaises(NonIntegerArgumentException, self.pre1.__mul__, val)
+            self.assertRaises(InvalidArgumentTypeException, self.pre1.__mul__, val)
         self.assertRaises(CannotBeQuantifiedException, MatchAtStart("x").__mul__, 2)
 
     def test_pregex_on_right_side_multiplication(self):
         self.assertEqual(str(self.pre1.__rmul__(1)), self.PATTERN)
         self.assertEqual(str(self.pre1.__rmul__(2)), f"(?:{self.PATTERN}){{2}}")
         self.assertEqual(str(self.pre1.__rmul__(0)), "")
-        self.assertRaises(NegativeArgumentException, self.pre1.__rmul__, -1)
+        self.assertRaises(InvalidArgumentValueException, self.pre1.__rmul__, -1)
         for val in ["s", 1.1, True]:
-            self.assertRaises(NonIntegerArgumentException, self.pre1.__rmul__, val)
+            self.assertRaises(InvalidArgumentTypeException, self.pre1.__rmul__, val)
         self.assertRaises(CannotBeQuantifiedException, MatchAtStart("x").__rmul__, 2)
 
     '''

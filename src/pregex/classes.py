@@ -8,7 +8,7 @@ All classes within this module represent the so-called RegΕx "character classes
 which can be used in order to define a set or "class" of characters that can be matched.
 
 Class types
-=================
+-------------------------------------------
 A character class can be either one of the following two types:
 
 	1. **Regular class**: This type of class represents the `[...]` pattern, 
@@ -35,7 +35,7 @@ Here is an example containing a regular class as well as its negated counterpart
    print(negated.get_pattern()) # This prints "[^A-Za-z]"
 
 Class unions
-=================
+-------------------------------------------
 Classes of the same type can be combined together in order to get the union of
 the sets of characters they represent. This can be easily done though the use 
 of the bitwise OR operator ``|``, as depicted within the code snippet below:
@@ -91,7 +91,7 @@ within an :class:`AnyButFrom` class instance in order to do the same:
    print(pre.get_pattern()) # This prints "[^\da\\n]"
 
 Subtracting classes
-======================
+-------------------------------------------
 Subtraction is another operation that is exclusive to classes and it is made possible
 via the overloaded subtraction operator ``-``. This feature comes in handy when one
 wishes to construct a class that would be tiresome to create otherwise. Consider
@@ -135,10 +135,10 @@ with regular classes:
 
    pre = AnyWhitespace() - Newline()
    
-   print(pre.get_pattern()) # This prints "[ \\x0b\\x0c\\t\\r]"
+   print(pre.get_pattern()) # This prints "[\\t \\x0b-\\r]"
 
 Negating classes
-====================
+-------------------------------------------
 Finally, it is useful to know that every regular class can be negated through
 the use of the bitwise NOT operator ``~``:
 
@@ -164,7 +164,7 @@ class by placing ``~`` in front of it, or use its `AnyBut*` negated class equiva
 The result is entirely the same and which one you'll use is just a matter of choice.
 
 Classes & methods
-===========================================
+-------------------------------------------
 
 Below are listed all classes within :py:mod:`pregex.classes`
 along with any possible methods they may possess.
@@ -947,7 +947,7 @@ class AnyBetween(__Class):
     :param str start: The first character of the range.
     :param str end: The last character of the range.
 
-    :raises NeitherCharNorTokenException: At least one of the provided characters \
+    :raises InvalidArgumentTypeException: At least one of the provided characters \
         is neither a `token` class instance nor a single-character string.
     :raises InvalidRangeException: A non-valid range is provided.
 
@@ -963,7 +963,7 @@ class AnyBetween(__Class):
         :param str start: The first character of the range.
         :param str end: The last character of the range.
 
-        :raises NeitherCharNorTokenException: At least one of the provided characters \
+        :raises InvalidArgumentTypeException: At least one of the provided characters \
             is neither a `token` class instance nor a single-character string.
         :raises InvalidRangeException: A non-valid range is provided.
 
@@ -973,10 +973,12 @@ class AnyBetween(__Class):
         '''
         for c in (start, end):
             if isinstance(c, (str, _pre.Pregex)):
-                if len(str(c).replace("\\", "", 1)) > 1: 
-                    raise _ex.NeitherCharNorTokenException()
+                if len(str(c).replace("\\", "", 1)) > 1:
+                    message = f"Argument \"{c}\" is neither a string nor a token."
+                    raise _ex.InvalidArgumentTypeException(message)
             else:
-                raise _ex.NeitherCharNorTokenException() 
+                message = f"Argument \"{c}\" is neither a string nor a token."
+                raise _ex.InvalidArgumentTypeException(message)
         start, end = str(start), str(end)
         if ord(start) >= ord(end):
             raise _ex.InvalidRangeException(start, end)
@@ -992,7 +994,7 @@ class AnyButBetween(__Class):
     :param str start: The first character of the range.
     :param str end: The last character of the range.
 
-    :raises NeitherCharNorTokenException: At least one of the provided characters \
+    :raises InvalidArgumentTypeException: At least one of the provided characters \
         is neither a `token` class instance nor a single-character string.
     :raises InvalidRangeException: A non-valid range is provided.
 
@@ -1008,7 +1010,7 @@ class AnyButBetween(__Class):
         :param str start: The first character of the range.
         :param str end: The last character of the range.
 
-        :raises NeitherCharNorTokenException: At least one of the provided characters \
+        :raises InvalidArgumentTypeException: At least one of the provided characters \
             is neither a `token` class instance nor a single-character string.
         :raises InvalidRangeException: A non-valid range is provided.
 
@@ -1019,9 +1021,11 @@ class AnyButBetween(__Class):
         for c in (start, end):
             if isinstance(c, (str, _pre.Pregex)):
                 if len(str(c).replace("\\", "", 1)) > 1: 
-                    raise _ex.NeitherCharNorTokenException()
+                    message = f"Argument \"{c}\" is neither a string nor a token."
+                    raise _ex.InvalidArgumentTypeException(message)
             else:
-                raise _ex.NeitherCharNorTokenException() 
+                message = f"Argument \"{c}\" is neither a string nor a token."
+                raise _ex.InvalidArgumentTypeException(message)
         start, end = str(start), str(end)
         if ord(start) >= ord(end):
             raise _ex.InvalidRangeException(start, end)
@@ -1037,9 +1041,9 @@ class AnyFrom(__Class):
     :param Pregex | str \*chars: One or more characters to match from. Each character must be \
         a string of length one, provided either as is or wrapped within a `tokens` class.
 
-    :raises ZeroArgumentsExceptions: No arguments are provided.
-    :raises NeitherCharNorTokenException: At least one of the provided characters is \
-        neither a `token` class instance nor a single-character string.
+    :raises NotEnoughArgumentsExceptions: No arguments are provided.
+    :raises InvalidArgumentTypeException: At least one of the provided arguments \
+        is neither a `token` class instance nor a single-character string.
     '''
 
     def __init__(self, *chars: str or _pre.Pregex) -> 'AnyFrom':
@@ -1049,18 +1053,21 @@ class AnyFrom(__Class):
         :param Pregex | str \*chars: One or more characters to match from. Each character must be \
             a string of length one, provided either as is or wrapped within a `tokens` class.
 
-        :raises ZeroArgumentsExceptions: No arguments are provided.
-        :raises NeitherCharNorTokenException: At least one of the provided characters is \
-            neither a `token` class instance nor a single-character string.
+        :raises NotEnoughArgumentsExceptions: No arguments are provided.
+        :raises InvalidArgumentTypeException: At least one of the provided arguments \
+            is neither a `token` class instance nor a single-character string.
         '''
         if len(chars) == 0:
-            raise _ex.ZeroArgumentsException(self)
+            message = f"No characters were provided to \"{__class__.__name__}\"."
+            raise _ex.NotEnoughArgumentsException(message)
         for c in chars:
             if isinstance(c, (str, _pre.Pregex)):
                 if len(str(c).replace("\\", "", 1)) > 1: 
-                    raise _ex.NeitherCharNorTokenException()
+                    message = f"Argument \"{c}\" is neither a string nor a token."
+                    raise _ex.InvalidArgumentTypeException(message)
             else:
-                raise _ex.NeitherCharNorTokenException()
+                message = f"Argument \"{c}\" is neither a string nor a token."
+                raise _ex.InvalidArgumentTypeException(message)
         chars = tuple((f"\\{c}" if c in __class__._to_escape else c) \
             if isinstance(c, str) else str(c) for c in chars)
         super().__init__(f"[{''.join(chars)}]", is_negated=False)
@@ -1073,9 +1080,9 @@ class AnyButFrom(__Class):
     :param Pregex | str \*chars: One or more characters not to match from. Each character must be \
         a string of length one, provided either as is or wrapped within a `tokens` class.
 
-    :raises ZeroArgumentsExceptions: No arguments are provided.
-    :raises NeitherCharNorTokenException: At least one of the provided characters is \
-        neither a `token` class instance nor a single-character string.
+    :raises NotEnoughArgumentsExceptions: No arguments are provided.
+    :raises InvalidArgumentTypeException: At least one of the provided arguments \
+        is neither a `token` class instance nor a single-character string.
     '''
 
     def __init__(self, *chars: str or _pre.Pregex) -> 'AnyButFrom':
@@ -1085,18 +1092,21 @@ class AnyButFrom(__Class):
         :param Pregex | str \*chars: One or more characters not to match from. Each character must be \
             a string of length one, provided either as is or wrapped within a `tokens` class.
 
-        :raises ZeroArgumentsExceptions: No arguments are provided.
-        :raises NeitherCharNorTokenException: At least one of the provided characters is \
-            neither a `token` class instance nor a single-character string.
+        :raises NotEnoughArgumentsExceptions: No arguments are provided.
+        :raises InvalidArgumentTypeException: At least one of the provided arguments \
+            is neither a `token` class instance nor a single-character string.
         '''
         if len(chars) == 0:
-            raise _ex.ZeroArgumentsException(self)
+            message = f"No characters were provided to \"{__class__.__name__}\"."
+            raise _ex.NotEnoughArgumentsException(message)
         for c in chars:
             if isinstance(c, (str, _pre.Pregex)):
                 if len(str(c).replace("\\", "", 1)) > 1: 
-                    raise _ex.NeitherCharNorTokenException()
+                    message = f"Argument \"{c}\" is neither a string nor a token."
+                    raise _ex.InvalidArgumentTypeException(message)
             else:
-                raise _ex.NeitherCharNorTokenException() 
+                message = f"Argument \"{c}\" is neither a string nor a token."
+                raise _ex.InvalidArgumentTypeException(message)
         chars = tuple((f"\{c}" if c in __class__._to_escape else c)
             if isinstance(c, str) else str(c) for c in chars)
         super().__init__(f"[^{''.join(chars)}]", is_negated=True)

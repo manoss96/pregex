@@ -14,7 +14,7 @@ to be thrown. The only exception to this is the :class:`~pregex.quantifiers.Opti
 quantifier.
 
 Classes & methods
-===========================================
+-------------------------------------------
 
 Below are listed all classes within :py:mod:`pregex.assertions`
 along with any possible methods they may possess.
@@ -58,22 +58,24 @@ class __PositiveLookaround(__Assertion):
     Constitutes the base class for classes ``FollowedBy`` and ``PrecededBy`` \
         that are part of this module.
 
-    :param Pregex | str pre1: A Pregex instance or string representing the `match` pattern.
-    :param Pregex | str pre2: A Pregex instance or string representing the `assertion` pattern.
+    :param Pregex | str match: A Pregex instance or string representing the `match` pattern.
+    :param Pregex | str assertion: A Pregex instance or string representing the `assertion` pattern.
     :param (Pregex, Pregex => str) transform: A `transform` function for the provided patterns.
     '''
-    def __init__(self, pre1: _pre.Pregex or str, pre2: _pre.Pregex or str, transform):
+    def __init__(self, match: _pre.Pregex or str, assertion: _pre.Pregex or str, transform):
         '''
         Constitutes the base class for classes ``FollowedBy`` and ``PrecededBy`` \
             that are part of this module.
 
-        :param Pregex | str pre1: A Pregex instance or string representing the `match` pattern.
-        :param Pregex | str pre2: A Pregex instance or string representing the `assertion` pattern.
+        :param Pregex | str match: A Pregex instance or string representing the `match` pattern.
+        :param Pregex | str assertion: A Pregex instance or string representing the `assertion` pattern.
         :param (Pregex, Pregex => str) transform: A `transform` function for the provided patterns.
         '''
-        pre1 = __class__._to_pregex(pre1)
-        pre2 = __class__._to_pregex(pre2)
-        super().__init__(transform(pre1, pre2))
+        match = __class__._to_pregex(match)
+        assertion = __class__._to_pregex(assertion)
+        result = match if assertion._get_type() == _pre._Type.Empty \
+             else transform(match, assertion)
+        super().__init__(str(result))
 
 
 class __NegativeLookaround(__Assertion):
@@ -81,28 +83,37 @@ class __NegativeLookaround(__Assertion):
     Constitutes the base class for classes ``NotFollowedBy`` and ``NotPrecededBy`` \
         that are part of this module.
 
-    :param Pregex | str pre1: A Pregex instance or string representing the `match` pattern.
-    :param Pregex | str *pres: One or more Pregex instances or strings representing the `assertion` patterns.
+    :param Pregex | str *pres: Two or more Pregex instances, the first of which always \
+        represents the `match` pattern, while the rest constitute `assertion` patterns.
     :param (tuple[Pregex | str] => str) transform: A `transform` function for the provided patterns.
 
-    :raises LessThanTwoArgumentsException: Less than two arguments are provided.
+    :raises NotEnoughArgumentsException: No assertion patterns were provided.
+    :raises EmptyNegativeAssertionException: The empty string is provided \
+        as one of the assertion patterns.
     '''
     def __init__(self, pres: tuple[_pre.Pregex or str], transform) -> _pre.Pregex:
         '''
         Constitutes the base class for classes ``NotFollowedBy`` and ``NotPrecededBy`` \
             that are part of this module.
 
-        :param Pregex | str pre1: A Pregex instance or string representing the `match` pattern.
-        :param Pregex | str *pres: One or more Pregex instances or strings representing the `assertion` patterns.
+        :param Pregex | str *pres: Two or more Pregex instances, the first of which always \
+            represents the `match` pattern, while the rest constitute `assertion` patterns.
         :param (tuple[Pregex | str] => str) transform: A `transform` function for the provided patterns.
 
-        :raises LessThanTwoArgumentsException: Less than two arguments are provided.
+        :raises NotEnoughArgumentsException: No assertion patterns were provided.
+        :raises EmptyNegativeAssertionException: The empty string is provided \
+            as one of the assertion patterns.
         '''
         if len(pres) < 2:
-            raise _ex.LessThanTwoArgumentsException()
+            message = "At least one assertion pattern is required."
+            raise _ex.NotEnoughArgumentsException(message)
         result = __class__._to_pregex(pres[0])
         for pre in pres[1:]:
-            result = _pre.Pregex(transform(result, __class__._to_pregex(pre)), escape=False)
+            pre = __class__._to_pregex(pre)
+            if pre._get_type() == _pre._Type.Empty:
+                result = _pre.Empty()
+                raise _ex.EmptyNegativeAssertionException()
+            result = _pre.Pregex(transform(result, pre), escape=False)
         super().__init__(str(result))
 
 
@@ -208,106 +219,126 @@ class NonWordBoundary(__Anchor):
 
 class FollowedBy(__PositiveLookaround):
     '''
-    Matches pattern ``pre1`` only if it is followed by pattern ``pre2``, \
-    without the latter being included into the match.
+    Matches pattern ``match`` only if it is followed by pattern \
+    ``assertion``, without the latter being included into the match.
 
-    :param Pregex | str pre1: The pattern that is to be matched.
-    :param Pregex | str pre2: The pattern that must follow pattern ``pre1`` \
-        in order for it to be considered a match.
+    :param Pregex | str match: A Pregex instance or string \
+        representing the `match` pattern.
+    :param Pregex | str assertion: A Pregex instance or string \
+        representing the `assertion` pattern.
     '''
 
-    def __init__(self, pre1: _pre.Pregex or str, pre2: _pre.Pregex or str):
+    def __init__(self, match: _pre.Pregex or str, assertion: _pre.Pregex or str):
         '''
-        Matches pattern ``pre1`` only if it is followed by pattern ``pre2``, \
-        without the latter being included into the match.
+        Matches pattern ``match`` only if it is followed by pattern \
+        ``assertion``, without the latter being included into the match.
 
-        :param Pregex | str pre1: The pattern that is to be matched.
-        :param Pregex | str pre2: The pattern that must follow pattern ``pre1`` \
-            in order for it to be considered a match.
+        :param Pregex | str match: A Pregex instance or string \
+            representing the `match` pattern.
+        :param Pregex | str assertion: A Pregex instance or string \
+            representing the `assertion` pattern.
         '''
-        super().__init__(pre1, pre2, lambda pre1, pre2: str(pre1._followed_by(pre2)))
+        super().__init__(match, assertion, lambda pre1, pre2: str(pre1._followed_by(pre2)))
 
 
 class NotFollowedBy(__NegativeLookaround):
     '''
-    Matches pattern ``pre`` only if it is not followed by any one of \
-    the rest of the provided patterns.
+    Matches pattern ``match` only if it is not followed by any one of \
+    the `provided ``assertion`` patterns.
 
-    :param Pregex | str pre: The pattern that is to be matched.
-    :param Pregex | str \*pres: One or more patterns, none of which must \
-        come right after ``pre`` in order for it to be considered a match.
+    :param Pregex | str match: The pattern that is to be matched.
+    :param Pregex | str \*assertions: One or more patterns, none of which must \
+        come right after ``match`` in order for it to be considered a match.
+
+    :raises NotEnoughArgumentsException: No assertion patterns were provided.
+    :raises EmptyNegativeAssertionException: The empty string is provided \
+        as one of the assertion patterns.
     '''
 
-    def __init__(self, pre: _pre.Pregex or str, *pres: _pre.Pregex or str):
+    def __init__(self, match: _pre.Pregex or str, *assertions: _pre.Pregex or str):
         '''
-        Matches pattern ``pre`` only if it is not followed by any one of \
-        rest of the provided patterns.
+        Matches pattern ``match` only if it is not followed by any one of \
+        the `provided ``assertion`` patterns.
 
-        :param Pregex | str pre: The pattern that is to be matched.
-        :param Pregex | str \*pres: One or more patterns, none of which must \
-            come right after ``pre`` in order for it to be considered a match.
+        :param Pregex | str match: The pattern that is to be matched.
+        :param Pregex | str \*assertions: One or more patterns, none of which must \
+            come right after ``match`` in order for it to be considered a match.
+
+        :raises NotEnoughArgumentsException: No assertion patterns were provided.
+        :raises EmptyNegativeAssertionException: The empty string is provided \
+            as one of the assertion patterns.
         '''
-        super().__init__((pre, *pres), lambda pre1, pre2: str(pre1._not_followed_by(pre2)))
+        super().__init__((match, *assertions),
+            lambda pre1, pre2: str(pre1._not_followed_by(pre2)))
 
 
 class PrecededBy(__PositiveLookaround):
     '''
-    Matches pattern ``pre1`` only if it is preceded by pattern ``pre2``, \
-    without the latter being included into the match.
+    Matches pattern ``match`` only if it is preceded by pattern \
+    ``assertion``, without the latter being included into the match.
 
-    :param Pregex | str pre1: The pattern that is to be matched.
-    :param Pregex | str pre2: The pattern that must precede pattern ``pre1`` \
-        in order for it to be considered a match.
+    :param Pregex | str match: A Pregex instance or string \
+        representing the `match` pattern.
+    :param Pregex | str assertion: A Pregex instance or string \
+        representing the `assertion` pattern.
 
-    :raises NonFixedWidthPatternException: A class that represents a non-fixed-width \
-        pattern is provided as parameter ``pre2``.
+    :raises NonFixedWidthPatternException: A non-fixed-width pattern \
+        is provided in place of parameter ``assertion``.
     '''
 
-    def __init__(self, pre1: _pre.Pregex or str, pre2: _pre.Pregex or str):
+    def __init__(self, match: _pre.Pregex or str, assertion: _pre.Pregex or str):
         '''
-        Matches pattern ``pre1`` only if it is preceded by pattern ``pre2``, \
-        without the latter being included into the match.
+        Matches pattern ``match`` only if it is preceded by pattern \
+        ``assertion``, without the latter being included into the match.
 
-        :param Pregex | str pre1: The pattern that is to be matched.
-        :param Pregex | str pre2: The pattern that must precede pattern ``pre1`` \
-            in order for it to be considered a match.
+        :param Pregex | str match: A Pregex instance or string \
+            representing the `match` pattern.
+        :param Pregex | str assertion: A Pregex instance or string \
+            representing the `assertion` pattern.
 
-        :raises NonFixedWidthPatternException: A class that represents a non-fixed-width \
-            pattern is provided as parameter ``pre2``.
+        :raises NonFixedWidthPatternException: A non-fixed-width pattern \
+            is provided in place of parameter ``assertion``.
         '''
-        if isinstance(pre2, _pre.Pregex):
-            if pre2._get_type() == _pre._Type.Quantifier and (not isinstance(pre2, _Exactly)):
-                raise _ex.NonFixedWidthPatternException(self, pre2)
-        super().__init__(pre1, pre2, lambda pre1, pre2: str(pre1._preceded_by(pre2)))
+        if isinstance(assertion, _pre.Pregex):
+            if assertion._get_type() == _pre._Type.Quantifier \
+                and (not isinstance(assertion, _Exactly)):
+                raise _ex.NonFixedWidthPatternException(self, assertion)
+        super().__init__(match, assertion, lambda pre1, pre2: str(pre1._preceded_by(pre2)))
 
 
 class NotPrecededBy(__NegativeLookaround):
     '''
-    Matches pattern ``pre`` only if it is not preceded by any one of \
-    the rest of the provided patterns.
+    Matches pattern ``match` only if it is not preceded by any one of \
+    the `provided ``assertion`` patterns.
 
-    :param Pregex | str pre: The pattern that is to be matched.
-    :param Pregex | str \*pres: One or more patterns, none of which must \
-        come right before ``pre`` in order for it to be considered a match.
+    :param Pregex | str match: The pattern that is to be matched.
+    :param Pregex | str \*assertions: One or more patterns, none of which must \
+        come right before ``match`` in order for it to be considered a match.
 
-    :raises NonFixedWidthPatternException: At least one of the provided classes \
-        in ``pres`` represents a non-fixed-width pattern.
+    :raises NotEnoughArgumentsException: No assertion patterns were provided.
+    :raises EmptyNegativeAssertionException: The empty string is provided \
+        as one of the assertion patterns.
+    :raises NonFixedWidthPatternException: At least one of the provided assertion \
+        patterns is a non-fixed-width pattern.
     '''
 
-    def __init__(self, pre: _pre.Pregex or str, *pres: _pre.Pregex or str):
+    def __init__(self, match: _pre.Pregex or str, *assertions: _pre.Pregex or str):
         '''
-        Matches pattern ``pre`` only if it is not preceded by any one of \
-        the rest of the provided patterns.
+        Matches pattern ``match` only if it is not preceded by any one of \
+        the `provided ``assertion`` patterns.
 
-        :param Pregex | str pre: The pattern that is to be matched.
-        :param Pregex | str \*pres: One or more patterns, none of which must \
-            come right before ``pre`` in order for it to be considered a match.
+        :param Pregex | str match: The pattern that is to be matched.
+        :param Pregex | str \*assertions: One or more patterns, none of which must \
+            come right before ``match`` in order for it to be considered a match.
 
-        :raises NonFixedWidthPatternException: At least one of the provided classes \
-            in ``pres`` represents a non-fixed-width pattern.
+        :raises NotEnoughArgumentsException: No assertion patterns were provided.
+        :raises EmptyNegativeAssertionException: The empty string is provided \
+            as one of the assertion patterns.
+        :raises NonFixedWidthPatternException: At least one of the provided assertion \
+            patterns is a non-fixed-width pattern.
         '''
-        for p in pres:
-            if isinstance(p, _pre.Pregex):
-                if p._get_type() == _pre._Type.Quantifier and (not isinstance(p, _Exactly)):
-                    raise _ex.NonFixedWidthPatternException(self, p)
-        super().__init__((pre, *pres), lambda pre1, pre2: str(pre1._not_preceded_by(pre2)))
+        for pre in assertions:
+            if isinstance(pre, _pre.Pregex):
+                if pre._get_type() == _pre._Type.Quantifier and (not isinstance(pre, _Exactly)):
+                    raise _ex.NonFixedWidthPatternException(self, pre)
+        super().__init__((match, *assertions), lambda pre1, pre2: str(pre1._not_preceded_by(pre2)))

@@ -8,7 +8,7 @@ use these classes instead of providing their corresponding characters as strings
 on your own, as this might lead to all sorts of errors due to escaping.
 
 Classes & methods
-===========================================
+-------------------------------------------
 
 Below are listed all classes within :py:mod:`pregex.tokens`
 along with any possible methods they may possess.

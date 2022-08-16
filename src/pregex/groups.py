@@ -6,10 +6,13 @@ import pregex.exceptions as _ex
 __doc__ = """
 This module contains all necessary classes that are used to construct both capturing
 and non-capturing groups, as well as any other class that relates to group-related
-concepts, such as backreferences and conditionals. In general, one should not have
-to concern themselves with pattern-grouping, as patterns are automatically grouped
-into non-capturing groups whenever this is deemed necessary. Consider for instance
-the following code snippet:
+concepts, such as backreferences and conditionals.
+
+Pattern grouping
+-------------------------------------------
+In general, one should not have to concern themselves with pattern grouping,
+as patterns are automatically wrapped within non-capturing groups whenever this is
+deemed necessary. Consider for instance the following code snippet:
 
 .. code-block:: python
 
@@ -19,19 +22,20 @@ the following code snippet:
    print(Optional("aa").get_pattern()) # This prints "(?:aa)?"
 
 In the first case, quantifier :class:`~pregex.quantifiers.Optional` is applied to the pattern
-directly, whereas in the second case the pattern is wrapped within a non-capturing group
+directly, whereas in the second case the pattern is placed into a non-capturing group
 so that "aa" is quantified as a whole. Even so, one can also explicitly construct a
-non-capturing group out of any pattern if one wishes to do so:
+non-capturing group out of any pattern if one wishes to do so by making use of the
+:class:`Group` class:
 
 .. code-block:: python
 
    from pregex.groups import Group
    from pregex.quantifiers import Optional
 
-   print(Group(Optional("a")).get_pattern()) # This prints "(?:a)?"
+   print(Optional(Group("a")).get_pattern()) # This prints "(?:a)?"
 
 Capturing patterns
-===========================================
+-------------------------------------------
 
 You'll find however that :class:`Capture` is probably the most important class
 of this module, as it is used to create a capturing group out of a pattern,
@@ -42,12 +46,17 @@ so that said pattern is also captured separately whenever a match occurs.
    from pregex.groups import Capture
    from pregex.classes import AnyLetter
 
-   pre = AnyLetter() + Capture(AnyLetter()) + AnyLetter()
+   pre = AnyLetter() + Capture(2 * AnyLetter())
 
-   print(pre.get_captures("abc def")) # This prints "[('b'), ('e')]"
+   text = "abc def"
+   print(pre.get_matches(text)) # This prints "['abc', 'def']"
+   print(pre.get_captures(text)) # This prints "[('bc'), ('ef')]"
+
+As you can see, capturing is a very useful tool for whenever you are
+interested in isolating some specific part of a pattern.
 
 Classes & methods
-===========================================
+-------------------------------------------
 
 Below are listed all classes within :py:mod:`pregex.groups`
 along with any possible methods they may possess.
@@ -82,7 +91,7 @@ class Capture(__Group):
     :param str name: The name that is assigned to the captured group for backreference purposes. \
         A value of ``''`` indicates that no name is to be assigned to the group. Defaults to ``''``.
 
-    :raises NonStringArgumentException: Parameter ``name`` is not a string.
+    :raises InvalidArgumentTypeException: Parameter ``name`` is not a string.
     :raises InvalidCapturingGroupNameException: Parameter ``name`` is not a valid \
         capturing-group name. Such name must contain word characters only and start \
         with a non-digit character.
@@ -102,7 +111,7 @@ class Capture(__Group):
         :param str name: The name that is assigned to the captured group for backreference purposes. \
             A value of ``''`` indicates that no name is to be assigned to the group. Defaults to ``''``.
 
-        :raises NonStringArgumentException: Parameter ``name`` is not a string.
+        :raises InvalidArgumentTypeException: Parameter ``name`` is not a string.
         :raises InvalidCapturingGroupNameException: Parameter ``name`` is not a valid \
             capturing-group name. Such name must contain word characters only and start \
             with a non-digit character.
@@ -114,7 +123,8 @@ class Capture(__Group):
             - Creating a named capturing group out of a named capturing group, changes the group's name.
         '''
         if not isinstance(name, str):
-            raise _ex.NonStringArgumentException()
+            message = "Provided argument \"name\" is not a string."
+            raise _ex.InvalidArgumentTypeException(message)
         if name != '' and _re.fullmatch("[A-Za-z_]\w*", name) is None:
             raise _ex.InvalidCapturingGroupNameException(name)
         super().__init__(pre, lambda pre: pre._capturing_group(name))
@@ -153,7 +163,7 @@ class Backreference(__Group):
 
     :param str name: The name of the referenced capturing group.
 
-    :raises NonStringArgumentException: Parameter ``name`` is not a string.
+    :raises InvalidArgumentTypeException: Parameter ``name`` is not a string.
     :raises InvalidCapturingGroupNameException: Parameter ``name`` is not a valid \
         capturing-group name. Such name must contain word characters only and start \
         with a non-digit character.
@@ -167,13 +177,14 @@ class Backreference(__Group):
 
         :param str name: The name of the referenced capturing group.
 
-        :raises NonStringArgumentException: Parameter ``name`` is not a string.
+        :raises InvalidArgumentTypeException: Parameter ``name`` is not a string.
         :raises InvalidCapturingGroupNameException: Parameter ``name`` is not a valid \
             capturing-group name. Such name must contain word characters only and start \
             with a non-digit character.
         '''
         if not isinstance(name, str):
-            raise _ex.NonStringArgumentException()
+            message = "Provided argument \"name\" is not a string."
+            raise _ex.InvalidArgumentTypeException(message)
         if _re.fullmatch("[A-Za-z_][A-Za-z_0-9]*", name) is None:
             raise _ex.InvalidCapturingGroupNameException(name)
         super().__init__(name, lambda s : f"(?P={s})")
@@ -191,7 +202,7 @@ class Conditional(__Group):
     :param Pregex | str pre2: The pattern that is to be matched in case condition is false. \
         Defaults to ``''``.
 
-    :raises NonStringArgumentException: Parameter ``name`` is not a string.
+    :raises InvalidArgumentTypeException: Parameter ``name`` is not a string.
     :raises InvalidCapturingGroupNameException: Parameter ``name`` is not a valid \
         capturing-group name. Such name must contain word characters only and start \
         with a non-digit character.
@@ -209,13 +220,14 @@ class Conditional(__Group):
         :param Pregex | str pre2: The pattern that is to be matched in case condition is false. \
             Defaults to ``''``.
 
-        :raises NonStringArgumentException: Parameter ``name`` is not a string.
+        :raises InvalidArgumentTypeException: Parameter ``name`` is not a string.
         :raises InvalidCapturingGroupNameException: Parameter ``name`` is not a valid \
             capturing-group name. Such name must contain word characters only and start \
             with a non-digit character.
         '''
         if not isinstance(name, str):
-            raise _ex.NonStringArgumentException()
+            message = "Provided argument \"name\" is not a string."
+            raise _ex.InvalidArgumentTypeException(message)
         if _re.fullmatch("[A-Za-z_][\w]*", name) is None:
             raise _ex.InvalidCapturingGroupNameException(name)
         super().__init__(name, lambda s: f"(?({s}){pre1}{'|' + str(pre2) if pre2 != '' else ''})")
