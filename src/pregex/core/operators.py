@@ -1,5 +1,5 @@
-import pregex.pre as _pre
-import pregex.exceptions as _ex
+import pregex.core.pre as _pre
+import pregex.core.exceptions as _ex
 
 
 __doc__ = """
@@ -11,7 +11,7 @@ provided patterns can be matched.
 Classes & methods
 -------------------------------------------
 
-Below are listed all classes within :py:mod:`pregex.operators`
+Below are listed all classes within :py:mod:`pregex.core.operators`
 along with any possible methods they may possess.
 """
 
@@ -88,7 +88,7 @@ class Either(__Operator):
 
         :raises NotEnoughArgumentsException: Less than two arguments are provided.
 
-        :note: One should be aware that ``Either`` is eager, meaning that the regex engine will \
+        :note: One should be aware that :class:`Either` is eager, meaning that the regex engine will \
             stop the moment it matches either one of the alternatives, starting from \
             the left-most pattern and continuing on to the right until a match occurs.
         '''

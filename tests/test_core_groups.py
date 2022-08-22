@@ -1,8 +1,8 @@
 import unittest
-from pregex.groups import *
-from pregex.tokens import Backslash
-from pregex.pre import Pregex, _Type
-from pregex.exceptions import InvalidArgumentTypeException, \
+from pregex.core.groups import *
+from pregex.core.tokens import Backslash
+from pregex.core.pre import Pregex, _Type
+from pregex.core.exceptions import InvalidArgumentTypeException, \
     InvalidCapturingGroupNameException
 
 

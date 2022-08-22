@@ -1,6 +1,6 @@
 import unittest
-from pregex.tokens import *
-from pregex.pre import _Type
+from pregex.core.tokens import *
+from pregex.core.pre import _Type
 
 
 class TestBackslash(unittest.TestCase):

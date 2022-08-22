@@ -1,10 +1,10 @@
 import unittest
-from pregex.operators import *
-from pregex.pre import Pregex, Empty, _Type
-from pregex.quantifiers import Exactly
-from pregex.classes import AnyLowercaseLetter
-from pregex.assertions import FollowedBy, MatchAtStart
-from pregex.exceptions import NotEnoughArgumentsException
+from pregex.core.operators import *
+from pregex.core.quantifiers import Exactly
+from pregex.core.pre import Pregex, Empty, _Type
+from pregex.core.classes import AnyLowercaseLetter
+from pregex.core.assertions import FollowedBy, MatchAtStart
+from pregex.core.exceptions import NotEnoughArgumentsException
 
 
 TEST_STR_1 = "test1"

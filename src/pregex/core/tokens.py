@@ -1,4 +1,4 @@
-import pregex.pre as _pre
+import pregex.core.pre as _pre
 
 
 __doc__ = """
@@ -10,7 +10,7 @@ on your own, as this might lead to all sorts of errors due to escaping.
 Classes & methods
 -------------------------------------------
 
-Below are listed all classes within :py:mod:`pregex.tokens`
+Below are listed all classes within :py:mod:`pregex.core.tokens`
 along with any possible methods they may possess.
 """
 

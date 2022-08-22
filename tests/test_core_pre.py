@@ -1,8 +1,8 @@
 import re
 import unittest
-from pregex.pre import Pregex, Empty, _Type
-from pregex.assertions import MatchAtStart, WordBoundary, NonWordBoundary
-from pregex.exceptions import CannotBeQuantifiedException, \
+from pregex.core.pre import Pregex, Empty, _Type
+from pregex.core.assertions import MatchAtStart, WordBoundary, NonWordBoundary
+from pregex.core.exceptions import CannotBeQuantifiedException, \
     InvalidArgumentValueException, InvalidArgumentTypeException
 
 

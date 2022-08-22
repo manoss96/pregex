@@ -13,7 +13,8 @@ This is where PRegEx comes in! PRegEx, which stands for Programmable Regular Exp
 2. Adds modularity to building RegEx patterns, as one can easily break down a complex pattern into simpler sub-patterns which can then be combined together.
 3. No longer having to escape meta characters such as "." and "*" as this is handled internally by PRegEx!
 4. Acts as a higher-level API on top of Python's built-in "re" module, providing access to its core functionality while saving you the trouble of having to deal with "re.Match" instances.
-5. No matter how complex the abstraction, it's always just a pure RegEx pattern that sits underneath which you can fetch and use any way you like!
+
+And remember, no matter how complex the abstraction, it's always just a pure RegEx pattern that sits underneath which you can fetch and use any way you like!
 
 
 <!-- Installation -->
@@ -32,11 +33,11 @@ pip install pregex
 In PRegEx, everything is a Programmable Regular Expression, or "Pregex" for short. This makes it easy for simple Pregex instances to be combined into more complex ones! Within the code snippet below, we construct a Pregex instance that will match any URL that ends with either ".com" or ".org" as well as any IP address for which a 4-digit port number is specified. Furthermore, in the case of a URL, we would like for its domain name to be separately captured as well.
 
 ```python
-from pregex.classes import AnyLetter, AnyDigit, AnyFrom
-from pregex.quantifiers import Optional, AtLeastAtMost
-from pregex.operators import Either
-from pregex.groups import Capture
-from pregex.pre import Pregex
+from pregex.core.classes import AnyLetter, AnyDigit, AnyFrom
+from pregex.core.quantifiers import Optional, AtLeastAtMost
+from pregex.core.operators import Either
+from pregex.core.groups import Capture
+from pregex.core.pre import Pregex
 
 # Define main sub-patterns.
 http_protocol = Optional("http" + Optional('s') + "://")
@@ -77,7 +78,7 @@ This is the pattern that we just built. Yikes!
 
 Besides from having access to its underlying pattern, we can use a Pregex instance to find matches within a piece of text. Consider for example the following string:
 ```python
-text = "text--192.168.1.1:8000--text--http://www.wikipedia.orghttps://youtube.com--text"
+text = "text--192.168.1.1:8000--text--http://www.wikipedia.org--text--https://youtube.com--text"
 ```
 By invoking the instance's "get_matches" method, we are able to scan the above string for any possible matches:
 ```python
@@ -97,13 +98,34 @@ As expected, there were only two captured groups since the first match is not a 
 ```python
 [(None,), ('wikipedia',), ('youtube',)]
 ```
+
+Finally, you might have noticed that we built our pattern by utilizing
+various classes that were imported from modules under *pregex.core*. These
+modules contain classes through which the RegEx syntax is essentially replaced.
+However, PRegEx includes another set of modules, namely those under subpackage
+*pregex.meta*, whose classes that build upon those from *pregex.core* in order
+to provide higher-level patterns that are a bit more difficult to construct!
+
+```python
+
+from pregex.core.pre import Pregex
+from pregex.core.classes import AnyDigit
+from pregex.core.operators import Either
+from pregex.meta.essentials import HttpUrl, IPv4
+
+port_number = 4 * AnyDigit()
+
+pre: Pregex = Either(
+    HttpUrl(capture_domain=True),
+    IPv4() + ":" + port_number
+)
+```
+
+By using classes found within the *pregex.meta* subpackage, we were able to
+construct more or less the same pattern as before only much more easily!
+
 You can learn more about how PRegEx works by visiting the [PRegEx Documentation Page][docs-url].
 
-
-<!-- What to expect next? -->
-## What to expect next?
-
-Currently, the pregex package's core modules are still being built. In the near future, more modules will follow that will rely upon the package's core modules in order to provide abstractions for even more complex RegEx patterns!
 
 <!-- MARKDOWN LINKS & IMAGES -->
 [python-shield]: https://img.shields.io/badge/python-3.9-blue

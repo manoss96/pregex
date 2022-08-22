@@ -2,11 +2,13 @@
 PRegEx - Programmable Regular Expressions
 ******************************************
 
-Welcome to pregex's documentation! You can start by visiting the :ref:`about_pregex`
-page for a quick introduction to the pregex package, as well as for instructions on how to
-install it. After that, you are free to explore the Documentation section so that you learn
-more about building RegEx patterns with pregex, or you can check out the source code itself
-by visiting `pregex on Github <https://github.com/manoss96/pregex>`_.
+Welcome to pregex's documentation page! You can start by going through the
+`Introduction <introduction.html>`_ section in order to get a first look at the
+pregex package, as well as receive instructions on how to install it. After that,
+you are free to explore the `Documentation <documentation/regex-to-pregex.html>`_
+section so that you learn more about building RegEx patterns with pregex,
+or you can even check out the source code itself by visiting
+`pregex on Github <https://github.com/manoss96/pregex>`_.
 
 ==================================
 
@@ -14,10 +16,12 @@ by visiting `pregex on Github <https://github.com/manoss96/pregex>`_.
    :maxdepth: 2
    :caption: Introduction
 
-   readme
+   introduction
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Documentation
 
-   docstring/modules
+   documentation/regex-to-pregex
+   documentation/subpackages
+   documentation/importing-practices

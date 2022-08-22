@@ -1,6 +1,6 @@
 [project]
 name = "pregex"
-version = "1.5.4"
+version = "2.0.0"
 authors = [
   {email = "manosstoumpos@gmail.com"},
   {name = "Manos Stoumpos"}
@@ -19,4 +19,4 @@ classifiers = [
 [project.urls]
 "Homepage" = "https://github.com/manoss96/pregex"
 "Bug Tracker" = "https://github.com/manoss96/pregex/issues"
-"Documentation" = "https://pregex.readthedocs.io/en/latest/index.html"
+"Documentation" = "https://pregex.rtfd.io"

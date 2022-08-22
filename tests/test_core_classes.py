@@ -1,11 +1,12 @@
 import unittest
-from pregex.classes import *
+from pregex.core.classes import *
 from itertools import permutations
-from pregex.pre import Pregex, _Type
-from pregex.tokens import Backslash, Copyright, Newline, Registered
-from pregex.exceptions import GlobalWordCharSubtractionException, \
-    CannotBeUnionedException, CannotBeSubtractedException, InvalidRangeException, \
-    EmptyClassException, NotEnoughArgumentsException, InvalidArgumentTypeException
+from pregex.core.pre import Pregex, _Type
+from pregex.core.tokens import Backslash, Copyright, Newline, Registered
+from pregex.core.exceptions import GlobalWordCharSubtractionException, CannotBeUnionedException, \
+    CannotBeSubtractedException, InvalidRangeException, EmptyClassException, \
+    NotEnoughArgumentsException, InvalidArgumentTypeException
+
 
 
 def get_permutations(*classes: str):

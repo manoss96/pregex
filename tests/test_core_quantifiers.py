@@ -1,11 +1,11 @@
 import unittest
-from pregex.quantifiers import *
-from pregex.pre import Pregex, _Type
-from pregex.operators import Concat, Either
-from pregex.classes import AnyLowercaseLetter
-from pregex.assertions import MatchAtStart
-from pregex.exceptions import InvalidArgumentTypeException, InvalidArgumentValueException, \
-    CannotBeQuantifiedException
+from pregex.core.quantifiers import *
+from pregex.core.pre import Pregex, _Type
+from pregex.core.operators import Concat, Either
+from pregex.core.classes import AnyLowercaseLetter
+from pregex.core.assertions import MatchAtStart
+from pregex.core.exceptions import InvalidArgumentTypeException, \
+    InvalidArgumentValueException, CannotBeQuantifiedException
 
 
 TEST_STR_LEN_1 = "t"

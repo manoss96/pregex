@@ -1,98 +1,17 @@
 import re as _re
 import enum as _enum
-import pregex.exceptions as _ex
+import pregex.core.exceptions as _ex
 from typing import Iterator as _Iterator
 
+
 __doc__ = """
-This module contains the :class:`Pregex` class, which constitutes the base class for
-every other class within `pregex`. This means that all methods of this class are
-inherited by every other class as well.
-
-Converting a string into a Pregex instance
---------------------------------------------
-In general, one can wrap any string within a Pregex instance by passing it as a 
-parameter to the class's constructor. By doing this, any characters of the provided
-string that require escaping are automatically escaped.
-
-.. code-block:: python
-
-   from pregex.pre import Pregex
-
-   pre = Pregex("Hello.")
-
-   print(pre.get_pattern()) # This prints 'Hello\.'
-
-However, you probably won't need to do this often since any string that interacts with a
-Pregex instance in any way is automatically converted into a Pregex instance itself:
-
-.. code-block:: python
-
-   from pregex.pre import Pregex
-   from pregex.quantifiers import Optional
-
-   # These two statements are equivalent.
-   pre1 = Optional(Pregex("Hello."))
-   pre2 = Optional("Hello.")
-
-Finally, you should know that character-escaping can also be disabled when wrapping
-a string within a Pregex instance. This can be used for example in order to
-explicitly define your own RegEx patterns:
-
-.. code-block:: python
-
-   from pregex.pre import Pregex
-
-   pre = Pregex("[a-z].?", escape=False)
-
-   print(pre.get_pattern()) # This prints '[a-z].?'   
-
-Concatenating patterns with `+`
--------------------------------------------
-Instead of using class :class:`~pregex.operators.Concat` in order to concatenate
-Pregex instances, one is also able to make use of the overloaded addition operator ``+``
-as seen in the example below:
-
-.. code-block:: python
-
-   from pregex.pre import Pregex
-   from pregex.quantifiers import Optional
-
-   pre = Pregex("a") + Pregex("b") + Optional("c")
-
-   print(pre.get_pattern()) # This prints 'abc?'
-
-This of course works with simple strings as well, as long as there
-is at least one Pregex instance involved in the operation:
-
-.. code-block:: python
-
-   from pregex.quantifiers import Optional
-
-   pre = "a" + "b" + Optional("c")
-
-   print(pre.get_pattern()) # This prints 'abc?'
-
-Concatenating patterns this way is encouraged as it leads to much more easy-to-read code.
-
-Repeating patterns with `*`
--------------------------------------------
-:class:`Pregex` has one more overloaded operator, namely the multiplication
-operator ``*``, which essentially replaces the functionality of class 
-:class:`~pregex.quantifiers.Exactly`. By using this operator on a Pregex instance,
-one indicates that a pattern is to be repeated an exact number of times:
-
-.. code-block:: python
-
-   from pregex.pre import Pregex
-
-   pre = 3 * Pregex("a")
-
-   print(pre.get_pattern()) # This prints 'a{3}'
+This module contains two classes, namely :class:`Pregex` which constitutes the base class for
+every other class within `pregex`, and :class:`Empty` which represents the empty string ``''``.
 
 Classes & methods
 -------------------------------------------
 
-Below are listed all classes within :py:mod:`pregex.pre`
+Below are listed all classes within :py:mod:`pregex.core.pre`
 along with any possible methods they may possess.
 """
 
@@ -165,16 +84,26 @@ class Pregex():
             self.__pattern = __class__.__escape(pattern)
         else:
             self.__pattern = pattern
-        self.__type = __class__.__infer_type(self.__pattern)
+        self.__type, self.__quantifiable = __class__.__infer_type(self.__pattern)
         self.__compiled: _re.Pattern = None
 
 
     '''
     Public Methods
     '''
+    def print_pattern(self, include_flags: bool = False) -> None:
+        '''
+        Prints this instance's underlying RegEx pattern.
+
+        :param bool include_falgs: Determines whether to display the RegEx flags \
+            along with the pattern. Defaults to ``False``.
+        '''
+        print(self.get_pattern(include_flags))
+
+
     def get_pattern(self, include_flags: bool = False) -> str:
         '''
-        Returns the expression's pattern as its string representation.
+        Returns this instance's underlying RegEx pattern as a string.
 
         :param bool include_falgs: Determines whether to display the RegEx flags \
             along with the pattern. Defaults to ``False``.
@@ -188,7 +117,7 @@ class Pregex():
 
     def get_compiled_pattern(self, discard_after: bool = True) -> _re.Pattern:
         '''
-        Returns the expression's compiled pattern as a ``re.Pattern`` instance.
+        Returns this instance's underlying RegEx pattern as a ``re.Pattern`` instance.
         
         :param bool discard_after: Determines whether the compiled pattern is to be \
             discarded after this method, or to be retained so that any further attempt \
@@ -212,64 +141,98 @@ class Pregex():
         self.__compiled = _re.compile(self.get_pattern(), flags=self.__flags)
 
 
-    def has_match(self, text: str) -> bool:
+    @staticmethod
+    def purge() -> None:
+        '''
+        Clears the regular expression caches.
+        '''
+        _re.purge()
+
+
+    def has_match(self, source: str, is_path: bool = False) -> bool:
         '''
         Returns ``True`` if at least one match is found within the provided text.
 
-        :param str text: The piece of text that is to be searched for matches.
+        :param str source: The text that is to be examined \
+            is provided through this parameter.
+        :param bool is_path: If set to ``True``, then parameter ``source`` \
+            is considered to be a local path pointing to the file from which \
+            the text is to be read. Defaults to ``False``.
         '''
-        return bool(_re.search(self.__pattern, text) if self.__compiled is None \
-            else self.__compiled.search(text))
+        if is_path:
+            source = self.__extract_text(source)
+        return bool(_re.search(self.__pattern, source) if self.__compiled is None \
+            else self.__compiled.search(source))
 
 
-    def is_exact_match(self, text: str) -> bool:
+    def is_exact_match(self, source: str, is_path: bool = False) -> bool:
         '''
         Returns ``True`` only if the provided text matches this pattern exactly.
 
-        :param str text: The piece of text that is to be searched for matches.
+        :param str source: The text that is to be examined \
+            is provided through this parameter.
+        :param bool is_path: If set to ``True``, then parameter ``source`` \
+            is considered to be a local path pointing to the file from which \
+            the text is to be read. Defaults to ``False``.
         '''
-        return bool(_re.fullmatch(self.__pattern, text, flags=self.__flags) \
-            if self.__compiled is None else self.__compiled.fullmatch(text))
+        if is_path:
+            source = self.__extract_text(source)
+        return bool(_re.fullmatch(self.__pattern, source, flags=self.__flags) \
+            if self.__compiled is None else self.__compiled.fullmatch(source))
 
 
-    def iterate_matches(self, text: str) -> _Iterator[str]:
+    def iterate_matches(self, source: str, is_path: bool = False) -> _Iterator[str]:
         '''
         Generates any possible matches found within the provided text.
 
-        :param str text: The piece of text that is to be searched for matches.
+        :param str source: The text that is to be examined \
+            is provided through this parameter.
+        :param bool is_path: If set to ``True``, then parameter ``source`` \
+            is considered to be a local path pointing to the file from which \
+            the text is to be read. Defaults to ``False``.
         '''
-        for match in self.__iterate_match_objects(text):
+        for match in self.__iterate_match_objects(source, is_path):
             yield match.group(0)
 
 
-    def iterate_matches_and_pos(self, text: str) -> _Iterator[tuple[str, int, int]]:
+    def iterate_matches_and_pos(self, source: str, is_path: bool = False) -> _Iterator[tuple[str, int, int]]:
         '''
         Generates any possible matches found within the provided text \
         along with their exact position.
 
-        :param str text: The piece of text that is to be searched for matches.
+        :param str source: The text that is to be examined \
+            is provided through this parameter.
+        :param bool is_path: If set to ``True``, then parameter ``source`` \
+            is considered to be a local path pointing to the file from which \
+            the text is to be read. Defaults to ``False``.
         '''
-        for match in self.__iterate_match_objects(text):
+        for match in self.__iterate_match_objects(source, is_path):
             yield (match.group(0), *match.span())
 
 
-    def iterate_captures(self, text: str, include_empty: bool = True) -> _Iterator[tuple[str]]:
+    def iterate_captures(self, source: str, include_empty: bool = True,
+        is_path: bool = False) -> _Iterator[tuple[str]]:
         '''
         Generates tuples, one tuple per match, where each tuple contains \
         all of its corresponding match's captured groups. In case there exists \
         a capturing group within the pattern that has not been captured by a match, \
         then that capture's corresponding value will be ``None``.
 
-        :param str text: The piece of text that is to be searched for matches.
+        :param str source: The text that is to be examined \
+            is provided through this parameter.
         :param bool include_empty: Determines whether to include empty captures into the \
             results. Defaults to ``True``.
+        :param bool is_path: If set to ``True``, then parameter ``source`` \
+            is considered to be a local path pointing to the file from which \
+            the text is to be read. Defaults to ``False``.
         '''
-        for match in self.__iterate_match_objects(text):
+        for match in self.__iterate_match_objects(source, is_path):
             yield match.groups() if include_empty else \
                 tuple(group for group in match.groups() if group != '')
 
 
-    def iterate_captures_and_pos(self, text: str, include_empty: bool = True, relative_to_match : bool = False) -> _Iterator[list[tuple[str, int, int]]]:
+    def iterate_captures_and_pos(self, source: str, include_empty: bool = True,
+        relative_to_match : bool = False, is_path: bool = False) -> _Iterator[list[tuple[str, int, int]]]:
         '''
         Generates lists of tuples, one list per match, where each tuple contains one \
         of its corresponding match's captured groups along with its exact position \
@@ -277,13 +240,17 @@ class Pregex():
         has not been captured by a match, then that capture's corresponding tuple will be \
         ``(None, -1, -1)``.
 
-        :param str text: The piece of text that is to be searched for matches.
+        :param str source: The text that is to be examined \
+            is provided through this parameter.
         :param bool include_empty: Determines whether to include empty captures into the \
             results. Defaults to ``True``.
         :param bool relative_to_match: If ``True``, then each group's position-indices are calculated \
             relative to the group's corresponding match, not to the whole string. Defaults to ``False``.
+        :param bool is_path: If set to ``True``, then parameter ``source`` \
+            is considered to be a local path pointing to the file from which \
+            the text is to be read. Defaults to ``False``.
         '''
-        for match in self.__iterate_match_objects(text):
+        for match in self.__iterate_match_objects(source, is_path):
             groups, counter = list(), 0
             for group in match.groups():
                 counter += 1
@@ -295,40 +262,54 @@ class Pregex():
             yield groups
 
 
-    def get_matches(self, text: str) -> list[str]:
+    def get_matches(self, source: str, is_path: bool = False) -> list[str]:
         '''
-        Returns a list containing any possible matches found within the provided text.
+        Returns a list containing any possible matches found within \
+        the provided text.
 
-        :param str text: The piece of text that is to be searched for matches.
+        :param str source: The text that is to be examined \
+            is provided through this parameter.
+        :param bool is_path: If set to ``True``, then parameter ``source`` \
+            is considered to be a local path pointing to the file from which \
+            the text is to be read. Defaults to ``False``.
         '''
-        return list(match for match in self.iterate_matches(text))
+        return list(match for match in self.iterate_matches(source, is_path))
 
 
-    def get_matches_and_pos(self, text: str) -> list[tuple[str, int, int]]:
+    def get_matches_and_pos(self, source: str, is_flag: bool = False) -> list[tuple[str, int, int]]:
         '''
-        Returns a list containing any possible matches found within the provided text \
-        along with their exact position.
+        Returns a list containing any possible matches found within the \
+        provided text along with their exact position.
 
-        :param str text: The piece of text that is to be searched for matches.
+        :param str source: The text that is to be examined \
+            is provided through this parameter.
+        :param bool is_path: If set to ``True``, then parameter ``source`` \
+            is considered to be a local path pointing to the file from which \
+            the text is to be read. Defaults to ``False``.
         '''
-        return list(match for match in self.iterate_matches_and_pos(text))
+        return list(match for match in self.iterate_matches_and_pos(source, is_flag))
 
 
-    def get_captures(self, text: str, include_empty: bool = True) -> list[tuple[str]]:
+    def get_captures(self, source: str, include_empty: bool = True, is_path: bool = False) -> list[tuple[str]]:
         '''
         Returns a list of tuples, one tuple per match, where each tuple contains \
         all of its corresponding match's captured groups. In case there exists \
         a capturing group within the pattern that has not been captured by a match, \
         then that capture's corresponding value will be ``None``.
 
-        :param str text: The piece of text that is to be searched for matches.
+        :param str source: The text that is to be examined \
+            is provided through this parameter.
         :param bool include_empty: Determines whether to include empty captures into the \
             results. Defaults to ``True``.
+        :param bool is_path: If set to ``True``, then parameter ``source`` \
+            is considered to be a local path pointing to the file from which \
+            the text is to be read. Defaults to ``False``.
         '''
-        return list(group for group in self.iterate_captures(text, include_empty))
+        return list(group for group in self.iterate_captures(source, include_empty, is_path))
 
 
-    def get_captures_and_pos(self, text: str, include_empty: bool = True, relative_to_match: bool = False) -> list[list[tuple[str, int, int]]]:
+    def get_captures_and_pos(self, source: str, include_empty: bool = True,
+        relative_to_match: bool = False, is_path: bool = False) -> list[list[tuple[str, int, int]]]:
         '''
         Returns a list containing lists of tuples, one list per match, where each \
         tuple contains one of its corresponding match's captured groups along with \
@@ -336,73 +317,93 @@ class Pregex():
         within the pattern that has not been captured by a match, then that capture's \
         corresponding tuple will be ``(None, -1, -1)``.
 
-        :param str text: The piece of text that is to be searched for matches.
+        :param str source: The text that is to be examined \
+            is provided through this parameter.
         :param bool include_empty: Determines whether to include empty captures into the \
             results. Defaults to ``True``.
         :param bool relative_to_match: If ``True``, then each group's position-indices are calculated \
             relative to the group's corresponding match, not to the whole string. Defaults to ``False``.
+        :param bool is_path: If set to ``True``, then parameter ``source`` \
+            is considered to be a local path pointing to the file from which \
+            the text is to be read. Defaults to ``False``.
         '''
-        return list(tup for tup in self.iterate_captures_and_pos(text, include_empty, relative_to_match))
+        return list(tup for tup in self.iterate_captures_and_pos(
+            source, include_empty, relative_to_match, is_path))
 
 
-    def replace(self, text: str, repl: str, count: int = 0) -> str:
+    def replace(self, source: str, repl: str, count: int = 0, is_path: bool = False) -> str:
         '''
         Substitutes all or some of the occuring matches with ``text`` for ``repl`` \
         and returns the resulting string. If there are no matches, returns \
         parameter ``text`` exactly as provided.
 
-        :param str s: The string that is to be matched and modified.
+        :param str source: The string that is to be matched and modified.
         :param str repl: The string that is to replace any matches.
         :param int count: The number of matches that are to be replaced, \
             starting from left to right. A value of ``0`` indicates that \
             all matches must be replaced. Defaults to ``0``.
+        :param bool is_path: If set to ``True``, then parameter ``source`` \
+            is considered to be a local path pointing to the file from which \
+            the text is to be read. Defaults to ``False``.
 
-        :raises InvalidArgumentValueException: Parameter ``count`` is less than zero.
+        :raises InvalidArgumentValueException: Parameter ``count`` has a value of less than zero.
         '''
         if count < 0:
             message = "Parameter \"count\" can't be negative."
             raise _ex.InvalidArgumentValueException(message)
-        return _re.sub(str(self), repl, text, count, flags=self.__flags)
+        if is_path:
+            source = self.__extract_text(source)
+        return _re.sub(str(self), repl, source, count, flags=self.__flags)
 
 
-    def split_by_match(self, text: str) -> list[str]:
+    def split_by_match(self, source: str, is_path: bool = False) -> list[str]:
         '''
         Splits the provided text based on any matches with this pattern and \
         returns the result as a list containing each individual part of the \
         text after the split.
 
-        :param str text: The piece of text that is to be matched and split.
+        :param str source: The piece of text that is to be matched and split.
+        :param bool is_path: If set to ``True``, then parameter ``source`` \
+            is considered to be a local path pointing to the file from which \
+            the text is to be read. Defaults to ``False``.
         '''
+        if is_path:
+            source = self.__extract_text(source)
         split_list, index = list(), 0
-        for _, start, end in self.iterate_matches_and_pos(text):
+        for _, start, end in self.iterate_matches_and_pos(source):
             if index != start:
-                split_list.append(text[index:start])
+                split_list.append(source[index:start])
             index = end
-        if index != len(text):
-            split_list.append(text[index:])
+        if index != len(source):
+            split_list.append(source[index:])
         return split_list
 
 
-    def split_by_capture(self, text: str, include_empty: bool = True) -> list[str]:
+    def split_by_capture(self, source: str, include_empty: bool = True, is_path: bool = False) -> list[str]:
         '''
         Splits the provided text based on any captured groups that may have \
         occured due to matches with thin pattern, and returns the result as a\
         list containing each individual part of the text after the split.
 
-        :param str text: The piece of text that is to be matched and split.
+        :param str source: The piece of text that is to be matched and split.
         :param bool include_empty: Determines whether to include empty groups into the results. \
             Defaults to ``True``.
+        :param bool is_path: If set to ``True``, then parameter ``source`` \
+            is considered to be a local path pointing to the file from which \
+            the text is to be read. Defaults to ``False``.
         '''
+        if is_path:
+            source = self.__extract_text(source)
         split_list, index = list(), 0
-        for groups in self.iterate_captures_and_pos(text, include_empty):
+        for groups in self.iterate_captures_and_pos(source, include_empty):
             for group, start, end in groups:
                 if group is None:
                     continue
                 if index != start:
-                    split_list.append(text[index:start])
+                    split_list.append(source[index:start])
                 index = end
-        if index != len(text):
-            split_list.append(text[index:])
+        if index != len(source):
+            split_list.append(source[index:])
         return split_list
 
 
@@ -414,6 +415,13 @@ class Pregex():
         Returns this instance's type.
         '''
         return self.__type
+
+
+    def _is_quantifiable(self):
+        '''
+        Returns ``True`` if this pattern can be quantified, else returns ``False``.
+        '''
+        return self.__quantifiable
 
 
     def _concat_conditional_group(self) -> str:
@@ -511,9 +519,9 @@ class Pregex():
 
         :raises InvalidArgumentTypeException: Parameter ``n`` is not an integer.
         :raises InvalidArgumentValueException: Parameter ``n`` is less than zero.
-        :raises CannotBeQuantifiedException: ``self`` represents an "assertion" pattern.
+        :raises CannotBeQuantifiedException: ``self`` represents an non-quantifiable pattern.
         '''
-        if self.__type == _Type.Assertion:
+        if not self._is_quantifiable():
             raise _ex.CannotBeQuantifiedException(self)
         if not isinstance(n, int) or isinstance(n, bool):
             message = "Provided argument \"n\" is not an integer."
@@ -533,9 +541,9 @@ class Pregex():
 
         :raises InvalidArgumentTypeException: Parameter ``n`` is not an integer.
         :raises InvalidArgumentValueException: Parameter ``n`` is less than zero.
-        :raises CannotBeQuantifiedException: ``self`` represents an "assertion" pattern.
+        :raises CannotBeQuantifiedException: ``self`` represents an non-quantifiable pattern.
         '''
-        if self.__type == _Type.Assertion:
+        if not self._is_quantifiable():
             raise _ex.CannotBeQuantifiedException(self)
         if not isinstance(n, int) or isinstance(n, bool):
             message = "Provided argument \"n\" is not an integer."
@@ -567,18 +575,25 @@ class Pregex():
         return __class__.__groupping_rules[self.__type][2]
 
 
-    def __iterate_match_objects(self, text: str) -> _Iterator[_re.Match]:
+    def __iterate_match_objects(self, source: str, is_path: bool) -> _Iterator[_re.Match]:
         '''
         Invokes ``re.finditer`` in order to iterate over all matches of this \
         instance's underlying pattern with the provided string ``text`` as \
         instances of type ``re.Match``.
 
-        :param str text: The string that is to be matched.
+        :param str source: The text that is to be examined \
+            is provided through this parameter.
+        :param bool is_path: If set to ``True``, then parameter ``source`` \
+            is considered to be a local path pointing to the file from which \
+            the text is to be read.
         '''
-        return _re.finditer(self.__pattern, text, flags=self.__flags) \
-            if self.__compiled is None else self.__compiled.finditer(text)
+        if is_path:
+            source = self.__extract_text(source)
+        return _re.finditer(self.__pattern, source, flags=self.__flags) \
+            if self.__compiled is None else self.__compiled.finditer(source)
 
 
+    @staticmethod
     def __escape(pattern: str) -> str:
         '''
         Scans this instance's underlying pattern for any characters that need to be escaped, \
@@ -591,9 +606,12 @@ class Pregex():
         return pattern   
 
 
-    def __infer_type(pattern: str) -> _Type:
+    @staticmethod
+    def __infer_type(pattern: str) -> tuple[_Type, bool]:
         '''
-        Examines the provided RegEx pattern and returns its type.
+        Examines the provided RegEx pattern and returns its type,
+        as well as a boolean indicating whether said pattern can be
+        quantified or not.
 
         :param str pattern: The RegEx pattern that is to be examined.
         '''
@@ -639,37 +657,54 @@ class Pregex():
         pattern = _re.sub(r"\\{2}", "a", pattern)
 
         if pattern == "":
-            return _Type.Empty
+            return _Type.Empty, True
         elif _re.fullmatch(r"\\?.", pattern, flags=__class__.__flags) is not None:
             if _re.fullmatch(r"\.|\\(?:w|d|s)", pattern,
                 flags=__class__.__flags | _re.IGNORECASE) is not None:
-                return _Type.Class
+                return _Type.Class, True
             elif _re.fullmatch(r"\.|\\(?:b|B)", pattern,
                 flags=__class__.__flags | _re.IGNORECASE) is not None:
-                return _Type.Assertion
+                return _Type.Assertion, True
             else:
-                return _Type.Token
+                return _Type.Token, True
 
         # Simplify classes by removing extra characters.
         pattern = _re.sub(r"\[.+?(?<!\\)\]", "[a]", pattern)
 
         if pattern == "[a]":
-            return _Type.Class
+            return _Type.Class, True
         elif __is_group(pattern):
-            return _Type.Group
+            return _Type.Group, True
 
         # Replace every group with a simple character.
         temp = remove_groups(pattern, repl="G")
 
         if len(_re.split(pattern=r"(?<!\\)\|", string=temp)) > 1:
-                return _Type.Alternation
-        elif _re.fullmatch(r"(?:\^|\\A|\\b|\\B|\(\?<(?:=|!).+\)).+|.+(?:\$|\\Z|\\b|\\B|\(\?(?:=|!).+\))",
+                return _Type.Alternation, True
+        elif _re.fullmatch(r"(?:\^|\\A|\(\?<=.+\)).+|.+(?:\$|\\Z|\(\?=.+\))",
             pattern, flags=__class__.__flags) is not None:
-            return _Type.Assertion
+            return _Type.Assertion, False
+        elif _re.fullmatch(r"(?:\\b|\\B|\(\?<!.+\)).+|.+(?:\\b|\\B|\(\?!.+\))",
+            pattern, flags=__class__.__flags) is not None:
+            return _Type.Assertion, True
         elif _re.fullmatch(r"(?:\\.|[^\\])?(?:\?|\*|\+|\{(?:\d+|\d+,|,\d+|\d+,\d+)\})",
             temp, flags=__class__.__flags) is not None:
-            return _Type.Quantifier
-        return _Type.Other
+            return _Type.Quantifier, True
+        return _Type.Other, True
+
+
+    @staticmethod
+    def __extract_text(source: str) -> str:
+        '''
+        Reads and returns the text that is contained within the file \
+        to which the provided path points.
+
+        :param str source: The path pointing to the file from which the text \
+            is to be extracted.
+        '''
+        with open(file=source, mode='r', encoding='utf-8') as f:
+            text = f.read()
+        return text
 
 
     '''
@@ -910,6 +945,7 @@ class Pregex():
         '''
         if pre._get_type() == _Type.Empty:
             return str(self)
+
         return f"{self._assert_conditional_group()}(?={pre})"
 
 
@@ -949,24 +985,52 @@ class Pregex():
         return f"(?<!{pre}){self._assert_conditional_group()}"
 
 
+    def _enclosed_by(self, pre: 'Pregex') -> str:
+        '''
+        Applies both the "positive lookbehind" assertion ``(?<=pre)`` and \
+        "positive lookahead" assertion ``(?=pre)`` on this instance's underlying \
+        pattern and returns the resulting pattern as a string.
+
+        :param Pregex pre: The assertion pattern.
+        '''
+        if pre._get_type() == _Type.Empty:
+            return str(self)
+        return f"(?<={pre}){self._assert_conditional_group()}(?={pre})"
+
+
+    def _not_enclosed_by(self, pre: 'Pregex') -> str:
+        '''
+        Applies both the "negative lookbehind" assertion ``(?<!pre)`` and \
+        "negative lookahead" assertion ``(?!pre)`` on this instance's underlying \
+        pattern and returns the resulting pattern as a string.
+
+        :param Pregex pre: The assertion pattern.
+        '''
+        if pre._get_type() == _Type.Empty:
+            return str(self)
+        return f"(?<!{pre}){self._assert_conditional_group()}(?!{pre})"
+
+
 class Empty(Pregex):
     '''
     Matches the empty string ``''``.
 
-    :note: Applying a quantifer to ``Empty`` results in ``Empty``.
-    :note: Applying a group to ``Empty`` results in ``Empty``.
-    :note: Applying an operator between ``Empty`` and pattern `P` results in `P`.
-    :note: Applying an assertion to ``Empty`` results in the assertion pattern itself.
+    :note: 
+        - Applying a quantifer to ``Empty`` results in ``Empty``.
+        - Applying a group to ``Empty`` results in ``Empty``.
+        - Applying an operator between ``Empty`` and pattern `P` results in `P`.
+        - Applying an assertion to ``Empty`` results in the assertion pattern itself.
     '''
 
     def __init__(self) -> 'Empty':
         '''
         Matches the empty string ``''``.
 
-        :note: Applying a quantifer to ``Empty`` results in ``Empty``.
-        :note: Applying a group to ``Empty`` results in ``Empty``.
-        :note: Applying an operator between ``Empty`` and pattern `P` results in `P`.
-        :note: Applying an assertion to ``Empty`` results in the assertion pattern itself.
+        :note: 
+            - Applying a quantifer to ``Empty`` results in ``Empty``.
+            - Applying a group to ``Empty`` results in ``Empty``.
+            - Applying an operator between ``Empty`` and pattern `P` results in `P`.
+            - Applying an assertion to ``Empty`` results in the assertion pattern itself.
         '''
         super().__init__("")
 

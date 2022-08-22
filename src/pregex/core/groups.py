@@ -1,6 +1,6 @@
 import re as _re
-import pregex.pre as _pre
-import pregex.exceptions as _ex
+import pregex.core.pre as _pre
+import pregex.core.exceptions as _ex
 
 
 __doc__ = """
@@ -16,12 +16,12 @@ deemed necessary. Consider for instance the following code snippet:
 
 .. code-block:: python
 
-   from pregex.quantifiers import Optional
+   from pregex.core.quantifiers import Optional
 
-   print(Optional("a").get_pattern()) # This prints "a?"
-   print(Optional("aa").get_pattern()) # This prints "(?:aa)?"
+   Optional("a").print_pattern() # This prints "a?"
+   Optional("aa").print_pattern() # This prints "(?:aa)?"
 
-In the first case, quantifier :class:`~pregex.quantifiers.Optional` is applied to the pattern
+In the first case, quantifier :class:`~pregex.core.quantifiers.Optional` is applied to the pattern
 directly, whereas in the second case the pattern is placed into a non-capturing group
 so that "aa" is quantified as a whole. Even so, one can also explicitly construct a
 non-capturing group out of any pattern if one wishes to do so by making use of the
@@ -29,10 +29,10 @@ non-capturing group out of any pattern if one wishes to do so by making use of t
 
 .. code-block:: python
 
-   from pregex.groups import Group
-   from pregex.quantifiers import Optional
+   from pregex.core.groups import Group
+   from pregex.core.quantifiers import Optional
 
-   print(Optional(Group("a")).get_pattern()) # This prints "(?:a)?"
+   Optional(Group("a")).print_pattern() # This prints "(?:a)?"
 
 Capturing patterns
 -------------------------------------------
@@ -43,8 +43,8 @@ so that said pattern is also captured separately whenever a match occurs.
 
 .. code-block:: python
 
-   from pregex.groups import Capture
-   from pregex.classes import AnyLetter
+   from pregex.core.groups import Capture
+   from pregex.core.classes import AnyLetter
 
    pre = AnyLetter() + Capture(2 * AnyLetter())
 
@@ -58,7 +58,7 @@ interested in isolating some specific part of a pattern.
 Classes & methods
 -------------------------------------------
 
-Below are listed all classes within :py:mod:`pregex.groups`
+Below are listed all classes within :py:mod:`pregex.core.groups`
 along with any possible methods they may possess.
 """
 

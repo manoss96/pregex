@@ -1,7 +1,8 @@
 import re as _re
-import pregex.pre as _pre
-import pregex.exceptions as _ex
+import pregex.core.pre as _pre
+import pregex.core.exceptions as _ex
 from string import whitespace as _whitespace
+
 
 __doc__ = """
 All classes within this module represent the so-called RegΕx "character classes",
@@ -26,13 +27,13 @@ Here is an example containing a regular class as well as its negated counterpart
 
 .. code-block:: python
    
-   from pregex.classes import AnyLetter, AnyButLetter
+   from pregex.core.classes import AnyLetter, AnyButLetter
 
    regular = AnyLetter()
    negated = AnyButLetter()
 
-   print(regular.get_pattern()) # This prints "[A-Za-z]"
-   print(negated.get_pattern()) # This prints "[^A-Za-z]"
+   regular.print_pattern() # This prints "[A-Za-z]"
+   negated.print_pattern() # This prints "[^A-Za-z]"
 
 Class unions
 -------------------------------------------
@@ -42,53 +43,53 @@ of the bitwise OR operator ``|``, as depicted within the code snippet below:
 
 .. code-block:: python
    
-   from pregex.classes import AnyDigit, AnyLowercaseLetter
+   from pregex.core.classes import AnyDigit, AnyLowercaseLetter
 
    pre = AnyDigit() | AnyLowercaseLetter()
-   print(pre.get_pattern()) # This prints "[\da-z]"
+   pre.print_pattern() # This prints "[\da-z]"
 
 The same goes for negated classes as well:
 
 .. code-block:: python
 
-   from pregex.classes import AnyButDigit, AnyButLowercaseLetter
+   from pregex.core.classes import AnyButDigit, AnyButLowercaseLetter
 
    pre = AnyButDigit() | AnyButLowercaseLetter()
-   print(pre.get_pattern()) # This prints "[^\da-z]"
+   pre.print_pattern() # This prints "[^\da-z]"
 
 However, attempting to get the union of a regular class and a negated class
 causes a ``CannotBeUnionedException`` to be thrown.
 
 .. code-block:: python
 
-   from pregex.classes import AnyDigit, AnyButLowercaseLetter
+   from pregex.core.classes import AnyDigit, AnyButLowercaseLetter
 
    pre = AnyDigit() | AnyButLowercaseLetter() # This is not OK!
 
 Lastly, it is also possible to union a regular class with a token, that is,
 any string of length one or any instance of a class that is part of the
-:py:mod:`pregex.tokens` module:
+:py:mod:`pregex.core.tokens` module:
 
 .. code-block:: python
 
-   from pregex.classes import AnyDigit
-   from pregex.tokens import Newline
+   from pregex.core.classes import AnyDigit
+   from pregex.core.tokens import Newline
 
    pre = AnyDigit() | "a" | Newline()
    
-   print(pre.get_pattern()) # This prints "[\da\\n]"
+   pre.print_pattern() # This prints "[\da\\n]"
 
 However, in the case of negated classes one is forced to wrap any tokens
 within an :class:`AnyButFrom` class instance in order to do the same:
 
 .. code-block:: python
 
-   from pregex.classes import AnyButDigit
-   from pregex.tokens import Newline
+   from pregex.core.classes import AnyButDigit
+   from pregex.core.tokens import Newline
 
    pre = AnyButDigit() | AnyButFrom("a", Newline())
    
-   print(pre.get_pattern()) # This prints "[^\da\\n]"
+   pre.print_pattern() # This prints "[^\da\\n]"
 
 Subtracting classes
 -------------------------------------------
@@ -101,7 +102,7 @@ is extremely easy:
 
 .. code-block:: python
 
-   from pregex.classes import AnyWordChar, AnyFrom
+   from pregex.core.classes import AnyWordChar, AnyFrom
 
    pre = AnyWordChar() - AnyFrom('C', 'c', 'G', 'g', '3')
 
@@ -120,7 +121,7 @@ from a negated class, as any other attempt will cause a
 
 .. code-block:: python
 
-   from pregex.classes import AnyWordChar, AnyButLowercaseLetter
+   from pregex.core.classes import AnyWordChar, AnyButLowercaseLetter
 
    pre = AnyWordChar() - AnyButLowercaseLetter() # This is not OK!
 
@@ -130,12 +131,12 @@ with regular classes:
 
 .. code-block:: python
 
-   from pregex.classes import AnyWhitespace
-   from pregex.tokens import Newline
+   from pregex.core.classes import AnyWhitespace
+   from pregex.core.tokens import Newline
 
    pre = AnyWhitespace() - Newline()
    
-   print(pre.get_pattern()) # This prints "[\\t \\x0b-\\r]"
+   pre.print_pattern() # This prints "[\\t \\x0b-\\r]"
 
 Negating classes
 -------------------------------------------
@@ -144,20 +145,20 @@ the use of the bitwise NOT operator ``~``:
 
 .. code-block:: python
 
-   from pregex.classes import AnyDigit
+   from pregex.core.classes import AnyDigit
 
    pre = ~ AnyDigit()
-   print(pre.get_pattern()) # This prints "[^0-9]"
+   pre.print_pattern() # This prints "[^0-9]"
 
 Negated classes can be negated as well, however you should probably avoid
 this as it doesn't help much in making the code any easier to read.
 
 .. code-block:: python
 
-   from pregex.classes import AnyButDigit
+   from pregex.core.classes import AnyButDigit
 
    pre = ~ AnyButDigit()
-   print(pre.get_pattern()) # This prints "[0-9]"
+   pre.print_pattern() # This prints "[0-9]"
 
 Therefore, in order to create a negated class one can either negate a regular `Any*`
 class by placing ``~`` in front of it, or use its `AnyBut*` negated class equivalent.
@@ -166,7 +167,7 @@ The result is entirely the same and which one you'll use is just a matter of cho
 Classes & methods
 -------------------------------------------
 
-Below are listed all classes within :py:mod:`pregex.classes`
+Below are listed all classes within :py:mod:`pregex.core.classes`
 along with any possible methods they may possess.
 """
 
@@ -240,7 +241,7 @@ class __Class(_pre.Pregex):
         Converts a verbose pattern to its simplified form.
 
         :param str pattern: The pattern that is to be simplified.
-        :param bool is_negated: Indicates whether the patterns belongs \
+        :param bool is_negated: Determines whether the patterns belongs \
             to a negated class or a regular one.
         :param bool simplify_word: Indicates whether `[A-Za-z0-9_]` should be simplified \
             to `[\w]` or not.
@@ -307,7 +308,6 @@ class __Class(_pre.Pregex):
 
         return ranges, chars
 
-        return ranges, chars
 
     def __verbose_to_shorthand(classes: set[str], simplify_word: bool) -> set[str]:
         '''
@@ -667,7 +667,7 @@ class __Class(_pre.Pregex):
         Either escapes or unescapes any character within the provided classes that \
         needs to be escaped.
 
-        :param bool escape: Indicates whether to "escape" or "unescape" characters.
+        :param bool escape: Determines whether to "escape" or "unescape" characters.
         '''
 
         def escape_char(c):
@@ -820,7 +820,7 @@ class AnyButDigit(__Class):
 
 class AnyWordChar(__Class):
     '''
-    Matches any alphanumeric character as well as the underscore character "_".
+    Matches any alphanumeric character as well as the underscore character ``_``.
 
     :param bool is_global: Indicates whether to include foreign alphabetic \
         characters or not. Defaults to ``False``.
@@ -832,7 +832,7 @@ class AnyWordChar(__Class):
 
     def __init__(self, is_global: bool = False) -> 'AnyWordChar':
         '''
-        Matches any alphanumeric character as well as the underscore character "_".
+        Matches any alphanumeric character as well as the underscore character ``_``.
 
         :param bool is_global: Indicates whether to include foreign alphabetic \
             characters or not. Defaults to ``False``.
@@ -948,7 +948,7 @@ class AnyBetween(__Class):
     :param str end: The last character of the range.
 
     :raises InvalidArgumentTypeException: At least one of the provided characters \
-        is neither a `token` class instance nor a single-character string.
+        is neither a *Token* class instance nor a single-character string.
     :raises InvalidRangeException: A non-valid range is provided.
 
     :note: Any pair of characters ``start``, ``end`` constitutes a valid range \
@@ -964,7 +964,7 @@ class AnyBetween(__Class):
         :param str end: The last character of the range.
 
         :raises InvalidArgumentTypeException: At least one of the provided characters \
-            is neither a `token` class instance nor a single-character string.
+            is neither a *Token* class instance nor a single-character string.
         :raises InvalidRangeException: A non-valid range is provided.
 
         :note: Any pair of characters ``start``, ``end`` constitutes a valid range \
@@ -995,11 +995,11 @@ class AnyButBetween(__Class):
     :param str end: The last character of the range.
 
     :raises InvalidArgumentTypeException: At least one of the provided characters \
-        is neither a `token` class instance nor a single-character string.
+        is neither a *Token* class instance nor a single-character string.
     :raises InvalidRangeException: A non-valid range is provided.
 
     :note: Any pair of characters ``start``, ``end`` constitutes a valid range \
-        as long as that the code point of ``end` is greater than the code \
+        as long as that the code point of ``end`` is greater than the code \
         point of ``start``, as defined by the Unicode Standard.
     '''
 
@@ -1011,7 +1011,7 @@ class AnyButBetween(__Class):
         :param str end: The last character of the range.
 
         :raises InvalidArgumentTypeException: At least one of the provided characters \
-            is neither a `token` class instance nor a single-character string.
+            is neither a *Token* class instance nor a single-character string.
         :raises InvalidRangeException: A non-valid range is provided.
 
         :note: Any pair of characters ``start``, ``end`` constitutes a valid range \
@@ -1038,7 +1038,7 @@ class AnyFrom(__Class):
     '''
     Matches any one of the provided characters.
 
-    :param Pregex | str \*chars: One or more characters to match from. Each character must be \
+    :param str | Pregex \*chars: One or more characters to match from. Each character must be \
         a string of length one, provided either as is or wrapped within a `tokens` class.
 
     :raises NotEnoughArgumentsExceptions: No arguments are provided.
@@ -1050,7 +1050,7 @@ class AnyFrom(__Class):
         '''
         Matches any one of the provided characters.
 
-        :param Pregex | str \*chars: One or more characters to match from. Each character must be \
+        :param str | Pregex \*chars: One or more characters to match from. Each character must be \
             a string of length one, provided either as is or wrapped within a `tokens` class.
 
         :raises NotEnoughArgumentsExceptions: No arguments are provided.
@@ -1077,7 +1077,7 @@ class AnyButFrom(__Class):
     '''
     Matches any character except for the provided characters.
 
-    :param Pregex | str \*chars: One or more characters not to match from. Each character must be \
+    :param str | Pregex \*chars: One or more characters not to match from. Each character must be \
         a string of length one, provided either as is or wrapped within a `tokens` class.
 
     :raises NotEnoughArgumentsExceptions: No arguments are provided.
@@ -1089,7 +1089,7 @@ class AnyButFrom(__Class):
         '''
         Matches any character except for the provided characters.
 
-        :param Pregex | str \*chars: One or more characters not to match from. Each character must be \
+        :param str | Pregex \*chars: One or more characters not to match from. Each character must be \
             a string of length one, provided either as is or wrapped within a `tokens` class.
 
         :raises NotEnoughArgumentsExceptions: No arguments are provided.
@@ -1194,7 +1194,6 @@ class AnyCJK(__Class):
     `CJK Unified Ideographs <https://en.wikipedia.org/wiki/CJK_Unified_Ideographs_(Unicode_block)>`_ \
     Unicode block.
     '''
-
     def __init__(self) -> 'AnyCJK':
         '''
         Matches any character that is defined within the \
@@ -1210,7 +1209,6 @@ class AnyButCJK(__Class):
     `CJK Unified Ideographs <https://en.wikipedia.org/wiki/CJK_Unified_Ideographs_(Unicode_block)>`_ \
     Unicode block.
     '''
-
     def __init__(self) -> 'AnyButCJK':
         '''
         Matches any character except for those defined within the \
