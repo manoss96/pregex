@@ -103,7 +103,7 @@ Finally, you might have noticed that we built our pattern by utilizing
 various classes that were imported from modules under *pregex.core*. These
 modules contain classes through which the RegEx syntax is essentially replaced.
 However, PRegEx includes another set of modules, namely those under subpackage
-*pregex.meta*, whose classes that build upon those from *pregex.core* in order
+*pregex.meta*, whose classes build upon those from *pregex.core* in order
 to provide higher-level patterns that are a bit more difficult to construct!
 
 ```python
