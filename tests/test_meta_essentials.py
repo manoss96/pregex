@@ -523,6 +523,39 @@ class TestIPv6(unittest.TestCase):
             "::"])
 
 
+class TestEmail(unittest.TestCase):
+
+    text = '''
+    Valid
+    ------
+    abc-d@mail.com
+    abc.def@mail.cc
+    abc.def@mail-archive.com
+    abc.def@mail.org
+    abc.def@mail.com
+
+    Invalid
+    -------
+    abc.example.com
+    a@b@c@example.com
+    a"b(c)d,e:f;g<h>i[j\k]l@example.com
+    abc-@mail.com
+    abc.def@mail.c
+    abc.def@mail#archive.com
+    abc.def@mail	
+    abc.def@mail..com`	
+    '''
+
+    def test_email_on_matches(self):
+        self.assertEqual(Email().get_matches(self.text), [
+            "abc-d@mail.com",
+            "abc.def@mail.cc",
+            "abc.def@mail-archive.com",
+            "abc.def@mail.org",
+            "abc.def@mail.com"
+        ])
+
+
 class TestHttpUrl(unittest.TestCase):
 
     text = '''

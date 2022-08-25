@@ -843,6 +843,55 @@ class IPv6(_pre.Pregex):
         super().__init__(str(pre), escape=False)
 
 
+class Email(_pre.Pregex):
+    '''
+    Matches any email address.
+
+    :note: Not guaranteed to match every possible e-mail address.
+    '''
+
+    def __init__(self):
+        '''
+        Matches any email address.
+
+        :note: Not guaranteed to match every possible e-mail address.
+        '''
+        special = _cl.AnyFrom('!', '#', '$', '%', "'", '*', '+',
+            '-', '/', '=', '?', '^', '_', '`', '{', '|', '}', '~')
+
+        alphanum = _cl.AnyLetter() | _cl.AnyDigit()
+
+        name_valid_char = alphanum | special
+
+        left_most = _op.Either(
+            _asr.FollowedBy(
+                _asr.NonWordBoundary(),
+                special
+            ),
+            _asr.FollowedBy(
+                _asr.WordBoundary(),
+                alphanum
+            )  
+        ) 
+
+        name = \
+            (name_valid_char - '-') + \
+            _qu.AtMost(
+                _op.Either(name_valid_char, _asr.NotFollowedBy('.', '.')),
+                n=62) + \
+            (name_valid_char - '-')
+
+        domain_name = \
+            alphanum + \
+            _qu.AtMost(alphanum | "-", n=61) + \
+            alphanum
+
+        tld = "." + _qu.AtLeastAtMost(_cl.AnyLowercaseLetter(), min=2, max=6)
+
+        pre = left_most + name + "@" + domain_name + tld + _asr.WordBoundary()
+        super().__init__(str(pre), escape=False)
+
+
 class HttpUrl(_pre.Pregex):
     '''
     Matches an HTTP URL.
