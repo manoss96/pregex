@@ -843,6 +843,55 @@ class IPv6(_pre.Pregex):
         super().__init__(str(pre), escape=False)
 
 
+class Email(_pre.Pregex):
+    '''
+    Matches any email address.
+
+    :note: Not guaranteed to match every possible e-mail address.
+    '''
+
+    def __init__(self):
+        '''
+        Matches any email address.
+
+        :note: Not guaranteed to match every possible e-mail address.
+        '''
+        special = _cl.AnyFrom('!', '#', '$', '%', "'", '*', '+',
+            '-', '/', '=', '?', '^', '_', '`', '{', '|', '}', '~')
+
+        alphanum = _cl.AnyLetter() | _cl.AnyDigit()
+
+        name_valid_char = alphanum | special
+
+        left_most = _op.Either(
+            _asr.FollowedBy(
+                _asr.NonWordBoundary(),
+                special
+            ),
+            _asr.FollowedBy(
+                _asr.WordBoundary(),
+                alphanum
+            )  
+        ) 
+
+        name = \
+            (name_valid_char - '-') + \
+            _qu.AtMost(
+                _op.Either(name_valid_char, _asr.NotFollowedBy('.', '.')),
+                n=62) + \
+            (name_valid_char - '-')
+
+        domain_name = \
+            alphanum + \
+            _qu.AtMost(alphanum | "-", n=61) + \
+            alphanum
+
+        tld = "." + _qu.AtLeastAtMost(_cl.AnyLowercaseLetter(), min=2, max=6)
+
+        pre = left_most + name + "@" + domain_name + tld + _asr.WordBoundary()
+        super().__init__(str(pre), escape=False)
+
+
 class HttpUrl(_pre.Pregex):
     '''
     Matches an HTTP URL.
@@ -882,3 +931,86 @@ class HttpUrl(_pre.Pregex):
             domain_name + tld + optional_port + directories + right_most
         super().__init__(str(pre), escape=False)
 
+
+class Date(_pre.Pregex):
+    '''
+    Matches any date.
+
+    :param str \*formats: Strings that determines which date formats to be considered a match.
+        A date can either be dd/mm/yyyy, mm/dd/yyyy or yyyy/mm/dd (separated by by '/' or '-').
+
+    :raises InvalidArgumentValueException: Invalid date format provided.
+    '''
+    __date_separators: tuple[str, str] = ("-", "/")
+    __date_value_pre: dict[str, _pre.Pregex] = {
+        "d":_cl.AnyDigit() - "0", 
+        "dd":_op.Either("0" + (_cl.AnyDigit() - "0"), Integer(10, 31)),
+        "m":_cl.AnyDigit() - "0",
+        "mm":_op.Either("0" + (_cl.AnyDigit() - "0"), Integer(10, 12)),
+        "yy":_cl.AnyDigit() * 2, 
+        "yyyy":_cl.AnyDigit() * 4, 
+    }
+
+    def __init__(self, *formats: str):
+        '''
+        Matches any date.
+
+        :param str \*formats: Strings that determines which date formats to be considered a match.
+            A date can either be dd/mm/yyyy, mm/dd/yyyy or yyyy/mm/dd (separated by by '/' or '-').
+
+        :raises InvalidArgumentValueException: Invalid date format provided.
+        '''
+        date_formats = Date.__date_formats()
+        formats = date_formats if not formats else formats
+        
+        dates: list[_pre.Pregex] = []
+        for format in formats:
+            if format not in date_formats:
+                message = f"Provided date format \"{format}\" is not valid."
+                raise _ex.InvalidArgumentValueException(message)
+            dates.append(__class__.__date_pre(format))
+
+        pre = _op.Either(*dates) if len(dates) > 1 else dates[0]
+        pre = _asr.WordBoundary() + pre + _asr.WordBoundary()
+        super().__init__(str(pre), escape=False)
+    
+    def __date_pre(format: str) -> _pre.Pregex:
+        """
+        Converts a date format into a ``Pregex`` instance.
+        
+        :param str format: The date format to be converted.
+        """
+        format = format.lower()
+
+        for sep in __class__.__date_separators:
+            if sep in format:
+                separator = sep
+                break
+        
+        values = format.split(separator)
+
+        date_pre = _pre.Empty()
+        for i, value in enumerate(values):
+            date_pre += __class__.__date_value_pre[value]
+            if i < len(values) - 1:
+                date_pre += separator
+                
+        return date_pre
+
+    def __date_formats() -> list[str]:
+        '''
+        Returns a list containing all possible date format combinations.
+        '''
+        day = ("dd", "d")
+        month = ("mm", "m")
+        year = ("yyyy", "yy")
+
+        date_formats: list[tuple[str, str, str]] = []
+        for d in day:
+            for m in month:
+                for y in year:
+                    date_formats.append((d, m, y))
+                    date_formats.append((m, d, y))
+                    date_formats.append((y, m, d))
+
+        return [sep.join(df) for df in date_formats for sep in __class__.__date_separators]

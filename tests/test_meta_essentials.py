@@ -523,6 +523,39 @@ class TestIPv6(unittest.TestCase):
             "::"])
 
 
+class TestEmail(unittest.TestCase):
+
+    text = '''
+    Valid
+    ------
+    abc-d@mail.com
+    abc.def@mail.cc
+    abc.def@mail-archive.com
+    abc.def@mail.org
+    abc.def@mail.com
+
+    Invalid
+    -------
+    abc.example.com
+    a@b@c@example.com
+    a"b(c)d,e:f;g<h>i[j\k]l@example.com
+    abc-@mail.com
+    abc.def@mail.c
+    abc.def@mail#archive.com
+    abc.def@mail	
+    abc.def@mail..com`	
+    '''
+
+    def test_email_on_matches(self):
+        self.assertEqual(Email().get_matches(self.text), [
+            "abc-d@mail.com",
+            "abc.def@mail.cc",
+            "abc.def@mail-archive.com",
+            "abc.def@mail.org",
+            "abc.def@mail.com"
+        ])
+
+
 class TestHttpUrl(unittest.TestCase):
 
     text = '''
@@ -562,7 +595,37 @@ class TestHttpUrl(unittest.TestCase):
             ("domain5",),
             ("domain6",)
         ])
-        
+
+
+class TestDate(unittest.TestCase):
+
+    text = '''
+    Valid
+    ------
+    24/11/2001
+    11-24-2001
+    24/11/01
+    1/3/1996
+    1996/11/20
+
+    Invalid
+    -------
+    00/00/1996
+    1996/24/11
+    2/2/2
+    24/07-1996
+    1996/11/2004
+    '''
+    
+    def test_date_on_matches(self):
+        self.assertEqual(Date().get_matches(self.text), [
+            "24/11/2001",
+            "11-24-2001",
+            "24/11/01",
+            "1/3/1996",
+            "1996/11/20"
+        ])
+
 
 if __name__=="__main__":
     unittest.main()
