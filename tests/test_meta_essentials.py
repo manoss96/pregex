@@ -595,7 +595,37 @@ class TestHttpUrl(unittest.TestCase):
             ("domain5",),
             ("domain6",)
         ])
-        
+
+
+class TestDate(unittest.TestCase):
+
+    text = '''
+    Valid
+    ------
+    24/11/2001
+    11-24-2001
+    24/11/01
+    1/3/1996
+    1996/11/20
+
+    Invalid
+    -------
+    00/00/1996
+    1996/24/11
+    2/2/2
+    24/07-1996
+    1996/11/2004
+    '''
+    
+    def test_date_on_matches(self):
+        self.assertEqual(Date().get_matches(self.text), [
+            "24/11/2001",
+            "11-24-2001",
+            "24/11/01",
+            "1/3/1996",
+            "1996/11/20"
+        ])
+
 
 if __name__=="__main__":
     unittest.main()
