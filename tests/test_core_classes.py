@@ -529,7 +529,7 @@ class TestAnyButGermanLetter(unittest.TestCase):
         self.assertEqual(AnyButGermanLetter()._get_type(), _Type.Class)
 
     def test_any_but_german_letter_on_matches(self):
-        self.assertEqual((3 * AnyButGermanLetter()).get_matches("für"), [])
+        self.assertEqual((AnyButGermanLetter()).get_matches("für"), [])
 
 
 class TestAnyGreekLetter(unittest.TestCase):
@@ -577,7 +577,7 @@ class TestAnyButCyrillicLetter(unittest.TestCase):
         self.assertEqual(AnyButCyrillicLetter()._get_type(), _Type.Class)
 
     def test_any_but_cyrillic_letter_on_matches(self):
-        self.assertEqual((6 * AnyButCyrillicLetter()).get_matches("Привет"), [])
+        self.assertEqual((AnyButCyrillicLetter()).get_matches("Привет"), [])
 
 
 class TestAnyCJK(unittest.TestCase):
@@ -601,7 +601,31 @@ class TestAnyButCJK(unittest.TestCase):
         self.assertEqual(AnyButCJK()._get_type(), _Type.Class)
 
     def test_any_but_cjk_on_matches(self):
-        self.assertEqual((2 * AnyButCJK()).get_matches("你好"), [])
+        self.assertEqual((AnyButCJK()).get_matches("你好"), [])
+
+
+class TestAnyKoreanLetter(unittest.TestCase):
+
+    def test_any_korean_letter(self):
+        self.assertTrue(str(AnyKoreanLetter()) in get_permutations("\u3131-\u314e", "\uac00-\ud7a3"))
+
+    def test_any_korean_letter_on_type(self):
+        self.assertEqual(AnyKoreanLetter()._get_type(), _Type.Class)
+
+    def test_any_korean_letter_on_matches(self):
+        self.assertEqual((5 * AnyKoreanLetter()).get_matches("안녕하세요"), ["안녕하세요"])
+
+
+class TestAnyButKoreanLetter(unittest.TestCase):
+
+    def test_any_but_korean_letter(self):
+        self.assertTrue(str(AnyButKoreanLetter()) in get_negated_permutations("\u3131-\u314e", "\uac00-\ud7a3"))
+
+    def test_any_but_korean_letter_on_type(self):
+        self.assertEqual(AnyButKoreanLetter()._get_type(), _Type.Class)
+
+    def test_any_but_korean_letter_on_matches(self):
+        self.assertEqual((AnyButKoreanLetter()).get_matches("안녕하세요"), [])
 
 
 if __name__=="__main__":

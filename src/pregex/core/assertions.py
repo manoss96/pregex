@@ -43,6 +43,9 @@ class __Anchor(__Assertion):
 
     :param Pregex | str pre: A Pregex instance or string representing the `anchor` pattern.
     :param (Pregex => str) transform: A `transform` function for the provided pattern.
+
+    :raises InvalidArgumentTypeException: Parameter ``pre`` is neither a ``Pregex`` instance \
+        nor a string.
     '''
     def __init__(self, pre: _pre.Pregex or str, transform):
         '''
@@ -50,6 +53,9 @@ class __Anchor(__Assertion):
 
         :param Pregex | str pre: A Pregex instance or string representing the `anchor` pattern.
         :param (Pregex => str) transform: A `transform` function for the provided pattern.
+
+        :raises InvalidArgumentTypeException: Parameter ``pre`` is neither a ``Pregex`` instance \
+            nor a string.
         '''
         super().__init__(transform(__class__._to_pregex(pre)))
 
@@ -124,6 +130,9 @@ class MatchAtStart(__Anchor):
 
     :param Pregex | str pre: The pattern that is to be matched.
 
+    :raises InvalidArgumentTypeException: Parameter ``pre`` is neither a \
+        ``Pregex`` instance nor a string.
+
     :note: Cannot have a repeating quantifier applied to it.
     '''
 
@@ -132,6 +141,9 @@ class MatchAtStart(__Anchor):
         Matches the provided pattern only if said pattern is at the start of the string.
 
         :param Pregex | str pre: The pattern that is to be matched.
+
+        :raises InvalidArgumentTypeException: Parameter ``pre`` is neither a \
+            ``Pregex`` instance nor a string.
 
         :note: Cannot have a repeating quantifier applied to it.
         '''
@@ -144,6 +156,9 @@ class MatchAtEnd(__Anchor):
 
     :param Pregex | str pre: The pattern that is to be matched.
 
+    :raises InvalidArgumentTypeException: Parameter ``pre`` is neither a \
+        ``Pregex`` instance nor a string.
+
     :note: Cannot have a repeating quantifier applied to it.
     '''
 
@@ -152,6 +167,9 @@ class MatchAtEnd(__Anchor):
         Matches the provided pattern only if said pattern is at the end of the string.
 
         :param Pregex | str pre: The pattern that is to be matched.
+
+        :raises InvalidArgumentTypeException: Parameter ``pre`` is neither a \
+            ``Pregex`` instance nor a string.
 
         :note: Cannot have a repeating quantifier applied to it.
         '''
@@ -164,6 +182,9 @@ class MatchAtLineStart(__Anchor):
 
     :param Pregex | str pre: The pattern that is to be matched.
 
+    :raises InvalidArgumentTypeException: Parameter ``pre`` is neither a \
+        ``Pregex`` instance nor a string.
+
     :note:
         - Cannot have a repeating quantifier applied to it.
         - Uses meta character ``^`` since the `MULTILINE` flag is considered on.
@@ -174,6 +195,9 @@ class MatchAtLineStart(__Anchor):
         Matches the provided pattern only if said pattern is at the end of the string.
 
         :param Pregex | str pre: The pattern that is to be matched.
+
+        :raises InvalidArgumentTypeException: Parameter ``pre`` is neither a \
+            ``Pregex`` instance nor a string.
 
         :note:
             - Cannot have a repeating quantifier applied to it.
@@ -188,6 +212,9 @@ class MatchAtLineEnd(__Anchor):
 
     :param Pregex | str pre: The pattern that is to be matched.
 
+    :raises InvalidArgumentTypeException: Parameter ``pre`` is neither a \
+        ``Pregex`` instance nor a string.
+
     :note:
         - Cannot have a repeating quantifier applied to it.
         - Uses meta character ``$`` since the `MULTILINE` flag is considered on.
@@ -198,6 +225,9 @@ class MatchAtLineEnd(__Anchor):
         Matches the provided pattern only if said pattern is at the end of a line.
 
         :param Pregex | str pre: The pattern that is to be matched.
+
+        :raises InvalidArgumentTypeException: Parameter ``pre`` is neither a \
+            ``Pregex`` instance nor a string.
 
         :note:
             - Cannot have a repeating quantifier applied to it.
@@ -244,6 +274,9 @@ class FollowedBy(__PositiveLookaround):
     :param Pregex | str assertion: A Pregex instance or string \
         representing the `assertion` pattern.
 
+    :raises InvalidArgumentTypeException: At least one of the provided arguments \
+        is neither a ``Pregex`` instance nor a string.
+
     :note: Cannot have a repeating quantifier applied to it.
     '''
 
@@ -256,6 +289,9 @@ class FollowedBy(__PositiveLookaround):
             representing the `match` pattern.
         :param Pregex | str assertion: A Pregex instance or string \
             representing the `assertion` pattern.
+
+        :raises InvalidArgumentTypeException: At least one of the provided arguments \
+            is neither a ``Pregex`` instance nor a string.
 
         :note: Cannot have a repeating quantifier applied to it.
         '''
@@ -272,6 +308,8 @@ class NotFollowedBy(__NegativeLookaround):
         come right after ``match`` in order for it to be considered a match.
 
     :raises NotEnoughArgumentsException: No assertion patterns were provided.
+    :raises InvalidArgumentTypeException: At least one of the provided arguments \
+        is neither a ``Pregex`` instance nor a string.
     :raises EmptyNegativeAssertionException: At least one of the provided assertion \
         patterns is the empty-string pattern.
     '''
@@ -286,6 +324,8 @@ class NotFollowedBy(__NegativeLookaround):
             come right after ``match`` in order for it to be considered a match.
 
         :raises NotEnoughArgumentsException: No assertion patterns were provided.
+        :raises InvalidArgumentTypeException: At least one of the provided arguments \
+            is neither a ``Pregex`` instance nor a string.
         :raises EmptyNegativeAssertionException: At least one of the provided assertion \
             patterns is the empty-string pattern.
         '''
@@ -303,6 +343,8 @@ class PrecededBy(__PositiveLookaround):
     :param Pregex | str assertion: A Pregex instance or string \
         representing the `assertion` pattern.
 
+    :raises InvalidArgumentTypeException: At least one of the provided arguments \
+        is neither a ``Pregex`` instance nor a string.
     :raises NonFixedWidthPatternException: A non-fixed-width pattern \
         is provided in place of parameter ``assertion``.
 
@@ -319,6 +361,8 @@ class PrecededBy(__PositiveLookaround):
         :param Pregex | str assertion: A Pregex instance or string \
             representing the `assertion` pattern.
 
+        :raises InvalidArgumentTypeException: At least one of the provided arguments \
+            is neither a ``Pregex`` instance nor a string.
         :raises NonFixedWidthPatternException: A non-fixed-width pattern \
             is provided in place of parameter ``assertion``.
 
@@ -341,6 +385,8 @@ class NotPrecededBy(__NegativeLookaround):
         come right before ``match`` in order for it to be considered a match.
 
     :raises NotEnoughArgumentsException: No assertion patterns were provided.
+    :raises InvalidArgumentTypeException: At least one of the provided arguments \
+        is neither a ``Pregex`` instance nor a string.
     :raises EmptyNegativeAssertionException: At least one of the provided assertion \
         patterns is the empty-string pattern.
     :raises NonFixedWidthPatternException: At least one of the provided assertion \
@@ -357,6 +403,8 @@ class NotPrecededBy(__NegativeLookaround):
             come right before ``match`` in order for it to be considered a match.
 
         :raises NotEnoughArgumentsException: No assertion patterns were provided.
+        :raises InvalidArgumentTypeException: At least one of the provided arguments \
+            is neither a ``Pregex`` instance nor a string.
         :raises EmptyNegativeAssertionException: At least one of the provided assertion \
             patterns is the empty-string pattern.
         :raises NonFixedWidthPatternException: At least one of the provided assertion \
@@ -379,6 +427,8 @@ class EnclosedBy(__PositiveLookaround):
     :param Pregex | str assertion: A Pregex instance or string \
         representing the *assertion* pattern.
 
+    :raises InvalidArgumentTypeException: At least one of the provided arguments \
+        is neither a ``Pregex`` instance nor a string.
     :raises NonFixedWidthPatternException: Parameter ``assertion`` \
         corresponds to a non-fixed-width pattern.
 
@@ -395,6 +445,8 @@ class EnclosedBy(__PositiveLookaround):
         :param Pregex | str assertion: A Pregex instance or string \
             representing the *assertion* pattern.
 
+        :raises InvalidArgumentTypeException: At least one of the provided arguments \
+            is neither a ``Pregex`` instance nor a string.
         :raises NonFixedWidthPatternException: Parameter ``assertion`` \
             corresponds to a non-fixed-width pattern.
 
@@ -417,6 +469,8 @@ class NotEnclosedBy(__NegativeLookaround):
         come right before ``match`` in order for it to be considered a match.
 
     :raises NotEnoughArgumentsException: No assertion patterns were provided.
+    :raises InvalidArgumentTypeException: At least one of the provided arguments \
+        is neither a ``Pregex`` instance nor a string.
     :raises EmptyNegativeAssertionException: Parameter ``assertion`` \
         corresponds to the empty-string pattern.
     :raises NonFixedWidthPatternException: Parameter ``assertion`` \
@@ -433,6 +487,8 @@ class NotEnclosedBy(__NegativeLookaround):
             come right before ``match`` in order for it to be considered a match.
 
         :raises NotEnoughArgumentsException: No assertion patterns were provided.
+        :raises InvalidArgumentTypeException: At least one of the provided arguments \
+            is neither a ``Pregex`` instance nor a string.
         :raises EmptyNegativeAssertionException: Parameter ``assertion`` \
             corresponds to the empty-string pattern.
         :raises NonFixedWidthPatternException: Parameter ``assertion`` \

@@ -5,8 +5,9 @@ from typing import Iterator as _Iterator
 
 
 __doc__ = """
-This module contains two classes, namely :class:`Pregex` which constitutes the base class for
-every other class within `pregex`, and :class:`Empty` which represents the empty string ``''``.
+This module contains two classes, namely :class:`Pregex` which constitutes
+the base class for every other class within `pregex`, and :class:`Empty`
+which corresponds to the empty string pattern ``''``.
 
 Classes & methods
 -------------------------------------------
@@ -828,10 +829,10 @@ class Pregex():
         Concatenates the pattern of this instance with the provided pattern \
         and returns the resulting pattern as a string.
 
-        :param Pregex pre: A ``Pregex`` instance containing he pattern on the right side \
-            of the concatenation.
+        :param Pregex pre: A ``Pregex`` instance containing the pattern on \
+            the right side of the concatenation.
         '''
-        return self._concat_conditional_group() + pre._concat_conditional_group()
+        return f"{self._concat_conditional_group()}{pre._concat_conditional_group()}"
 
 
     def _either(self, pre: 'Pregex') -> str:
@@ -847,10 +848,22 @@ class Pregex():
         return f"{self}|{pre}"
 
 
+    def _enclose(self, pre: 'Pregex') -> str:
+        '''
+        Concatenates the provided pattern to both the left and right side of \
+        this instance's underlying pattern, and returns the resulting pattern \
+        as a string.
+
+        :param Pregex pre: A ``Pregex`` instance containing the pattern that is \
+            to be concatenated to this instance's underlying pattern.
+        '''
+        pre = pre._concat_conditional_group()
+        return f"{pre}{self._concat_conditional_group()}{pre}"
+
     '''
     Groups
     '''
-    def _capturing_group(self, name: str = '') -> str:
+    def _capturing_group(self, name: str = None) -> str:
         '''
         Applies a function on this instance's underlying pattern, that does the \
         following based on the nature of the pattern:
@@ -865,18 +878,18 @@ class Pregex():
 
         Finally, returns the resulting pattern as a string.
 
-        :param name: If this parameter is not equal to the empty string, then assigns \
-            it as a name to the capturing group. Defaults to ``''``.
+        :param name: If this parameter is not equal to ``None``, then assigns \
+            it as a name to the capturing group. Defaults to ``None``.
         '''
         if self.__type == _Type.Group:
             pattern = self.__pattern.replace('?:', '', 1) if self.__pattern.startswith('(?:') else str(self)
-            if name != '':
+            if name is not None:
                 if pattern.startswith('(?P'):
                     pattern = _re.sub('\(\?P<[^>]*>', f'(?P<{name}>', pattern)
                 else:
                     pattern = f"(?P<{name}>{pattern[1:-1]})"
         else:
-            pattern = f"({f'?P<{name}>' if name != '' else ''}{self})"
+            pattern = f"({f'?P<{name}>' if name != None else ''}{self})"
         return pattern
 
 
@@ -1015,11 +1028,9 @@ class Empty(Pregex):
     '''
     Matches the empty string ``''``.
 
-    :note: 
+    :note:
         - Applying a quantifer to ``Empty`` results in ``Empty``.
-        - Applying a group to ``Empty`` results in ``Empty``.
-        - Applying an operator between ``Empty`` and pattern `P` results in `P`.
-        - Applying an assertion to ``Empty`` results in the assertion pattern itself.
+        - Wrapping ``Empty`` within a group results in ``Empty``.
     '''
 
     def __init__(self) -> 'Empty':
@@ -1028,9 +1039,7 @@ class Empty(Pregex):
 
         :note: 
             - Applying a quantifer to ``Empty`` results in ``Empty``.
-            - Applying a group to ``Empty`` results in ``Empty``.
-            - Applying an operator between ``Empty`` and pattern `P` results in `P`.
-            - Applying an assertion to ``Empty`` results in the assertion pattern itself.
+            - Wrapping ``Empty`` within a group results in ``Empty``.
         '''
         super().__init__("")
 

@@ -1216,3 +1216,25 @@ class AnyButCJK(__Class):
         Unicode block.
         '''
         super().__init__('[^\u4e00-\u9fd5]', is_negated=True)
+
+
+class AnyKoreanLetter(__Class):
+    '''
+    Matches any character from the Korean alphabet.
+    '''
+    def __init__(self) -> 'AnyKoreanLetter':
+        '''
+        Matches any character from the Korean alphabet.
+        '''
+        super().__init__('[\u3131-\u314e\uac00-\ud7a3]', is_negated=False)
+
+
+class AnyButKoreanLetter(__Class):
+    '''
+    Matches any character except for characters in the Koren alphabet.
+    '''
+    def __init__(self) -> 'AnyButKoreanLetter':
+        '''
+        Matches any character except for characters in the Korean alphabet.
+        '''
+        super().__init__('[^\u3131-\u314e\uac00-\ud7a3]', is_negated=True)

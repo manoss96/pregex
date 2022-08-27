@@ -70,6 +70,9 @@ class __Group(_pre.Pregex):
     :param Pregex | str pre: A Pregex instance or string representing the pattern \
         that is to be groupped.
     :param (Pregex => str) transform: A `transform` function for the provided pattern.
+
+    :raises InvalidArgumentTypeException: Parameter ``pre`` is neither a \
+        ``Pregex`` instance nor a string.
     '''
     def __init__(self, pre: _pre.Pregex or str, transform) -> _pre.Pregex:
         '''
@@ -78,6 +81,9 @@ class __Group(_pre.Pregex):
         :param Pregex | str pre: A Pregex instance or string representing the pattern \
             that is to be groupped.
         :param (Pregex => str) transform: A `transform` function for the provided pattern.
+
+        :raises InvalidArgumentTypeException: Parameter ``pre`` is neither a \
+            ``Pregex`` instance nor a string.
         '''
         pattern = transform(__class__._to_pregex(pre))
         super().__init__(pattern, escape=False)
@@ -89,9 +95,11 @@ class Capture(__Group):
 
     :param Pregex | str pre: The pattern out of which the capturing group is created.
     :param str name: The name that is assigned to the captured group for backreference purposes. \
-        A value of ``''`` indicates that no name is to be assigned to the group. Defaults to ``''``.
+        A value of ``None`` indicates that no name is to be assigned to the group. Defaults to ``None``.
 
-    :raises InvalidArgumentTypeException: Parameter ``name`` is not a string.
+    :raises InvalidArgumentTypeException:
+        - Parameter ``pre`` is neither a ``Pregex`` instance nor a string.
+        - Parameter ``name`` is neither a string nor ``None``.
     :raises InvalidCapturingGroupNameException: Parameter ``name`` is not a valid \
         capturing-group name. Such name must contain word characters only and start \
         with a non-digit character.
@@ -103,15 +111,17 @@ class Capture(__Group):
         - Creating a named capturing group out of a named capturing group, changes the group's name.
     '''
 
-    def __init__(self, pre: _pre.Pregex or str, name: str = ''):
+    def __init__(self, pre: _pre.Pregex or str, name: str = None):
         '''
         Creates a capturing group out of the provided pattern.
 
         :param Pregex | str pre: The pattern out of which the capturing group is created.
         :param str name: The name that is assigned to the captured group for backreference purposes. \
-            A value of ``''`` indicates that no name is to be assigned to the group. Defaults to ``''``.
+            A value of ``None`` indicates that no name is to be assigned to the group. Defaults to ``None``.
 
-        :raises InvalidArgumentTypeException: Parameter ``name`` is not a string.
+        :raises InvalidArgumentTypeException:
+            - Parameter ``pre`` is neither a ``Pregex`` instance nor a string.
+            - Parameter ``name`` is neither a string nor ``None``.
         :raises InvalidCapturingGroupNameException: Parameter ``name`` is not a valid \
             capturing-group name. Such name must contain word characters only and start \
             with a non-digit character.
@@ -122,13 +132,13 @@ class Capture(__Group):
             - Creating a named capturing group out of an unnamed capturing group, assigns a name to it.
             - Creating a named capturing group out of a named capturing group, changes the group's name.
         '''
-        if not isinstance(name, str):
-            message = "Provided argument \"name\" is not a string."
-            raise _ex.InvalidArgumentTypeException(message)
-        if name != '' and _re.fullmatch("[A-Za-z_]\w*", name) is None:
-            raise _ex.InvalidCapturingGroupNameException(name)
+        if name is not None:
+            if not isinstance(name, str):
+                message = "Provided argument \"name\" is not a string."
+                raise _ex.InvalidArgumentTypeException(message)
+            if _re.fullmatch("[A-Za-z_]\w*", name) is None:
+                raise _ex.InvalidCapturingGroupNameException(name)
         super().__init__(pre, lambda pre: pre._capturing_group(name))
-        self.name = name
 
 
 class Group(__Group):
@@ -136,6 +146,9 @@ class Group(__Group):
     Creates a non-capturing group out of the provided pattern.
 
     :param Pregex | str pre: The expression out of which the non-capturing group is created.
+
+    :raises InvalidArgumentTypeException: Parameter ``pre`` is neither a \
+        ``Pregex`` instance nor a string.
 
     :note:
         - Creating a non-capturing group out of a non-capturing group does nothing to it.
@@ -147,6 +160,9 @@ class Group(__Group):
         Creates a non-capturing group out of the provided pattern.
 
         :param Pregex | str pre: The expression out of which the non-capturing group is created.
+
+        :raises InvalidArgumentTypeException: Parameter ``pre`` is neither a \
+            ``Pregex`` instance nor a string.
 
         :note:
             - Creating a non-capturing group out of a non-capturing group does nothing to it.
@@ -200,15 +216,18 @@ class Conditional(__Group):
     :param str name: The name of the referenced capturing group.
     :param Pregex | str pre1: The pattern that is to be matched in case condition is true.
     :param Pregex | str pre2: The pattern that is to be matched in case condition is false. \
-        Defaults to ``''``.
+        Defaults to ``None``.
 
-    :raises InvalidArgumentTypeException: Parameter ``name`` is not a string.
+    :raises InvalidArgumentTypeException:
+        - Parameter ``name`` is not a string.
+        - Parameter ``pre1`` is neither a ``Pregex`` instance nor a string.
+        - Parameter ``pre2`` is neither a ``Pregex`` instance nor a string nor ``None``.
     :raises InvalidCapturingGroupNameException: Parameter ``name`` is not a valid \
         capturing-group name. Such name must contain word characters only and start \
         with a non-digit character.
     '''
 
-    def __init__(self, name: str, pre1: _pre.Pregex or str, pre2: _pre.Pregex or str = ''):
+    def __init__(self, name: str, pre1: _pre.Pregex or str, pre2: _pre.Pregex or str = None):
         '''
         Given the name of a capturing group, matches ``pre1`` only if said capturing group has \
         been previously matched. Furthermore, if a second pattern ``pre2`` is provided, then this \
@@ -218,9 +237,12 @@ class Conditional(__Group):
         :param str name: The name of the referenced capturing group.
         :param Pregex | str pre1: The pattern that is to be matched in case condition is true.
         :param Pregex | str pre2: The pattern that is to be matched in case condition is false. \
-            Defaults to ``''``.
+            Defaults to ``None``.
 
-        :raises InvalidArgumentTypeException: Parameter ``name`` is not a string.
+        :raises InvalidArgumentTypeException:
+            - Parameter ``name`` is not a string.
+            - Parameter ``pre1`` is neither a ``Pregex`` instance nor a string.
+            - Parameter ``pre2`` is neither a ``Pregex`` instance nor a string nor ``None``.
         :raises InvalidCapturingGroupNameException: Parameter ``name`` is not a valid \
             capturing-group name. Such name must contain word characters only and start \
             with a non-digit character.
@@ -230,4 +252,4 @@ class Conditional(__Group):
             raise _ex.InvalidArgumentTypeException(message)
         if _re.fullmatch("[A-Za-z_][\w]*", name) is None:
             raise _ex.InvalidCapturingGroupNameException(name)
-        super().__init__(name, lambda s: f"(?({s}){pre1}{'|' + str(pre2) if pre2 != '' else ''})")
+        super().__init__(name, lambda s: f"(?({s}){pre1}{'|' + str(pre2) if pre2 != None else ''})")
