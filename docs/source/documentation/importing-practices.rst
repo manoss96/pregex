@@ -26,7 +26,7 @@ including the following statements at the top of their Python script:
 
 	pre = op.Either("Hello", "Bye") + " World" + qu.Optional("!")
 
-	print(pre.get_pattern()) # This prints "(?:Hello|Bye) World!?"
+	pre.print_pattern() # This prints "(?:Hello|Bye) World!?"
 
   It is recommended that you follow this practice as besides the fact that
   it saves you the trouble of having to import from each module separately,

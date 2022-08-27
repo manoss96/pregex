@@ -103,8 +103,8 @@ Finally, you might have noticed that we built our pattern by utilizing
 various classes that were imported from modules under *pregex.core*. These
 modules contain classes through which the RegEx syntax is essentially replaced.
 However, PRegEx includes another set of modules, namely those under subpackage
-*pregex.meta*, whose classes build upon those from *pregex.core* in order
-to provide higher-level patterns that are a bit more difficult to construct!
+*pregex.meta*, whose classes build upon those in *pregex.core* so as to
+provide higher-level patterns that are a bit more difficult to construct!
 
 ```python
 
@@ -124,7 +124,7 @@ pre: Pregex = Either(
 By using classes found within the *pregex.meta* subpackage, we were able to
 construct more or less the same pattern as before only much more easily!
 
-You can learn more about how PRegEx works by visiting the [PRegEx Documentation Page][docs-url].
+You can learn more about PRegEx by visiting the [PRegEx Documentation Page][docs-url].
 
 
 <!-- MARKDOWN LINKS & IMAGES -->

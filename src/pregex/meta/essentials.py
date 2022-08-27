@@ -1,4 +1,5 @@
 import pregex.core.pre as _pre
+import pregex.core.tokens as _tk
 import pregex.core.groups as _gr
 import pregex.core.classes as _cl
 import pregex.core.operators as _op
@@ -9,25 +10,20 @@ import pregex.core.quantifiers as _qu
 
 __doc__ = '''
 This module contains various classes that can be used to match
-all sorts of different patterns.
+all sorts of useful patterns.
 '''
 
-'''
-Match word at start:
-
-Either(MatchAtStart(Empty), PrecededBy(Empty, AnyWhitespace))
-'''
 
 class Word(_pre.Pregex):
     '''
     Matches any word.
 
     :param int min_chars: The minimum amount of characters a word must have in order to \
-        be considered a match. Defaults to "1".
+        be considered a match. Defaults to ``1``.
     :param int max_chars: The maximum amount of characters a word must have in order to \
         be considered a match. If set to "None", then it is considered that there is no upper
-        limit to the amount of characters a word can have. Defaults to "None".
-    :param is_global: Determines whether to include foreign characters. Defaults to "True".
+        limit to the amount of characters a word can have. Defaults to ``None``.
+    :param is_global: Determines whether to include foreign characters. Defaults to ``True``.
 
     :raises InvalidArgumentTypeException:
         - Parameter ``min_chars`` is not an integer.
@@ -41,11 +37,11 @@ class Word(_pre.Pregex):
         Matches any word.
 
         :param int min_chars: The minimum amount of characters a word must have in order to \
-            be considered a match. Defaults to "1".
+            be considered a match. Defaults to ``1``.
         :param int max_chars: The maximum amount of characters a word must have in order to \
             be considered a match. If set to "None", then it is considered that there is no upper
-            limit to the amount of characters a word can have. Defaults to "None".
-        :param is_global: Determines whether to include foreign characters. Defaults to "True".
+            limit to the amount of characters a word can have. Defaults to ``None``.
+        :param is_global: Determines whether to include foreign characters. Defaults to ``True``.
 
         :raises InvalidArgumentTypeException:
             - Parameter ``min_chars`` is not an integer.
@@ -74,7 +70,7 @@ class Word(_pre.Pregex):
             raise _ex.InvalidArgumentValueException(message)
         
         pre = _qu.AtLeastAtMost(pre, min=min_chars, max=max_chars)
-        pre = _asr.WordBoundary() + pre + _asr.WordBoundary()
+        pre = _op.Enclose(pre,_asr.WordBoundary())
         super().__init__(str(pre), escape=False)
 
 
@@ -84,7 +80,7 @@ class WordContains(_pre.Pregex):
 
     :param list[str] | str infix: Either a string or a list of strings at least one of which \
         a word must contain in order to be considered a match.
-    :param is_global: Determines whether to include foreign characters. Defaults to 'True'.
+    :param is_global: Determines whether to include foreign characters. Defaults to ``True``.
 
     :raises InvalidArgumentTypeException: At least one of the provided infixes is not a string.
     '''
@@ -94,7 +90,7 @@ class WordContains(_pre.Pregex):
 
         :param list[str] | str infix: Either a string or a list of strings at least one of which \
             a word must contain in order to be considered a match.
-        :param is_global: Determines whether to include foreign characters. Defaults to 'True'.
+        :param is_global: Determines whether to include foreign characters. Defaults to ``True``.
 
         :raises InvalidArgumentTypeException: At least one of the provided infixes is not a string.
         '''
@@ -108,7 +104,7 @@ class WordContains(_pre.Pregex):
         pre = _qu.Indefinite(_cl.AnyWordChar(is_global=is_global)) + \
             pre + \
             _qu.Indefinite(_cl.AnyWordChar(is_global=is_global))
-        pre = _asr.WordBoundary() + pre + _asr.WordBoundary()
+        pre = _op.Enclose(pre, _asr.WordBoundary())
         super().__init__(str(pre), escape=False)
 
 
@@ -118,7 +114,7 @@ class WordStartsWith(_pre.Pregex):
 
     :param list[str] | str prefix: Either a string or a list of strings at least one of which \
         a word must start with in order to be considered a match.
-    :param is_global: Determines whether to include foreign characters. Defaults to 'True'.
+    :param is_global: Determines whether to include foreign characters. Defaults to ``True``.
 
     :raises InvalidArgumentTypeException: At least one of the provided prefixes is not a string.
     '''
@@ -128,7 +124,7 @@ class WordStartsWith(_pre.Pregex):
 
         :param list[str] | str prefix: Either a string or a list of strings at least one of which \
             a word must start with in order to be considered a match.
-        :param is_global: Determines whether to include foreign characters. Defaults to 'True'.
+        :param is_global: Determines whether to include foreign characters. Defaults to ``True``.
 
         :raises InvalidArgumentTypeException: At least one of the provided prefixes is not a string.
         '''
@@ -150,7 +146,7 @@ class WordEndsWith(_pre.Pregex):
 
     :param list[str] | str suffix: Either a string or a list of strings at least one of which \
         a word must end with in order to be considered a match.
-    :param is_global: Determines whether to include foreign characters. Defaults to 'True'.
+    :param is_global: Determines whether to include foreign characters. Defaults to ``True``.
 
     :raises InvalidArgumentTypeException: At least one of the provided suffixes is not a string.
     '''
@@ -160,7 +156,7 @@ class WordEndsWith(_pre.Pregex):
 
         :param list[str] | str suffix: Either a string or a list of strings at least one of which \
             a word must end with in order to be considered a match.
-        :param is_global: Determines whether to include foreign characters. Defaults to 'True'.
+        :param is_global: Determines whether to include foreign characters. Defaults to ``True``.
 
         :raises InvalidArgumentTypeException: At least one of the provided suffixes is not a string.
         '''
@@ -394,12 +390,13 @@ class Integer(__Integer):
         - Parameter ``start`` has a value of less than zero.
         - Parameter ``start`` has a greater value than that of parameter ``end``.
 
-    :note: Be aware that parameter ``ignore_sign`` might play a role not only \
-        in deciding the content of the matches, but their amount as well. For example, \
+    :note: Be aware that parameter ``ignore_sign`` might not only play a role in \
+        deciding the content of the matches, but their number as well. For example, \
         setting ``ignore_sign`` to ``True`` will result in ``Integer`` matching both \
         ``1`` and ``2`` in ``1+2``, whereas setting it to ``False`` results in just \
-        matching ``1``. That is, because ``+2`` is considered an integer as a whole, \
-        and as such, it cannot match when another digit, namely ``1``, directly precedes it.
+        matching ``1``. That is, because in case ``ignore_sign`` is ``False``,  ``+2`` \
+        is considered an integer as a whole, and as such, it cannot match when another \
+        digit, namely ``1``, directly precedes it.
     '''
     def __init__(self, start: int = 0, end: int = 2147483647, ignore_sign: bool = True):
         '''
@@ -416,21 +413,24 @@ class Integer(__Integer):
             - Parameter ``start`` has a value of less than zero.
             - Parameter ``start`` has a greater value than that of parameter ``end``.
 
-        :note: Be aware that parameter ``ignore_sign`` might play a role not only \
-            in deciding the content of the matches, but their amount as well. For example, \
+        :note: Be aware that parameter ``ignore_sign`` might not only play a role in \
+            deciding the content of the matches, but their number as well. For example, \
             setting ``ignore_sign`` to ``True`` will result in ``Integer`` matching both \
             ``1`` and ``2`` in ``1+2``, whereas setting it to ``False`` results in just \
-            matching ``1``. That is, because ``+2`` is considered an integer as a whole, \
-            and as such, it cannot match when another digit, namely ``1``, directly precedes it.
+            matching ``1``. That is, because in case ``ignore_sign`` is ``False``,  ``+2`` \
+            is considered an integer as a whole, and as such, it cannot match when another \
+            digit, namely ``1``, directly precedes it.
         '''
-        sign = _op.Either(
-            _asr.WordBoundary() if ignore_sign else \
-            _asr.NonWordBoundary() + _op.Either("+", "-"),
-            _asr.NotPrecededBy(
-                _pre.Empty(),
-                _op.Either("+", "-")
+        if ignore_sign:
+            sign = _pre.Empty()
+        else:
+            sign = _op.Either(
+                _asr.NonWordBoundary() + _op.Either("+", "-"),
+                _asr.NotPrecededBy(
+                    _pre.Empty(),
+                    _op.Either("+", "-")
+                )
             )
-        )      
         super().__init__(sign, start, end)
 
 
@@ -550,13 +550,6 @@ class __Decimal(_pre.Pregex):
         - Parameter ``start`` has a greater value than that of parameter ``end``.
         - Parameter ``min_decimal`` has a value of less than ``1``.
         - Parameter ``min_decimal`` has a greater value than that of parameter ``max_decimal``.
-
-    :note: Be aware that parameter ``ignore_sign`` might play a role not only \
-        in deciding the content of the matches, but their amount as well. For example, \
-        setting ``ignore_sign`` to ``True`` will result in ``Integer`` matching both \
-        ``1.1`` and ``2.2`` in ``1.1+2.2``, whereas setting it to ``False`` results in \
-        just matching ``1.1``. That is, because ``+2.2`` is considered a decimal as a whole, \
-        and as such, it cannot match when another digit, namely ``1``, directly precedes it.
     '''
     def __init__(self, integer: _pre.Pregex, no_integer: _pre.Pregex, min_decimal: int, max_decimal: int):
         '''
@@ -577,13 +570,6 @@ class __Decimal(_pre.Pregex):
             - Parameter ``start`` has a greater value than that of parameter ``end``.
             - Parameter ``min_decimal`` has a value of less than ``1``.
             - Parameter ``min_decimal`` has a greater value than that of parameter ``max_decimal``.
-
-        :note: Be aware that parameter ``ignore_sign`` might play a role not only \
-            in deciding the content of the matches, but their amount as well. For example, \
-            setting ``ignore_sign`` to ``True`` will result in ``Integer`` matching both \
-            ``1.1`` and ``2.2`` in ``1.1+2.2``, whereas setting it to ``False`` results in \
-            just matching ``1.1``. That is, because ``+2.2`` is considered a decimal as a whole, \
-            and as such, it cannot match when another digit, namely ``1``, directly precedes it.
         '''
         if not isinstance(min_decimal, int) or isinstance(min_decimal, bool):
             message = "Provided argument \"min_decimal\" must be an integer."
@@ -611,8 +597,10 @@ class Decimal(__Decimal):
     '''
     Matches any decimal number within a specified range.
 
-    :param int start: The starting value of the range. Defaults to ``0``.
-    :param int end: The ending value of the range. Defaults to ``2147483647``.
+    :param int start: The starting value of the integer part range. \
+        Defaults to ``0``.
+    :param int end: The ending value of the integer part range. \
+        Defaults to ``2147483647``.
     :param int min_decimal: The minimum number of digits within the decimal part. \
         Defaults to ``1``.
     :param int | None max_decimal: The maximum number of digits within the decimal part. \
@@ -627,6 +615,14 @@ class Decimal(__Decimal):
         - Parameter ``start`` has a greater value than that of parameter ``end``.
         - Parameter ``min_decimal`` has a value of less than ``1``.
         - Parameter ``min_decimal`` has a greater value than that of parameter ``max_decimal``.
+
+    :note: Be aware that parameter ``ignore_sign`` might not only play a role in \
+        deciding the content of the matches, but their number as well. For example, \
+        setting ``ignore_sign`` to ``True`` will result in ``Integer`` matching both \
+        ``1.1`` and ``2.2`` in ``1.1+2.2``, whereas setting it to ``False`` results in \
+        just matching ``1.1``. That is, because in case ``ignore_sign`` is ``False``, \
+        ``+2.2`` is considered an integer as a whole, and as such, it cannot match when \
+        another digit, namely ``1``, directly precedes it.
     '''
 
     def __init__(self, start: int = 0, end: int = 2147483647,
@@ -634,8 +630,10 @@ class Decimal(__Decimal):
         '''
         Matches any decimal number within a specified range.
 
-        :param int start: The starting value of the range. Defaults to ``0``.
-        :param int end: The ending value of the range. Defaults to ``2147483647``.
+        :param int start: The starting value of the integer part range. \
+            Defaults to ``0``.
+        :param int end: The ending value of the integer part range. \
+            Defaults to ``2147483647``.
         :param int min_decimal: The minimum number of digits within the decimal part. \
             Defaults to ``1``.
         :param int | None max_decimal: The maximum number of digits within the decimal part. \
@@ -650,6 +648,14 @@ class Decimal(__Decimal):
             - Parameter ``start`` has a greater value than that of parameter ``end``.
             - Parameter ``min_decimal`` has a value of less than ``1``.
             - Parameter ``min_decimal`` has a greater value than that of parameter ``max_decimal``.
+
+        :note: Be aware that parameter ``ignore_sign`` might not only play a role in \
+            deciding the content of the matches, but their number as well. For example, \
+            setting ``ignore_sign`` to ``True`` will result in ``Integer`` matching both \
+            ``1.1`` and ``2.2`` in ``1.1+2.2``, whereas setting it to ``False`` results in \
+            just matching ``1.1``. That is, because in case ``ignore_sign`` is ``False``, \
+            ``+2.2`` is considered an integer as a whole, and as such, it cannot match when \
+            another digit, namely ``1``, directly precedes it.
         '''
         integer = Integer(start, end, ignore_sign)
         if start == 0:
@@ -665,8 +671,10 @@ class PositiveDecimal(__Decimal):
     '''
     Matches any strictly positive decimal number within a specified range.
 
-    :param int start: The starting value of the range. Defaults to ``0``.
-    :param int end: The ending value of the range. Defaults to ``2147483647``.
+    :param int start: The starting value of the integer part range. \
+        Defaults to ``0``.
+    :param int end: The ending value of the integer part range. \
+        Defaults to ``2147483647``.
     :param int min_decimal: The minimum number of digits within the decimal part. \
         Defaults to ``1``.
     :param int | None max_decimal: The maximum number of digits within the decimal part. \
@@ -685,8 +693,10 @@ class PositiveDecimal(__Decimal):
         '''
         Matches any positive decimal number within a specified range.
 
-        :param int start: The starting value of the range. Defaults to ``0``.
-        :param int end: The ending value of the range. Defaults to ``2147483647``.
+        :param int start: The starting value of the integer part range. \
+            Defaults to ``0``.
+        :param int end: The ending value of the integer part range. \
+            Defaults to ``2147483647``.
         :param int min_decimal: The minimum number of digits within the decimal part. \
             Defaults to ``1``.
         :param int | None max_decimal: The maximum number of digits within the decimal part. \
@@ -712,8 +722,10 @@ class NegativeDecimal(__Decimal):
     '''
     Matches any negative decimal number within a specified range.
 
-    :param int start: The starting value of the range. Defaults to ``0``.
-    :param int end: The ending value of the range. Defaults to ``2147483647``.
+    :param int start: The starting value of the integer part range. \
+        Defaults to ``0``.
+    :param int end: The ending value of the integer part range. \
+        Defaults to ``2147483647``.
     :param int min_decimal: The minimum number of digits within the decimal part. \
         Defaults to ``1``.
     :param int | None max_decimal: The maximum number of digits within the decimal part. \
@@ -732,8 +744,10 @@ class NegativeDecimal(__Decimal):
         '''
         Matches any negative decimal number within a specified range.
 
-        :param int start: The starting value of the range. Defaults to ``0``.
-        :param int end: The ending value of the range. Defaults to ``2147483647``.
+        :param int start: The starting value of the integer part range. \
+            Defaults to ``0``.
+        :param int end: The ending value of the integer part range. \
+            Defaults to ``2147483647``.
         :param int min_decimal: The minimum number of digits within the decimal part. \
             Defaults to ``1``.
         :param int | None max_decimal: The maximum number of digits within the decimal part. \
@@ -760,8 +774,10 @@ class UnsignedDecimal(__Decimal):
     Matches any decimal number within a specified range, \
     provided that it is not preceded by a sign.
 
-    :param int start: The starting value of the range. Defaults to ``0``.
-    :param int end: The ending value of the range. Defaults to ``2147483647``.
+    :param int start: The starting value of the integer part range. \
+        Defaults to ``0``.
+    :param int end: The ending value of the integer part range. \
+        Defaults to ``2147483647``.
     :param int min_decimal: The minimum number of decimal places. Defaults to ``1``.
     :param int | None max_decimal: The maximum number of decimal places. Defaults to ``None``.
     :param bool include_sign: Determines whether to include any existing \
@@ -781,8 +797,10 @@ class UnsignedDecimal(__Decimal):
         Matches any decimal number within a specified range, \
         provided that it is not preceded by a sign.
 
-        :param int start: The starting value of the range. Defaults to ``0``.
-        :param int end: The ending value of the range. Defaults to ``2147483647``.
+        :param int start: The starting value of the integer part range. \
+            Defaults to ``0``.
+        :param int end: The ending value of the integer part range. \
+            Defaults to ``2147483647``.
         :param int min_decimal: The minimum number of decimal places. Defaults to ``1``.
         :param int | None max_decimal: The maximum number of decimal places. Defaults to ``None``.
         :param bool include_sign: Determines whether to include any existing \
@@ -804,28 +822,172 @@ class UnsignedDecimal(__Decimal):
         super().__init__(integer, no_integer, min_decimal, max_decimal)
 
 
+class Date(_pre.Pregex):
+    '''
+    Matches any date within a range of predefined formats.
+
+    :param str \*formats: One or more strings through which it is determined \
+        what are the exact date formats that are to be considered possible \
+        matches. A valid date format can be either one of:
+
+      - ``D<sep>M<sep>Y``
+      - ``M<sep>D<sep>Y``
+      - ``Y<sep>M<sep>D``
+
+      where:
+
+      - ``<sep>``: Either ``/``
+      - ``D``: Either one of the following:
+
+        - ``d``: one-digit day of the month for days below 10
+        - ``dd``: two-digit day of the month, e.g. 02
+
+      - ``M``: Either one of the following:
+
+        - ``m``: one-digit month for months below 10, e.g. 3
+        - ``mm``: two-digit month, e.g. 03
+
+      - ``Y``: Either one of the following:
+
+        - ``yy``: two-digit year, e.g. 21
+        - ``yyyy``: four-digit year, e.g. 2021
+
+      For example, ``dd/mm/yyyy`` is considered a valid date format whereas \
+      ``mm/yyyy/dd`` is not. Lastly, If no arguments are provided, then all \
+      possible formats are considered.
+
+    :raises InvalidArgumentValueException: At least one of the provided arguments \
+        is not a valid date format.
+    '''
+    __date_separators: tuple[str, str] = ("-", "/")
+
+    __date_value_pre: dict[str, _pre.Pregex] = {
+        "d": _cl.AnyDigit() - "0", 
+        "dd": _op.Either("0" + (_cl.AnyDigit() - "0"), Integer(10, 31)),
+        "m": _cl.AnyDigit() - "0",
+        "mm": _op.Either("0" + (_cl.AnyDigit() - "0"), Integer(10, 12)),
+        "yy": _cl.AnyDigit() * 2, 
+        "yyyy": _cl.AnyDigit() * 4, 
+    }
+
+    def __init__(self, *formats: str):
+        '''
+        Matches any date within a range of predefined formats.
+
+        :param str \*formats: One or more strings through which it is determined \
+            what are the exact date formats that are to be considered possible \
+            matches. A valid date format can be either one of:
+
+          - ``D<sep>M<sep>Y``
+          - ``M<sep>D<sep>Y``
+          - ``Y<sep>M<sep>D``
+
+          where:
+
+          - ``<sep>``: Either ``/`` or ``-``
+          - ``D``: Either one of the following:
+
+              - ``d``: one-digit day of the month for days below 10
+              - ``dd``: two-digit day of the month, e.g. 02
+
+          - ``M``: Either one of the following:
+
+              - ``m``: one-digit month for months below 10, e.g. 3
+              - ``mm``: two-digit month, e.g. 03
+
+          - ``Y``: Either one of the following:
+
+              - ``yy``: two-digit year, e.g. 21
+              - ``yyyy``: four-digit year, e.g. 2021
+
+          For example, ``dd/mm/yyyy`` is considered a valid date format whereas \
+          ``mm/yyyy/dd`` is not. Lastly, If no arguments are provided, then all \
+          possible formats are considered.
+
+        :raises InvalidArgumentValueException: At least one of the provided arguments \
+            is not a valid date format.
+        '''
+        date_formats = __class__.__date_formats()
+        formats = date_formats if not formats else formats
+        
+        dates: list[_pre.Pregex] = []
+        for format in formats:
+            if format not in date_formats:
+                message = f"Provided date format \"{format}\" is not valid."
+                raise _ex.InvalidArgumentValueException(message)
+            dates.append(__class__.__date_pre(format))
+
+        pre = _op.Either(*dates) if len(dates) > 1 else dates[0]
+        pre = _asr.WordBoundary() + pre + _asr.WordBoundary()
+        super().__init__(str(pre), escape=False)
+    
+
+    def __date_pre(format: str) -> _pre.Pregex:
+        """
+        Converts a date format into a ``Pregex`` instance.
+        
+        :param str format: The date format to be converted.
+        """
+        format = format.lower()
+
+        for sep in __class__.__date_separators:
+            if sep in format:
+                separator = sep
+                break
+        
+        values = format.split(separator)
+
+        date_pre = _pre.Empty()
+        for i, value in enumerate(values):
+            date_pre += __class__.__date_value_pre[value]
+            if i < len(values) - 1:
+                date_pre += separator
+                
+        return date_pre
+
+
+    def __date_formats() -> list[str]:
+        '''
+        Returns a list containing all possible date format combinations.
+        '''
+        day = ("dd", "d")
+        month = ("mm", "m")
+        year = ("yyyy", "yy")
+
+        date_formats: list[tuple[str, str, str]] = []
+        for d in day:
+            for m in month:
+                for y in year:
+                    date_formats.append((d, m, y))
+                    date_formats.append((m, d, y))
+                    date_formats.append((y, m, d))
+
+        return [sep.join(df) for df in date_formats for sep in __class__.__date_separators]
+
+
 class IPv4(_pre.Pregex):
     '''
-    Matches an IPv4 Address.
+    Matches any IPv4 Address.
     '''
 
     def __init__(self):
         '''
-        Matches an IPv4 Address.
+        Matches any IPv4 Address.
         '''
         ip_octet = Integer(start=0, end=255)
         pre = 3 * (ip_octet + ".") + ip_octet
+        pre = _asr.NotEnclosedBy(pre, _op.Either(_cl.AnyDigit(), "."))
         super().__init__(str(pre), escape=False)
 
 
 class IPv6(_pre.Pregex):
     '''
-    Matches an IPv6 Address.
+    Matches any IPv6 Address.
     '''
 
     def __init__(self):
         '''
-        Matches an IPv6 Address.
+        Matches any IPv6 Address.
         '''
         hex_group = Numeral(base=16, n_min=1, n_max=4)
         pre = 7 * (hex_group + ":") + hex_group
@@ -843,42 +1005,112 @@ class IPv6(_pre.Pregex):
         super().__init__(str(pre), escape=False)
 
 
+class Email(_pre.Pregex):
+    '''
+    Matches any email address.
+
+    :note: Not guaranteed to match every possible e-mail address.
+    '''
+
+    def __init__(self):
+        '''
+        Matches any email address.
+
+        :note: Not guaranteed to match every possible e-mail address.
+        '''
+        special = _cl.AnyFrom('!', '#', '$', '%', "'", '*', '+',
+            '-', '/', '=', '?', '^', '_', '`', '{', '|', '}', '~')
+
+        alphanum = _cl.AnyLetter() | _cl.AnyDigit()
+
+        name_valid_char = alphanum | special
+
+        left_most = _op.Either(
+            _asr.FollowedBy(
+                _asr.NonWordBoundary(),
+                special
+            ),
+            _asr.FollowedBy(
+                _asr.WordBoundary(),
+                alphanum
+            )  
+        ) 
+
+        name = \
+            (name_valid_char - '-') + \
+            _qu.AtMost(
+                _op.Either(name_valid_char, _asr.NotFollowedBy('.', '.')),
+                n=62) + \
+            (name_valid_char - '-')
+
+        domain_name = \
+            alphanum + \
+            _qu.AtMost(alphanum | "-", n=61) + \
+            alphanum
+
+        tld = "." + _qu.AtLeastAtMost(_cl.AnyLowercaseLetter(), min=2, max=6)
+
+        pre = left_most + name + "@" + domain_name + tld + _asr.WordBoundary()
+        super().__init__(str(pre), escape=False)
+
+
 class HttpUrl(_pre.Pregex):
     '''
-    Matches an HTTP URL.
+    Matches any HTTP URL.
 
     :param bool capture_domain: If set to ``True``, then the domain name \
         of each URL match is separately captured as well. Defaults to ``False``.
+
+    :note: Not guaranteed to match every possible HTTP URL.
     '''
 
     def __init__(self, capture_domain: bool = False):
         '''
-        Matches an HTTP URL.
+        Matches any HTTP URL.
 
         :param bool capture_domain: If set to ``True``, then the domain name \
             of each URL match is separately captured as well. Defaults to ``False``.
+
+        :note: Not guaranteed to match every possible HTTP URL.
         '''
         left_most = _asr.WordBoundary()
-        optional_protocol = _qu.Optional("http" + _qu.Optional("s") + "://")
+
+        http_protocol = _qu.Optional("http" + _qu.Optional("s") + "://")
+
         www = _qu.Optional("www.")
+
         alphanum = _cl.AnyLetter() | _cl.AnyDigit()
+
         domain_name = \
             alphanum + \
-            _qu.AtLeastAtMost(alphanum | "-", min=1, max=61) + \
+            _qu.AtMost(alphanum | "-", n=61) + \
             alphanum
+
         subdomains = _qu.Indefinite(domain_name + ".")
-        tld = "." + _qu.AtLeastAtMost(_cl.AnyLowercaseLetter(), min=2, max=3)
+
+        tld = "." + _qu.AtLeastAtMost(_cl.AnyLowercaseLetter(), min=2, max=6)
+
         optional_port = _qu.Optional(":" + _qu.AtLeastAtMost(_cl.AnyDigit(), min=1, max=4))
+
         directories = _qu.Indefinite(
             "/" + \
              _qu.OneOrMore(_cl.AnyWordChar(is_global=True) | (_cl.AnyPunctuation() - "/"))
-        )
-        right_most = _op.Either("/" + _asr.NonWordBoundary(), _asr.WordBoundary())
-        
+        ) + _qu.Optional("/")
+
+        right_most = _op.Either(
+            _asr.PrecededBy(
+                _asr.NonWordBoundary(),
+                _cl.AnyPunctuation()
+            ),
+            _asr.PrecededBy(
+                _asr.WordBoundary(),
+                _cl.AnyWordChar(is_global=True)
+            )  
+        )  
         if capture_domain:
             domain_name = _gr.Capture(domain_name)
 
-        pre = left_most + optional_protocol + www + subdomains + \
+        pre = left_most + http_protocol + www + subdomains + \
             domain_name + tld + optional_port + directories + right_most
         super().__init__(str(pre), escape=False)
 

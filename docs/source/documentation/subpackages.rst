@@ -73,11 +73,11 @@ Click on any one of pregex's *core* modules below to check out its classes:
 pregex.meta
 =================
 
-Unlike *core* modules, whose classes all expclicitly define some RegEx
-pattern and are not dependent on any other classes within pregex, *meta*
-modules contain classes that combine various :class:`~pregex.core.pre.Pregex`
-instances together in order to form complex patterns that you can utilize.
-Consider for example :class:`~pregex.meta.essentials.Integer` which enables you to
+Unlike *core* modules, whose classes are all independent from each other,
+*meta* modules contain classes that effectively combine various
+:class:`~pregex.core.pre.Pregex` instances together in order to form
+complex patterns that you can then use. Consider for example
+:class:`~pregex.meta.essentials.Integer` which enables you to
 match any integer within a specified range.
 
 .. code-block:: python
@@ -90,10 +90,10 @@ match any integer within a specified range.
    
    print(pre.get_matches(text)) # This prints "['77', '117', '512', '789']"
 
-Classes in *meta* modules therefore offer various patterns that one might
-find useful so they don't have to construct them themselves. And remember,
-no matter the complexity of a pattern, it remains to be a Pregex instance,
-and as such, it can always be extended even further!
+Classes in *meta* modules therefore offer various patterns that can be useful,
+but at the same time hard to build. And remember, no matter the complexity of
+a pattern, it remains to be a Pregex instance, and as such, it can always be
+extended even further!
 
 .. code-block:: python
 

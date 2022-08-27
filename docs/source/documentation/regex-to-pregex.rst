@@ -44,8 +44,8 @@ all other classes inherit.
 Being wrapped within instances of the same type allows for these Pregex
 patterns to be easily combined together into even more complex patterns.
 Consider for example the code snippet below where we construct a Pregex
-pattern that will match either any word that starts with "ST" or "st", or any
-3-digit number that does not end with the number five:
+pattern that will match either any word that starts with "ST" or "st",
+or any 3-digit integer number:
 
 .. code-block:: python
 
@@ -56,9 +56,9 @@ pattern that will match either any word that starts with "ST" or "st", or any
 
    starts_with_st = Either("ST", "st") + OneOrMore(AnyLetter())
 
-   three_digit_number = 2 * AnyDigit() + (AnyDigit() - '5')
+   three_digit_integer = (AnyDigit() - '0') + (2 * AnyDigit())
 
-   pre = WordBoundary() + Either(starts_with_st, three_digit_number) + WordBoundary()
+   pre = WordBoundary() + Either(starts_with_st, three_digit_integer) + WordBoundary()
 
 By both using PRegEx's human-friendly syntax and breaking down the pattern into simpler
 subpatterns, it is not hard to tell how this pattern is constructed, as well as what its
@@ -67,8 +67,8 @@ it has access to all of the class's methods:
 
 .. code-block:: python
 
-   pre.print_pattern() # This prints '\b(?:(?:ST|st)[A-Za-z]+|\d{2}[0-46-9])\b'
-   print(pre.get_matches('STACK station pastry must 545 446 3462')) # This prints "['STACK', 'station', '446']"
+   pre.print_pattern() # This prints '\b(?:(?:ST|st)[A-Za-z]+|[1-9]\d{2})\b'
+   print(pre.get_matches('STACK station pastry must 012 446 3462')) # This prints "['STACK', 'station', '446']"
 
 
 Converting a string into a Pregex instance
@@ -79,19 +79,19 @@ string that require escaping are automatically escaped.
 
 .. code-block:: python
 
-   from pregex.pre import Pregex
+   from pregex.core.pre import Pregex
 
    pre = Pregex("Hello.")
 
    pre.print_pattern() # This prints 'Hello\.'
 
-Be as it may, you probably won't need to do this often since any string that interacts with
-a Pregex instance in any way is automatically converted into a Pregex instance itself:
+Nevertheless, you probably won't need to do this often since any string that interacts
+with a Pregex instance in any way is automatically converted into a Pregex instance itself:
 
 .. code-block:: python
 
-   from pregex.pre import Pregex
-   from pregex.quantifiers import Optional
+   from pregex.core.pre import Pregex
+   from pregex.core.quantifiers import Optional
 
    # These two statements are equivalent.
    pre1 = Optional(Pregex("Hello."))
@@ -104,7 +104,7 @@ character-escaping:
 
 .. code-block:: python
 
-   from pregex.pre import Pregex
+   from pregex.core.pre import Pregex
 
    pre = Pregex("[a-z].?", escape=False)
 
@@ -119,8 +119,8 @@ overloaded addition operator ``+``.
 
 .. code-block:: python
 
-   from pregex.pre import Pregex
-   from pregex.quantifiers import Optional
+   from pregex.core.pre import Pregex
+   from pregex.core.quantifiers import Optional
 
    pre = Pregex("a") + Pregex("b") + Optional("c")
 
@@ -131,7 +131,7 @@ is at least one Pregex instance involved in the operation:
 
 .. code-block:: python
 
-   from pregex.quantifiers import Optional
+   from pregex.core.quantifiers import Optional
 
    pre = "a" + "b" + Optional("c")
 
@@ -149,7 +149,7 @@ repeated an exact number of times:
 
 .. code-block:: python
 
-   from pregex.pre import Pregex
+   from pregex.core.pre import Pregex
 
    pre = 3 * Pregex("a")
 

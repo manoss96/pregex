@@ -95,5 +95,18 @@ class TestEither(unittest.TestCase):
         self.assertRaises(NotEnoughArgumentsException, Either, TEST_STR_1)
 
 
+class TestEnclose(unittest.TestCase):
+
+    def test_enclose_class_type(self):
+        self.assertEqual(Enclose("a", "b")._get_type(), _Type.Other)
+    
+    def test_enclose_on_pattern(self):
+        self.assertEqual(str(Enclose(TEST_STR_1, TEST_STR_2)), f"{TEST_STR_2}{TEST_STR_1}{TEST_STR_2}")
+        self.assertEqual(str(Enclose(Pregex(TEST_STR_1), Pregex(TEST_STR_2))), f"{TEST_STR_2}{TEST_STR_1}{TEST_STR_2}")
+
+    def test_enclose_on_empty_token(self):
+        self.assertEqual(str(Enclose(TEST_STR_1, Empty())), f"{TEST_STR_1}")
+
+
 if __name__=="__main__":
     unittest.main()

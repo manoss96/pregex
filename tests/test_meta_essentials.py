@@ -497,9 +497,54 @@ class TestUnsignedDecimal(unittest.TestCase):
         self.assertRaises(InvalidArgumentValueException, UnsignedDecimal, min_decimal=2, max_decimal=1)
 
 
+class TestDate(unittest.TestCase):
+
+    text = '''
+    Valid
+    ------
+    24/11/2001
+    11-24-2001
+    24/11/01
+    1/3/1996
+    1996/11/20
+
+    Invalid
+    -------
+    00/00/1996
+    1996/24/11
+    2/2/2
+    24/07-1996
+    1996/11/2004
+    '''
+    
+    def test_date_on_matches(self):
+        self.assertEqual(Date().get_matches(self.text), [
+            "24/11/2001",
+            "11-24-2001",
+            "24/11/01",
+            "1/3/1996",
+            "1996/11/20"
+        ])
+
+    def test_date_on_specified_matches(self):
+        self.assertEqual(Date("dd/mm/yyyy").get_matches(self.text),
+            ["24/11/2001"])
+
+
 class TestIPv4(unittest.TestCase):
 
-    text = "192.168.1.1 0.0.0.0 132.156.257.111 1231.1.1.1"
+    text = '''
+    Valid
+    -----
+    192.168.1.1
+    0.0.0.0
+    
+    Invalid
+    -------
+    1.1.1.1.1
+    132.156.257.111
+    1231.1.1.1
+    '''
 
     def test_ipv4_on_matches(self):
         self.assertEqual(IPv4().get_matches(self.text), ["192.168.1.1", "0.0.0.0"])
@@ -508,10 +553,18 @@ class TestIPv4(unittest.TestCase):
 class TestIPv6(unittest.TestCase):
 
     text = '''
+    Valid
+    -----
     2001:db8:1234:ffff:ffff:ffff:ffff:ffff
     f23b::fb2:8a2e:370:7334
     ::1
     ::
+
+    Invalid
+    -------
+    2001:db8:1234:ffff:ffff:ffff:ffff:ffff:ffff
+    2001:db8:1234:ffff:ffff:ffff:ffff:gggg
+    2001:db8:1234:ffff:ffff:ffff:ffff
     1ff::234::7
     '''
 
@@ -523,9 +576,44 @@ class TestIPv6(unittest.TestCase):
             "::"])
 
 
+class TestEmail(unittest.TestCase):
+
+    text = '''
+    Valid
+    ------
+    abc-d@mail.com
+    abc.def@mail.cc
+    abc.def@mail-archive.com
+    abc.def@mail.org
+    abc.def@mail.com
+
+    Invalid
+    -------
+    abc.example.com
+    a@b@c@example.com
+    a"b(c)d,e:f;g<h>i[j\k]l@example.com
+    abc-@mail.com
+    abc.def@mail.c
+    abc.def@mail#archive.com
+    abc.def@mail	
+    abc.def@mail..com`	
+    '''
+
+    def test_email_on_matches(self):
+        self.assertEqual(Email().get_matches(self.text), [
+            "abc-d@mail.com",
+            "abc.def@mail.cc",
+            "abc.def@mail-archive.com",
+            "abc.def@mail.org",
+            "abc.def@mail.com"
+        ])
+
+
 class TestHttpUrl(unittest.TestCase):
 
     text = '''
+    Valid
+    -----
     www.youtube.com
     http://wikipedia.org
     https://www.github.com
@@ -535,6 +623,12 @@ class TestHttpUrl(unittest.TestCase):
     www.domain4.io/dir1
     www.domain5.io/dir1/
     www.subdomain.domain6.io/dir1/dir2
+
+    Invalid
+    -------
+    somedomain-.com
+    www.somedomain.comcomcom
+    https://www.y.com
     '''
 
     def test_http_url_on_matches(self):

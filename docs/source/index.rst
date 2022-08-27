@@ -7,8 +7,8 @@ Welcome to pregex's documentation page! You can start by going through the
 pregex package, as well as receive instructions on how to install it. After that,
 you are free to explore the `Documentation <documentation/regex-to-pregex.html>`_
 section so that you learn more about building RegEx patterns with pregex,
-or you can even check out the source code itself by visiting
-`pregex on Github <https://github.com/manoss96/pregex>`_.
+or you can even check out the source code itself by visiting pregex on
+`Github <https://github.com/manoss96/pregex>`_.
 
 ==================================
 

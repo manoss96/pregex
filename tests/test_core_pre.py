@@ -281,6 +281,7 @@ class TestEmpty(unittest.TestCase):
         other = Pregex("abc")
         self.assertEqual(self.pre._concat(other), f"{other}")
         self.assertEqual(self.pre._either(other), f"{other}")
+        self.assertEqual(self.pre._enclose(other), f"{other}{other}")
 
     def test_empty_on_anchor_assertions(self):
         self.assertEqual(self.pre._match_at_start(), "\\A")
