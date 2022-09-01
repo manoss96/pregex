@@ -581,11 +581,11 @@ class TestEmail(unittest.TestCase):
     text = '''
     Valid
     ------
-    abc-d@mail.com
-    abc.def@mail.cc
+    abcdef@mail.com
+    abc-def@mail1.cc
     abc.def@mail-archive.com
-    abc.def@mail.org
-    abc.def@mail.com
+    abc!def@mail-archive1.org
+    abc^def@mail-archive2.com
 
     Invalid
     -------
@@ -601,11 +601,29 @@ class TestEmail(unittest.TestCase):
 
     def test_email_on_matches(self):
         self.assertEqual(Email().get_matches(self.text), [
-            "abc-d@mail.com",
-            "abc.def@mail.cc",
+            "abcdef@mail.com",
+            "abc-def@mail1.cc",
             "abc.def@mail-archive.com",
-            "abc.def@mail.org",
-            "abc.def@mail.com"
+            "abc!def@mail-archive1.org",
+            "abc^def@mail-archive2.com"
+        ])
+
+    def test_email_on_capture_local_part(self):
+        self.assertEqual(Email(capture_local_part=True).get_captures(self.text), [
+            ("abcdef",),
+            ("abc-def",),
+            ("abc.def",),
+            ("abc!def",),
+            ("abc^def",)
+        ])
+
+    def test_email_on_capture_domain(self):
+        self.assertEqual(Email(capture_domain=True).get_captures(self.text), [
+            ("mail",),
+            ("mail1",),
+            ("mail-archive",),
+            ("mail-archive1",),
+            ("mail-archive2",)
         ])
 
 

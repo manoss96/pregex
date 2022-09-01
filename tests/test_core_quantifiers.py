@@ -1,11 +1,11 @@
 import unittest
 from pregex.core.quantifiers import *
 from pregex.core.pre import Pregex, _Type
+from pregex.core.assertions import MatchAtStart
 from pregex.core.operators import Concat, Either
 from pregex.core.classes import AnyLowercaseLetter
-from pregex.core.assertions import MatchAtStart
 from pregex.core.exceptions import InvalidArgumentTypeException, \
-    InvalidArgumentValueException, CannotBeQuantifiedException
+    InvalidArgumentValueException, CannotBeRepeatedException
 
 
 TEST_STR_LEN_1 = "t"
@@ -34,17 +34,9 @@ class Test__Quantifier(unittest.TestCase):
         any_ll = AnyLowercaseLetter()
         self.assertEqual(str(Optional(any_ll)), f"{any_ll}?")
 
-    def test_quantifier_on_quantifier_exception(self):
+    def test_quantifier_on_quantifier(self):
         optional = Optional(TEST_STR_LEN_N)
         self.assertEqual(str(Optional(optional)), f"(?:{optional})?")
-
-    def test_quantifier_on_assertion_exception(self):
-        mat = MatchAtStart("a")
-        self.assertRaises(CannotBeQuantifiedException, Indefinite, mat)
-        try:
-            _ = Optional(mat)
-        except CannotBeQuantifiedException:
-            self.fail("Applying \"Optional\" on an assertion raised an exception!")
 
 
 class TestOptional(unittest.TestCase):
@@ -76,6 +68,9 @@ class TestOptional(unittest.TestCase):
     def test_optional_on_lazy_match(self):
         self.assertTrue(("a" + Optional("a", is_greedy=False) + "a").get_matches("aaa") == ["aa"])
 
+    def test_optional_on_non_repeatable_pattern(self):
+        self.assertEqual(str(Optional(MatchAtStart("a"))), "(?:\\Aa)?")
+
 
 class TestIndefinite(unittest.TestCase):
     
@@ -99,6 +94,10 @@ class TestIndefinite(unittest.TestCase):
         self.assertEqual(Indefinite("abc")._get_type(), _Type.Quantifier)
         self.assertNotEqual(Pregex("abc*", escape=False)._get_type(), _Type.Quantifier)
 
+    def test_indefinite_on_non_repeatable_pattern(self):
+        mat = MatchAtStart("a")
+        self.assertRaises(CannotBeRepeatedException, Indefinite, mat)
+
 
 class TestOneOrMore(unittest.TestCase):
     
@@ -121,6 +120,10 @@ class TestOneOrMore(unittest.TestCase):
         self.assertEqual(OneOrMore("a")._get_type(), _Type.Quantifier)
         self.assertEqual(OneOrMore("abc")._get_type(), _Type.Quantifier)
         self.assertNotEqual(Pregex("abc+", escape=False)._get_type(), _Type.Quantifier)
+
+    def test_one_or_more_on_non_repeatable_pattern(self):
+        mat = MatchAtStart("a")
+        self.assertRaises(CannotBeRepeatedException, OneOrMore, mat)
         
 
 class TestExactly(unittest.TestCase):
@@ -161,6 +164,12 @@ class TestExactly(unittest.TestCase):
     def test_exactly_on_invalid_argument_value_exception(self):
         for val in [-10, -1]:
             self.assertRaises(InvalidArgumentValueException, Exactly, TEST_STR_LEN_1, val)
+
+    def test_exactly_on_non_repeatable_pattern(self):
+        mat = MatchAtStart("a")
+        self.assertRaises(CannotBeRepeatedException, Exactly, mat, n=2)
+        self.assertEqual(str(Exactly(mat, 1)), str(mat))
+
 
 class TestAtLeast(unittest.TestCase):
 
@@ -214,6 +223,10 @@ class TestAtLeast(unittest.TestCase):
     def test_at_least_on_invalid_argument_value_exception(self):
         for val in [-10, -1]:
             self.assertRaises(InvalidArgumentValueException, AtLeast, TEST_STR_LEN_1, val)
+
+    def test_at_least_at_on_non_repeatable_pattern(self):
+        mat = MatchAtStart("a")
+        self.assertRaises(CannotBeRepeatedException, AtLeast, mat, n=1)
 
 
 class TestAtMost(unittest.TestCase):
@@ -272,6 +285,12 @@ class TestAtMost(unittest.TestCase):
     def test_at_most_on_invalid_argument_value_exception(self):
         for val in [-10, -1]:
             self.assertRaises(InvalidArgumentValueException, AtMost, TEST_STR_LEN_1, val)
+
+    def test_at_most_on_non_repeatable_pattern(self):
+        mat = MatchAtStart("a")
+        self.assertRaises(CannotBeRepeatedException, AtMost, mat, n=2)
+        self.assertEqual(str(AtMost(mat, 1)), f"(?:{mat})?")
+
 
 class TestAtLeastAtMost(unittest.TestCase):
 
@@ -358,19 +377,25 @@ class TestAtLeastAtMost(unittest.TestCase):
         self.assertEqual(str(AtLeastAtMost(TEST_LITERAL_LEN_N, min, max, is_greedy=False)), f"(?:{TEST_LITERAL_LEN_N}){{{min}}}")
 
     def test_at_least_at_most_on_type(self):
-        self.assertEqual(AtLeastAtMost("a", min=1, max=2)._get_type(), _Type.Quantifier)
-        self.assertEqual(AtLeastAtMost("abc", min=1, max=2)._get_type(), _Type.Quantifier)
+        self.assertEqual(AtLeastAtMost("a", n=1, m=2)._get_type(), _Type.Quantifier)
+        self.assertEqual(AtLeastAtMost("abc", n=1, m=2)._get_type(), _Type.Quantifier)
         self.assertNotEqual(Pregex("abc{1,2}", escape=False)._get_type(), _Type.Quantifier)
 
     def test_at_least_at_most_on_invalid_argument_type_exception(self):
         for val in ["s", 1.1, True]:
-            self.assertRaises(InvalidArgumentTypeException, AtLeastAtMost, TEST_STR_LEN_1, min=val, max=10)
-            self.assertRaises(InvalidArgumentTypeException, AtLeastAtMost, TEST_STR_LEN_1, min=2, max=val)
+            self.assertRaises(InvalidArgumentTypeException, AtLeastAtMost, TEST_STR_LEN_1, n=val, m=10)
+            self.assertRaises(InvalidArgumentTypeException, AtLeastAtMost, TEST_STR_LEN_1, n=2, m=val)
 
     def test_at_least_at_most_on_invalid_argument_value_exception(self):
-        self.assertRaises(InvalidArgumentValueException, AtLeastAtMost, TEST_STR_LEN_1, min=-1, max=1)
-        self.assertRaises(InvalidArgumentValueException, AtLeastAtMost, TEST_STR_LEN_1, min=1, max=-1)
-        self.assertRaises(InvalidArgumentValueException, AtLeastAtMost, TEST_STR_LEN_1, min=5, max=3)
+        self.assertRaises(InvalidArgumentValueException, AtLeastAtMost, TEST_STR_LEN_1, n=-1, m=1)
+        self.assertRaises(InvalidArgumentValueException, AtLeastAtMost, TEST_STR_LEN_1, n=1, m=-1)
+        self.assertRaises(InvalidArgumentValueException, AtLeastAtMost, TEST_STR_LEN_1, n=5, m=3)
+
+    def test_at_least_at_most_on_non_repeatable_pattern(self):
+        mat = MatchAtStart("a")
+        self.assertRaises(CannotBeRepeatedException, AtLeastAtMost, mat, n=2, m=3)
+        self.assertEqual(str(AtLeastAtMost(mat, n=0, m=1)), f"(?:{mat})?")
+        self.assertEqual(str(AtLeastAtMost(mat, n=1, m=1)), str(mat))
 
 
 if __name__=="__main__":

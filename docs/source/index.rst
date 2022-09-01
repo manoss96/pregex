@@ -5,7 +5,7 @@ PRegEx - Programmable Regular Expressions
 Welcome to pregex's documentation page! You can start by going through the
 `Introduction <introduction.html>`_ section in order to get a first look at the
 pregex package, as well as receive instructions on how to install it. After that,
-you are free to explore the `Documentation <documentation/regex-to-pregex.html>`_
+you are free to explore the `Documentation <documentation/covering-the-basics.html>`_
 section so that you learn more about building RegEx patterns with pregex,
 or you can even check out the source code itself by visiting pregex on
 `Github <https://github.com/manoss96/pregex>`_.
@@ -22,6 +22,6 @@ or you can even check out the source code itself by visiting pregex on
    :maxdepth: 1
    :caption: Documentation
 
-   documentation/regex-to-pregex
+   documentation/covering-the-basics
    documentation/subpackages
-   documentation/importing-practices
+   documentation/best-practices

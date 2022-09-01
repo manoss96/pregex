@@ -2,7 +2,7 @@ import unittest
 from pregex.core.groups import *
 from pregex.core.tokens import Backslash
 from pregex.core.pre import Pregex, _Type
-from pregex.core.exceptions import InvalidArgumentTypeException, \
+from pregex.core.exceptions import InvalidArgumentTypeException, InvalidArgumentValueException, \
     InvalidCapturingGroupNameException
 
 
@@ -156,16 +156,25 @@ class TestGroup(unittest.TestCase):
 class TestBackreference(unittest.TestCase):
 
     def test_backreference(self):
-        name = "name"
-        self.assertEqual(str(Backreference(name)), f"(?P={name})")
+        ref = "name"
+        self.assertEqual(str(Backreference(ref)), f"(?P={ref})")
+
+    def test_backreference(self):
+        ref = 1
+        self.assertEqual(str(Backreference(ref)), f"\\{ref}")
 
     def test_backreference_on_type(self):
         self.assertEqual(Backreference("a")._get_type(), _Type.Group)
 
     def test_backreference_on_invalid_argument_type_exception(self):
-        invalid_type_names = [1, 1.5, True, Pregex("z")]
+        invalid_type_names = [1.5, True, Pregex("z")]
         for name in invalid_type_names:
             self.assertRaises(InvalidArgumentTypeException, Backreference, name)
+
+    def test_backreference_on_invalid_argument_value_exception(self):
+        ref1, ref2 = 0, 100
+        self.assertRaises(InvalidArgumentValueException, Backreference, ref1)
+        self.assertRaises(InvalidArgumentValueException, Backreference, ref2)
 
     def test_backreference_on_invalid_name_exception(self):
         invalid_names = ["11zzz", "ald!!", "@%^Fl", "!flflf123", "dld-"]

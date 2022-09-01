@@ -1,6 +1,3 @@
-import pregex.core.pre as _pre
-
-
 __doc__ = """
 This module contains a number of classes that represent special characters.
 Each token represents one and only one character. It is recommended that you
@@ -13,6 +10,9 @@ Classes & methods
 Below are listed all classes within :py:mod:`pregex.core.tokens`
 along with any possible methods they may possess.
 """
+
+
+import pregex.core.pre as _pre
 
 
 class __Token(_pre.Pregex):

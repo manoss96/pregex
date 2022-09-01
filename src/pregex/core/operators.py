@@ -1,7 +1,3 @@
-import pregex.core.pre as _pre
-import pregex.core.exceptions as _ex
-
-
 __doc__ = """
 This module contains three classes, namely :class:`Concat`, :class:`Enclose`,
 and :class:`Either`, the first two of which are used to concatenate two or more patterns
@@ -16,6 +12,11 @@ along with any possible methods they may possess.
 """
 
 
+import pregex.core.pre as _pre
+import pregex.core.exceptions as _ex
+from typing import Union as _Union
+
+
 class __Operator(_pre.Pregex):
     '''
     Constitutes the base class for all classes that are part of this module.
@@ -28,7 +29,7 @@ class __Operator(_pre.Pregex):
     :raises InvalidArgumentTypeException: At least one of the provided arguments \
         through ``pres`` is neither a ``Pregex`` instance nor a string.
     '''
-    def __init__(self, pres: tuple[_pre.Pregex or str], transform) -> _pre.Pregex:
+    def __init__(self, pres: tuple[_Union[_pre.Pregex, str]], transform) -> _pre.Pregex:
         '''
         Constitutes the base class for all classes that are part of this module.
 
@@ -41,11 +42,11 @@ class __Operator(_pre.Pregex):
             through ``pres`` is neither a ``Pregex`` instance nor a string.
         '''
         if len(pres) < 2:
-            message = "At least two requirements are required."
+            message = "At least two arguments are required."
             raise _ex.NotEnoughArgumentsException(message)
         result = __class__._to_pregex(pres[0])
         for pre in pres[1:]:
-            result = _pre.Pregex(transform(result, __class__._to_pregex(pre)), escape=False)
+            result = transform(result, pre)
         super().__init__(str(result), escape=False)
 
 
@@ -60,7 +61,7 @@ class Concat(__Operator):
         is neither a ``Pregex`` instance nor a string.
     '''
 
-    def __init__(self, *pres: _pre.Pregex or str) -> _pre.Pregex:
+    def __init__(self, *pres: _Union[_pre.Pregex, str]) -> _pre.Pregex:
         '''
         Matches the concatenation of the provided patterns.
 
@@ -70,37 +71,7 @@ class Concat(__Operator):
         :raises InvalidArgumentTypeException: At least one of the provided arguments \
             is neither a ``Pregex`` instance nor a string.
         '''
-        super().__init__(pres, lambda pre1, pre2: pre1._concat(pre2))
-
-
-class Enclose(__Operator):
-    '''
-    Matches the pattern that results from the concatenation of pattern \
-    ``enclosing`` to both sides of pattern ``enclosed``.
-
-    :param Pregex | str enclosed: The pattern that is to be at the center \
-        of the concatenation.
-    :param Pregex | str enclosing: The pattern that is to be concatenated to
-        both the left and the right side of ``enclosed``.
-
-    :raises InvalidArgumentTypeException: Either ``enclosed`` or ``enclosing`` \
-        is neither a ``Pregex`` instance nor a string.
-    '''
-
-    def __init__(self, enclosed: _pre.Pregex or str, enclosing = _pre.Pregex or str) -> _pre.Pregex:
-        '''
-        Matches the pattern that results from the concatenation of pattern \
-        ``enclosing`` to both sides of pattern ``enclosed``.
-
-        :param Pregex | str enclosed: The pattern that is to be at the center \
-            of the concatenation.
-        :param Pregex | str enclosing: The pattern that is to be concatenated to
-            both the left and the right side of ``enclosed``.
-
-        :raises InvalidArgumentTypeException: Either ``enclosed`` or ``enclosing`` \
-            is neither a ``Pregex`` instance nor a string.
-        '''
-        super().__init__((enclosed, enclosing), lambda pre1, pre2: pre1._enclose(pre2))
+        super().__init__(pres, lambda pre1, pre2: pre1.concat(pre2))
 
 
 class Either(__Operator):
@@ -119,7 +90,7 @@ class Either(__Operator):
         the left-most pattern and continuing on to the right until a match occurs.
     '''
     
-    def __init__(self, *pres: _pre.Pregex or str):
+    def __init__(self, *pres: _Union[_pre.Pregex, str]):
         '''
         Matches either one of the provided patterns.
 
@@ -134,4 +105,36 @@ class Either(__Operator):
             stop the moment it matches either one of the alternatives, starting from \
             the left-most pattern and continuing on to the right until a match occurs.
         '''
-        super().__init__(pres, lambda pre1, pre2: pre1._either(pre2))
+        super().__init__(pres, lambda pre1, pre2: pre1.either(pre2))
+
+
+class Enclose(__Operator):
+    '''
+    Matches the pattern that results from concatenating the ``enclosing`` patterns \
+    to both sides of pattern ``pre`` one by one.
+
+    :param Pregex | str enclosed: The pattern that is to be at the center \
+        of the concatenation.
+    :param Pregex | str enclosing: One or more patterns that are to *enclose* \
+        pattern ``pre`` one by one.
+
+    :raises NotEnoughArgumentsException: Less than two arguments are provided.
+    :raises InvalidArgumentTypeException: Either ``pre`` or at least one of the \
+        ``enclosing`` patterns is neither a ``Pregex`` instance nor a string.
+    '''
+
+    def __init__(self, pre: _Union[_pre.Pregex, str], *enclosing:_Union[_pre.Pregex, str]) -> _pre.Pregex:
+        '''
+        Matches the pattern that results from concatenating the ``enclosing`` patterns \
+        to both sides of pattern ``pre`` one by one.
+
+        :param Pregex | str enclosed: The pattern that is to be at the center \
+            of the concatenation.
+        :param Pregex | str enclosing: One or more patterns that are to *enclose* \
+            pattern ``pre`` one by one.
+
+        :raises NotEnoughArgumentsException: Less than two arguments are provided.
+        :raises InvalidArgumentTypeException: Either ``pre`` or at least one of the \
+            ``enclosing`` patterns is neither a ``Pregex`` instance nor a string.
+        '''
+        super().__init__((pre, *enclosing), lambda pre1, pre2: pre1.enclose(pre2))

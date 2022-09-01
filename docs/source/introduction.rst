@@ -9,7 +9,7 @@ Let's face it, although RegEx is without a doubt an extremely useful tool, its s
 This is where PRegEx comes in! PRegEx, which stands for Programmable Regular Expressions, is a Python package that can be used in order to construct Regular Expression patterns in a more human-friendly way. Through the use of PRegEx, one is able to fully utilize the powerful tool that is RegEx without having to deal with any of its nuisances that seem to drive people crazy! PRegEx achieves that by offering the following:
 
 1. An easy-to-remember syntax that resembles the good ol' imperative way of programming!
-2. Adds modularity to building RegEx patterns, as one can easily break down a complex pattern into simpler sub-patterns which can then be combined together.
+2. Adds modularity to building RegEx patterns, as one can easily break down a complex pattern into simpler subpatterns which can then be combined together.
 3. No longer having to escape meta characters such as "." and "*" as this is handled internally by PRegEx!
 4. Acts as a higher-level API on top of Python's built-in "re" module, providing access to its core functionality while saving you the trouble of having to deal with "re.Match" instances.
 
@@ -34,37 +34,36 @@ In PRegEx, everything is a Programmable Regular Expression, or `Pregex` for shor
 
 .. code-block:: python
 
-    from pregex.core.classes import AnyLetter, AnyDigit, AnyFrom
-    from pregex.core.quantifiers import Optional, AtLeastAtMost
-    from pregex.core.operators import Either
-    from pregex.core.groups import Capture
-    from pregex.core.pre import Pregex
+  from pregex.core.classes import AnyLetter, AnyDigit, AnyFrom
+  from pregex.core.quantifiers import Optional, AtLeastAtMost
+  from pregex.core.operators import Either
+  from pregex.core.groups import Capture
+  from pregex.core.pre import Pregex
 
-    # Define main sub-patterns.
-    http_protocol = Optional("http" + Optional('s') + "://")
+  http_protocol = Optional('http' + Optional('s') + '://')
 
-    www = Optional("www.")
+  www = Optional('www.')
 
-    alphanum = AnyLetter() | AnyDigit()
+  alphanum = AnyLetter() | AnyDigit()
 
-    domain_name = \
-        alphanum + \
-        AtLeastAtMost(alphanum | AnyFrom("-", "."), min=1, max=61) + \
-        alphanum
+  domain_name = \
+    alphanum + \
+    AtLeastAtMost(alphanum | AnyFrom('-', '.'), n=1, m=61) + \
+    alphanum
 
-    tld = "." + Either("com", "org")
+  tld = '.' + Either('com', 'org')
 
-    ip_octet = AtLeastAtMost(AnyDigit(), min=1, max=3)
+  ip_octet = AnyDigit().at_least_at_most(n=1, m=3)
 
-    port_number = 4 * AnyDigit()
+  port_number = 4 * AnyDigit()
 
-    # Combine sub-patterns together.
-    pre: Pregex = \
-        http_protocol + \
-        Either(
-            www + Capture(domain_name) + tld,
-            3 * (ip_octet + ".") + ip_octet + ":" + port_number
-        )
+  # Combine sub-patterns together.
+  pre: Pregex = \
+      http_protocol + \
+      Either(
+          www + Capture(domain_name) + tld,
+          3 * (ip_octet + '.') + ip_octet + ':' + port_number
+      )
 
 We can then easily fetch the resulting Pregex instance's underlying RegEx pattern.
 
@@ -115,9 +114,9 @@ contain a domain name to be captured.
 Finally, you might have noticed that we built our pattern by utilizing
 various classes that were imported from modules under *pregex.core*. These
 modules contain classes through which the RegEx syntax is essentially replaced.
-However, PRegEx includes another set of modules, namely those under subpackage
-*pregex.meta*, whose classes build upon those in *pregex.core* so as to
-provide higher-level patterns that are a bit more difficult to construct!
+However, PRegEx also includes a second set of modules, namely those under
+subpackage *pregex.meta*, whose classes build upon those in *pregex.core* so
+as to provide higher-level patterns that are a bit more difficult to construct!
 
 .. code-block:: python
 
@@ -136,8 +135,8 @@ provide higher-level patterns that are a bit more difficult to construct!
 By using classes found within the *pregex.meta* subpackage, we were able to
 construct more or less the same pattern as before only much more easily!
 
-You can learn more about how PRegEx works by going through the
-`Documentation <documentation/regex-to-pregex.html>`_
-section or by directly visiting the
-`PRegEx Github repository <https://github.com/manoss96/pregex>`_
+You can learn more about PRegEx by going through the
+`Documentation <documentation/covering-the-basics.html>`_
+section or by directly visiting PRegEx on
+`Github <https://github.com/manoss96/pregex>`_
 in order to check out the source code itself.

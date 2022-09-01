@@ -1,5 +1,15 @@
+__doc__ = '''
+This module contains various classes that can be used to match
+all sorts of commonly-search-for patterns.
+
+Classes & methods
+-------------------------------------------
+
+Below are listed all classes within :py:mod:`pregex.meta.essentials`
+along with any possible methods they may possess.
+'''
+
 import pregex.core.pre as _pre
-import pregex.core.tokens as _tk
 import pregex.core.groups as _gr
 import pregex.core.classes as _cl
 import pregex.core.operators as _op
@@ -7,11 +17,6 @@ import pregex.core.exceptions as _ex
 import pregex.core.assertions as _asr
 import pregex.core.quantifiers as _qu
 
-
-__doc__ = '''
-This module contains various classes that can be used to match
-all sorts of useful patterns.
-'''
 
 
 class Word(_pre.Pregex):
@@ -69,8 +74,9 @@ class Word(_pre.Pregex):
             message += " greater than the value of parameter \"min\"."
             raise _ex.InvalidArgumentValueException(message)
         
-        pre = _qu.AtLeastAtMost(pre, min=min_chars, max=max_chars)
-        pre = _op.Enclose(pre,_asr.WordBoundary())
+        pre = pre \
+            .at_least_at_most(n=min_chars, m=max_chars) \
+            .enclose(_asr.WordBoundary())
         super().__init__(str(pre), escape=False)
 
 
@@ -84,7 +90,7 @@ class WordContains(_pre.Pregex):
 
     :raises InvalidArgumentTypeException: At least one of the provided infixes is not a string.
     '''
-    def __init__(self, infix: list[str] or str, is_global: bool = True):
+    def __init__(self, infix: list[str] or str, is_global: bool = True) -> _pre.Pregex:
         '''
         Matches any word that contains either one of the provided strings.
 
@@ -100,11 +106,11 @@ class WordContains(_pre.Pregex):
             if not isinstance(s, str):
                 message = f"Provided infix argument \"{s}\" is not a string."
                 raise _ex.InvalidArgumentTypeException(message)
-        pre = _op.Either(*infix) if len(infix) > 1 else infix[0]
-        pre = _qu.Indefinite(_cl.AnyWordChar(is_global=is_global)) + \
-            pre + \
-            _qu.Indefinite(_cl.AnyWordChar(is_global=is_global))
-        pre = _op.Enclose(pre, _asr.WordBoundary())
+        pre = _op.Enclose(
+            _op.Either(*infix) if len(infix) > 1 else _pre.Pregex(infix[0]),
+            _qu.Indefinite(_cl.AnyWordChar(is_global=is_global)),
+            _asr.WordBoundary()
+        )
         super().__init__(str(pre), escape=False)
 
 
@@ -112,18 +118,18 @@ class WordStartsWith(_pre.Pregex):
     '''
     Matches any word that starts with either one of the provided strings.
 
-    :param list[str] | str prefix: Either a string or a list of strings at least one of which \
-        a word must start with in order to be considered a match.
+    :param list[str] | str prefix: Either a string or a list of strings with \
+        any of which a word must start in order to be considered a match.
     :param is_global: Determines whether to include foreign characters. Defaults to ``True``.
 
     :raises InvalidArgumentTypeException: At least one of the provided prefixes is not a string.
     '''
-    def __init__(self, prefix: list[str] or str, is_global: bool = True):
+    def __init__(self, prefix: list[str] or str, is_global: bool = True) -> _pre.Pregex:
         '''
         Matches any word that starts with either one of the provided strings.
 
-        :param list[str] | str prefix: Either a string or a list of strings at least one of which \
-            a word must start with in order to be considered a match.
+        :param list[str] | str prefix: Either a string or a list of strings with \
+            any of which a word must start in order to be considered a match.
         :param is_global: Determines whether to include foreign characters. Defaults to ``True``.
 
         :raises InvalidArgumentTypeException: At least one of the provided prefixes is not a string.
@@ -136,7 +142,7 @@ class WordStartsWith(_pre.Pregex):
                 raise _ex.InvalidArgumentTypeException(message)
         pre = _op.Either(*prefix) if len(prefix) > 1 else prefix[0]
         pre = pre + _qu.Indefinite(_cl.AnyWordChar(is_global=is_global))
-        pre = _asr.WordBoundary() + pre + _asr.WordBoundary()
+        pre = pre.enclose(_asr.WordBoundary())
         super().__init__(str(pre), escape=False)
 
 
@@ -144,18 +150,18 @@ class WordEndsWith(_pre.Pregex):
     '''
     Matches any word that ends with either one of the provided strings.
 
-    :param list[str] | str suffix: Either a string or a list of strings at least one of which \
-        a word must end with in order to be considered a match.
+    :param list[str] | str prefix: Either a string or a list of strings with \
+        any of which a word must end in order to be considered a match.
     :param is_global: Determines whether to include foreign characters. Defaults to ``True``.
 
     :raises InvalidArgumentTypeException: At least one of the provided suffixes is not a string.
     '''
-    def __init__(self, suffix: list[str] or str, is_global: bool = True):
+    def __init__(self, suffix: list[str] or str, is_global: bool = True) -> _pre.Pregex:
         '''
         Matches any word that ends with either one of the provided strings.
 
-        :param list[str] | str suffix: Either a string or a list of strings at least one of which \
-            a word must end with in order to be considered a match.
+        :param list[str] | str prefix: Either a string or a list of strings with \
+            any of which a word must end in order to be considered a match.
         :param is_global: Determines whether to include foreign characters. Defaults to ``True``.
 
         :raises InvalidArgumentTypeException: At least one of the provided suffixes is not a string.
@@ -168,7 +174,7 @@ class WordEndsWith(_pre.Pregex):
                 raise _ex.InvalidArgumentTypeException(message)
         pre = _op.Either(*suffix) if len(suffix) > 1 else suffix[0]
         pre = _qu.Indefinite(_cl.AnyWordChar(is_global=is_global)) + pre
-        pre = _asr.WordBoundary() + pre + _asr.WordBoundary()
+        pre = pre.enclose(_asr.WordBoundary())
         super().__init__(str(pre), escape=False)
 
 
@@ -194,7 +200,7 @@ class Numeral(_pre.Pregex):
     :note: Setting ``n_max`` equal to ``None`` indicates that there is no upper limit to \
         the number of digits.
     '''
-    def __init__(self, base: int = 10, n_min: int = 1, n_max: int = None):
+    def __init__(self, base: int = 10, n_min: int = 1, n_max: int = None) -> _pre.Pregex:
         '''
         Matches any numeral.
 
@@ -248,8 +254,9 @@ class Numeral(_pre.Pregex):
                 14 : _cl.AnyFrom("d", "D"), 15 : _cl.AnyFrom("e", "E"), 16 : _cl.AnyFrom("f", "F")}
             for i in range(2, base + 1):
                 pre = pre | digit_map[i]
-        pre = _qu.AtLeastAtMost(pre, n_min, n_max)
-        pre = _asr.WordBoundary() + pre + _asr.WordBoundary()
+        pre = pre \
+            .at_least_at_most(n=n_min, m=n_max) \
+            .enclose(_asr.WordBoundary())
         super().__init__(str(pre), escape=False)
 
 
@@ -268,7 +275,7 @@ class __Integer(_pre.Pregex):
         - Parameter ``start`` has a value of less than zero.
         - Parameter ``start`` has a greater value than that of parameter ``end``.
     '''
-    def __init__(self, sign: _pre.Pregex, start: int, end: int):
+    def __init__(self, sign: _pre.Pregex, start: int, end: int) -> _pre.Pregex:
         '''
         Every "Integer" class inherits from this class.
 
@@ -311,7 +318,7 @@ class __Integer(_pre.Pregex):
         # Used to fill-in empty space in "start" string.
         filler = "F"
 
-        def any_between(d_start: str, d_end: str, is_first: bool = False):
+        def any_between(d_start: str, d_end: str, is_first: bool = False) -> _pre.Pregex:
             '''
             Performs some checks and modifications before \
             returing the specified range class.
@@ -324,7 +331,7 @@ class __Integer(_pre.Pregex):
             if d_start == filler:
                 d_start = '1' if is_first else '0'
             if d_start == d_end:
-                return d_start
+                return _pre.Pregex(d_start)
             return _cl.AnyBetween(d_start, d_end)
         
         start, end = str(start), str(end)
@@ -341,27 +348,21 @@ class __Integer(_pre.Pregex):
                 digit_pre = any_between(d_start, d_end, i==0)
             else:
                 digit_pre = _op.Either(
-                    _asr.PrecededBy(
-                        any_between(d_start, '9'),
-                        p_start
-                    ),
-                    _asr.PrecededBy(
-                        any_between('0', d_end),
-                        p_end
-                    ),
+                    any_between(d_start, '9').preceded_by(p_start),
+                    any_between('0', d_end).preceded_by(p_end),
                     _asr.NotPrecededBy(
-                        _cl.AnyDigit(),
-                        p_start, p_end
+                        _cl.AnyDigit(), p_start, p_end
                     )
                 )
                 if i > 1:
-                    digit_pre = _asr.NotPrecededBy(
-                        digit_pre,
-                        *[
-                            _asr.WordBoundary() + '0' 
-                            + (i - 2) * _cl.AnyDigit() for i in range(2, i+1)
-                        ]
-                    )
+                    digit_pre = \
+                        _asr.NotPrecededBy(
+                            digit_pre,
+                            *[
+                                _asr.WordBoundary() + '0' 
+                                + (i - 2) * _cl.AnyDigit() for i in range(2, i+1)
+                            ]
+                        )
                 
 
             p_start += d_start.replace(filler, '')
@@ -398,7 +399,8 @@ class Integer(__Integer):
         is considered an integer as a whole, and as such, it cannot match when another \
         digit, namely ``1``, directly precedes it.
     '''
-    def __init__(self, start: int = 0, end: int = 2147483647, ignore_sign: bool = True):
+    def __init__(self, start: int = 0, end: int = 2147483647, ignore_sign: bool = True) \
+        -> _pre.Pregex:
         '''
         Matches any integer within the specified range.
 
@@ -426,10 +428,7 @@ class Integer(__Integer):
         else:
             sign = _op.Either(
                 _asr.NonWordBoundary() + _op.Either("+", "-"),
-                _asr.NotPrecededBy(
-                    _pre.Empty(),
-                    _op.Either("+", "-")
-                )
+                _pre.Empty().not_preceded_by(_op.Either("+", "-"))
             )
         super().__init__(sign, start, end)
 
@@ -447,7 +446,7 @@ class PositiveInteger(__Integer):
         - Parameter ``start`` has a value of less than zero.
         - Parameter ``start`` has a greater value than that of parameter ``end``.
     '''
-    def __init__(self, start: int = 0, end: int = 2147483647):
+    def __init__(self, start: int = 0, end: int = 2147483647) -> _pre.Pregex:
         '''
         Matches any strictly positive integer within the specified range.
 
@@ -462,10 +461,7 @@ class PositiveInteger(__Integer):
         '''
         sign = _op.Either(
             _asr.NonWordBoundary() + "+",
-            _asr.NotPrecededBy(
-                _pre.Empty(),
-                _op.Either("+", "-")
-            )
+            _pre.Empty().not_preceded_by(_op.Either("+", "-"))
         )
         super().__init__(sign, start, end)
 
@@ -483,7 +479,7 @@ class NegativeInteger(__Integer):
         - Parameter ``start`` has a value of less than zero.
         - Parameter ``start`` has a greater value than that of parameter ``end``.
     '''
-    def __init__(self, start: int = 0, end: int = 2147483647):
+    def __init__(self, start: int = 0, end: int = 2147483647) -> _pre.Pregex:
         '''
         Matches any strictly negative integer within the specified range.
 
@@ -514,7 +510,7 @@ class UnsignedInteger(__Integer):
         - Parameter ``start`` has a value of less than zero.
         - Parameter ``start`` has a greater value than that of parameter ``end``.
     '''
-    def __init__(self, start: int = 0, end: int = 2147483647):
+    def __init__(self, start: int = 0, end: int = 2147483647) -> _pre.Pregex:
         '''
         Matches any integer within a specified range, \
         provided that it is not preceded by a sign.
@@ -528,7 +524,7 @@ class UnsignedInteger(__Integer):
             - Parameter ``start`` has a value of less than zero.
             - Parameter ``start`` has a greater value than that of parameter ``end``.
         '''
-        sign = _asr.NotPrecededBy(_pre.Empty(), _op.Either("+", "-"))
+        sign = _pre.Empty().not_preceded_by(_op.Either("+", "-"))
         super().__init__(sign, start, end)
 
 
@@ -551,7 +547,8 @@ class __Decimal(_pre.Pregex):
         - Parameter ``min_decimal`` has a value of less than ``1``.
         - Parameter ``min_decimal`` has a greater value than that of parameter ``max_decimal``.
     '''
-    def __init__(self, integer: _pre.Pregex, no_integer: _pre.Pregex, min_decimal: int, max_decimal: int):
+    def __init__(self, integer: _pre.Pregex, no_integer: _pre.Pregex, min_decimal: int, max_decimal: int) \
+        -> _pre.Pregex:
         '''
         Every "Decimal" class inherits from this class.
 
@@ -626,7 +623,8 @@ class Decimal(__Decimal):
     '''
 
     def __init__(self, start: int = 0, end: int = 2147483647,
-        min_decimal: int = 1, max_decimal: int = None, ignore_sign: bool = True):
+        min_decimal: int = 1, max_decimal: int = None, ignore_sign: bool = True) \
+        -> _pre.Pregex:
         '''
         Matches any decimal number within a specified range.
 
@@ -689,7 +687,8 @@ class PositiveDecimal(__Decimal):
         - Parameter ``min_decimal`` has a greater value than that of parameter ``max_decimal``.
     '''
 
-    def __init__(self, start: int = 0, end: int = 2147483647, min_decimal: int = 1, max_decimal: int = None):
+    def __init__(self, start: int = 0, end: int = 2147483647,
+        min_decimal: int = 1, max_decimal: int = None) -> _pre.Pregex:
         '''
         Matches any positive decimal number within a specified range.
 
@@ -740,7 +739,8 @@ class NegativeDecimal(__Decimal):
         - Parameter ``min_decimal`` has a greater value than that of parameter ``max_decimal``.
     '''
 
-    def __init__(self, start: int = 0, end: int = 2147483647, min_decimal: int = 1, max_decimal: int = None):
+    def __init__(self, start: int = 0, end: int = 2147483647,
+        min_decimal: int = 1, max_decimal: int = None) -> _pre.Pregex:
         '''
         Matches any negative decimal number within a specified range.
 
@@ -792,7 +792,8 @@ class UnsignedDecimal(__Decimal):
         - Parameter ``min_decimal`` has a greater value than that of parameter ``max_decimal``.
     '''
 
-    def __init__(self, start: int = 0, end: int = 2147483647, min_decimal: int = 1, max_decimal: int = None):
+    def __init__(self, start: int = 0, end: int = 2147483647,
+        min_decimal: int = 1, max_decimal: int = None) -> _pre.Pregex:
         '''
         Matches any decimal number within a specified range, \
         provided that it is not preceded by a sign.
@@ -816,7 +817,9 @@ class UnsignedDecimal(__Decimal):
         '''
         integer = UnsignedInteger(start, end)
         if start == 0:
-            no_integer = _asr.NotPrecededBy(_asr.FollowedBy(_asr.NonWordBoundary(), "."), "+", "-")
+            no_integer = _asr.NonWordBoundary() \
+                .followed_by('.') \
+                .not_preceded_by(_op.Either('+', '-'))
         else:
             no_integer = None
         super().__init__(integer, no_integer, min_decimal, max_decimal)
@@ -836,10 +839,10 @@ class Date(_pre.Pregex):
 
       where:
 
-      - ``<sep>``: Either ``/``
+      - ``<sep>``: Either ``/`` or ``-``
       - ``D``: Either one of the following:
 
-        - ``d``: one-digit day of the month for days below 10
+        - ``d``: one-digit day of the month for days below 10, e.g. 2
         - ``dd``: two-digit day of the month, e.g. 02
 
       - ``M``: Either one of the following:
@@ -870,7 +873,7 @@ class Date(_pre.Pregex):
         "yyyy": _cl.AnyDigit() * 4, 
     }
 
-    def __init__(self, *formats: str):
+    def __init__(self, *formats: str) -> _pre.Pregex:
         '''
         Matches any date within a range of predefined formats.
 
@@ -887,7 +890,7 @@ class Date(_pre.Pregex):
           - ``<sep>``: Either ``/`` or ``-``
           - ``D``: Either one of the following:
 
-              - ``d``: one-digit day of the month for days below 10
+              - ``d``: one-digit day of the month for days below 10, e.g. 2
               - ``dd``: two-digit day of the month, e.g. 02
 
           - ``M``: Either one of the following:
@@ -918,7 +921,7 @@ class Date(_pre.Pregex):
             dates.append(__class__.__date_pre(format))
 
         pre = _op.Either(*dates) if len(dates) > 1 else dates[0]
-        pre = _asr.WordBoundary() + pre + _asr.WordBoundary()
+        pre = pre.enclose(_asr.WordBoundary())
         super().__init__(str(pre), escape=False)
     
 
@@ -970,13 +973,13 @@ class IPv4(_pre.Pregex):
     Matches any IPv4 Address.
     '''
 
-    def __init__(self):
+    def __init__(self) -> _pre.Pregex:
         '''
         Matches any IPv4 Address.
         '''
         ip_octet = Integer(start=0, end=255)
         pre = 3 * (ip_octet + ".") + ip_octet
-        pre = _asr.NotEnclosedBy(pre, _op.Either(_cl.AnyDigit(), "."))
+        pre = pre.not_enclosed_by(_op.Either(_cl.AnyDigit(), "."))
         super().__init__(str(pre), escape=False)
 
 
@@ -985,7 +988,7 @@ class IPv6(_pre.Pregex):
     Matches any IPv6 Address.
     '''
 
-    def __init__(self):
+    def __init__(self) -> _pre.Pregex:
         '''
         Matches any IPv6 Address.
         '''
@@ -994,14 +997,14 @@ class IPv6(_pre.Pregex):
         for i in range(9):
             pre = _op.Either(
                 pre,
-                (_qu.AtLeastAtMost(hex_group + ":", min=0, max=i-1) if i > 1 else _pre.Empty()) + \
+                (_qu.AtLeastAtMost(hex_group + ":", n=0, m=i-1) if i > 1 else _pre.Empty()) + \
                 (hex_group if i > 0 else _pre.Empty()) + \
                 "::" + \
-                (_qu.AtLeastAtMost(hex_group + ":", min=0, max=7-i) if i < 7 else _pre.Empty())+ \
+                (_qu.AtLeastAtMost(hex_group + ":", n=0, m=7-i) if i < 7 else _pre.Empty())+ \
                 (hex_group if i < 8 else _pre.Empty())
             )
         pre = _op.Either(pre, "::")
-        pre = _asr.NotEnclosedBy(pre, _op.Either(_cl.AnyDigit(), ":"))
+        pre = pre.not_enclosed_by(_op.Either(_cl.AnyDigit(), ":"))
         super().__init__(str(pre), escape=False)
 
 
@@ -1009,12 +1012,26 @@ class Email(_pre.Pregex):
     '''
     Matches any email address.
 
+    :param bool capture_local_part: If set to ``True``, then the local-part \
+        of each Email address match is separately captured as well. Defaults \
+        to ``False``.
+    :param bool capture_domain: If set to ``True``, then the domain name \
+        of each Email address match is separately captured as well. \
+        Defaults to ``False``.
+
     :note: Not guaranteed to match every possible e-mail address.
     '''
 
-    def __init__(self):
+    def __init__(self, capture_local_part: bool = False, capture_domain: bool = False) -> _pre.Pregex:
         '''
         Matches any email address.
+
+        :param bool capture_local_part: If set to ``True``, then the local-part \
+            of each Email address match is separately captured as well. Defaults \
+            to ``False``.
+        :param bool capture_domain: If set to ``True``, then the domain name \
+            of each Email address match is separately captured as well. \
+            Defaults to ``False``.
 
         :note: Not guaranteed to match every possible e-mail address.
         '''
@@ -1023,34 +1040,35 @@ class Email(_pre.Pregex):
 
         alphanum = _cl.AnyLetter() | _cl.AnyDigit()
 
-        name_valid_char = alphanum | special
+        local_part_valid_char = alphanum | special
 
         left_most = _op.Either(
-            _asr.FollowedBy(
-                _asr.NonWordBoundary(),
-                special
-            ),
-            _asr.FollowedBy(
-                _asr.WordBoundary(),
-                alphanum
-            )  
+            _asr.NonWordBoundary().followed_by(special),
+            _asr.WordBoundary().followed_by(alphanum)
         ) 
 
-        name = \
-            (name_valid_char - '-') + \
+        local_part = \
+            (local_part_valid_char - '-') + \
             _qu.AtMost(
-                _op.Either(name_valid_char, _asr.NotFollowedBy('.', '.')),
-                n=62) + \
-            (name_valid_char - '-')
+                _op.Either(local_part_valid_char, _asr.NotFollowedBy('.', '.')),
+                n=62
+            ) + \
+            (local_part_valid_char - '-')
+
+        if capture_local_part:
+            local_part = _gr.Capture(local_part)
 
         domain_name = \
             alphanum + \
             _qu.AtMost(alphanum | "-", n=61) + \
             alphanum
 
-        tld = "." + _qu.AtLeastAtMost(_cl.AnyLowercaseLetter(), min=2, max=6)
+        if capture_domain:
+            domain_name = _gr.Capture(domain_name)
 
-        pre = left_most + name + "@" + domain_name + tld + _asr.WordBoundary()
+        tld = "." + _qu.AtLeastAtMost(_cl.AnyLowercaseLetter(), n=2, m=6)
+
+        pre = left_most + local_part + "@" + domain_name + tld + _asr.WordBoundary()
         super().__init__(str(pre), escape=False)
 
 
@@ -1064,7 +1082,7 @@ class HttpUrl(_pre.Pregex):
     :note: Not guaranteed to match every possible HTTP URL.
     '''
 
-    def __init__(self, capture_domain: bool = False):
+    def __init__(self, capture_domain: bool = False) -> _pre.Pregex:
         '''
         Matches any HTTP URL.
 
@@ -1088,9 +1106,9 @@ class HttpUrl(_pre.Pregex):
 
         subdomains = _qu.Indefinite(domain_name + ".")
 
-        tld = "." + _qu.AtLeastAtMost(_cl.AnyLowercaseLetter(), min=2, max=6)
+        tld = "." + _cl.AnyLowercaseLetter().at_least_at_most(n=2, m=6)
 
-        optional_port = _qu.Optional(":" + _qu.AtLeastAtMost(_cl.AnyDigit(), min=1, max=4))
+        optional_port = _qu.Optional(":" + _cl.AnyDigit().at_least_at_most(n=1, m=4))
 
         directories = _qu.Indefinite(
             "/" + \
@@ -1098,14 +1116,8 @@ class HttpUrl(_pre.Pregex):
         ) + _qu.Optional("/")
 
         right_most = _op.Either(
-            _asr.PrecededBy(
-                _asr.NonWordBoundary(),
-                _cl.AnyPunctuation()
-            ),
-            _asr.PrecededBy(
-                _asr.WordBoundary(),
-                _cl.AnyWordChar(is_global=True)
-            )  
+            _asr.NonWordBoundary().preceded_by(_cl.AnyPunctuation()),
+            _asr.WordBoundary().preceded_by(_cl.AnyWordChar(is_global=True))
         )  
         if capture_domain:
             domain_name = _gr.Capture(domain_name)

@@ -10,7 +10,7 @@ Let's face it, although RegEx is without a doubt an extremely useful tool, its s
 This is where PRegEx comes in! PRegEx, which stands for Programmable Regular Expressions, is a Python package that can be used in order to construct Regular Expression patterns in a more human-friendly way. Through the use of PRegEx, one is able to fully utilize the powerful tool that is RegEx without having to deal with any of its nuisances that seem to drive people crazy! PRegEx achieves that by offering the following:
 
 1. An easy-to-remember syntax that resembles the good ol' imperative way of programming!
-2. Adds modularity to building RegEx patterns, as one can easily break down a complex pattern into simpler sub-patterns which can then be combined together.
+2. Adds modularity to building RegEx patterns, as one can easily break down a complex pattern into simpler subpatterns which can then be combined together.
 3. No longer having to escape meta characters such as "." and "*" as this is handled internally by PRegEx!
 4. Acts as a higher-level API on top of Python's built-in "re" module, providing access to its core functionality while saving you the trouble of having to deal with "re.Match" instances.
 
@@ -40,20 +40,20 @@ from pregex.core.groups import Capture
 from pregex.core.pre import Pregex
 
 # Define main sub-patterns.
-http_protocol = Optional("http" + Optional('s') + "://")
+http_protocol = Optional('http' + Optional('s') + '://')
 
-www = Optional("www.")
+www = Optional('www.')
 
 alphanum = AnyLetter() | AnyDigit()
 
 domain_name = \
     alphanum + \
-    AtLeastAtMost(alphanum | AnyFrom("-", "."), min=1, max=61) + \
+    AtLeastAtMost(alphanum | AnyFrom('-', '.'), n=1, m=61) + \
     alphanum
 
-tld = "." + Either("com", "org")
+tld = '.' + Either('com', 'org')
 
-ip_octet = AtLeastAtMost(AnyDigit(), min=1, max=3)
+ip_octet = AnyDigit().at_least_at_most(n=1, m=3)
 
 port_number = 4 * AnyDigit()
 
@@ -62,7 +62,7 @@ pre: Pregex = \
     http_protocol + \
     Either(
         www + Capture(domain_name) + tld,
-        3 * (ip_octet + ".") + ip_octet + ":" + port_number
+        3 * (ip_octet + '.') + ip_octet + ':' + port_number
     )
 ```
 
@@ -102,9 +102,9 @@ As expected, there were only two captured groups since the first match is not a 
 Finally, you might have noticed that we built our pattern by utilizing
 various classes that were imported from modules under *pregex.core*. These
 modules contain classes through which the RegEx syntax is essentially replaced.
-However, PRegEx includes another set of modules, namely those under subpackage
-*pregex.meta*, whose classes build upon those in *pregex.core* so as to
-provide higher-level patterns that are a bit more difficult to construct!
+However, PRegEx also includes a second set of modules, namely those under
+subpackage *pregex.meta*, whose classes build upon those in *pregex.core* so
+as to provide higher-level patterns that are a bit more difficult to construct!
 
 ```python
 

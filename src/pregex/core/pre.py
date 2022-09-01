@@ -1,9 +1,3 @@
-import re as _re
-import enum as _enum
-import pregex.core.exceptions as _ex
-from typing import Iterator as _Iterator
-
-
 __doc__ = """
 This module contains two classes, namely :class:`Pregex` which constitutes
 the base class for every other class within `pregex`, and :class:`Empty`
@@ -15,6 +9,13 @@ Classes & methods
 Below are listed all classes within :py:mod:`pregex.core.pre`
 along with any possible methods they may possess.
 """
+
+
+import re as _re
+import enum as _enum
+import pregex.core.exceptions as _ex
+from typing import Union as _Union
+from typing import Iterator as _Iterator
 
 
 class _Type(_enum.Enum):
@@ -85,7 +86,7 @@ class Pregex():
             self.__pattern = __class__.__escape(pattern)
         else:
             self.__pattern = pattern
-        self.__type, self.__quantifiable = __class__.__infer_type(self.__pattern)
+        self.__type, self.__repeatable = __class__.__infer_type(self.__pattern)
         self.__compiled: _re.Pattern = None
 
 
@@ -409,6 +410,561 @@ class Pregex():
 
 
     '''
+    Quantifiers
+    '''
+    def optional(self, is_greedy: bool = True)-> 'Pregex':
+        '''
+        Applies quantifier ``?`` to this instance's underlying pattern \
+        and returns the result as a ``Pregex`` instance.
+
+        :param bool is_greedy: Determines whether to declare this quantifier as greedy. \
+            When declared as such, the regex engine will try to match \
+            the expression as many times as possible. Defaults to ``True``.
+        '''
+        if self._get_type() == _Type.Empty:
+            return self
+        return __class__(
+            f"{self._quantify_conditional_group()}?{'' if is_greedy else '?'}",
+            escape=False)
+
+
+    def indefinite(self, is_greedy: bool = True) -> 'Pregex':
+        '''
+        Applies quantifier ``*`` to this instance's underlying pattern \
+        and returns the result as a ``Pregex`` instance.
+
+        :param bool is_greedy: Determines whether to declare this quantifier as greedy. \
+            When declared as such, the regex engine will try to match \
+            the expression as many times as possible. Defaults to ``True``.
+
+        :raises CannotBeRepeatedException: This instance represents a non-repeatable pattern.
+        '''
+        if self._get_type() == _Type.Empty:
+            return self
+        if not self._is_repeatable():
+            raise _ex.CannotBeRepeatedException(self)
+        return __class__(
+            f"{self._quantify_conditional_group()}*{'' if is_greedy else '?'}",
+            escape=False)
+
+
+    def one_or_more(self, is_greedy: bool = True) -> 'Pregex':
+        '''
+        Applies quantifier ``+`` to this instance's underlying pattern \
+        and returns the result as a ``Pregex`` instance.
+
+        :param bool is_greedy: Determines whether to declare this quantifier as greedy. \
+            When declared as such, the regex engine will try to match \
+            the expression as many times as possible. Defaults to ``True``.
+
+        :raises CannotBeRepeatedException: This instance represents a non-repeatable pattern.
+        '''
+        if self._get_type() == _Type.Empty:
+            return self
+        if not self._is_repeatable():
+            raise _ex.CannotBeRepeatedException(self)
+        return __class__(
+            f"{self._quantify_conditional_group()}+{'' if is_greedy else '?'}",
+            escape=False)
+
+
+    def exactly(self, n: int) -> 'Pregex':
+        '''
+        Applies quantifier ``{n}`` to this instance's underlying pattern \
+        and returns the result as a ``Pregex`` instance.
+
+        :param int n: The exact number of times that the patterns is to be matched.
+
+        :raises InvalidArgumentTypeException: Parameter ``n`` is not an integer.
+        :raises InvalidArgumentValueException: Parameter ``n`` has a value of less than zero.
+        :raises CannotBeRepeatedException: Parameter ``n`` has a value of greater than one, \
+            while this instance represents a non-repeatable pattern.
+        '''
+        if self._get_type() == _Type.Empty:
+            return self
+        if not isinstance(n, int) or isinstance(n, bool):
+            message = "Provided argument \"n\" is not an integer."
+            raise _ex.InvalidArgumentTypeException(message)
+        if n == 0:
+            return Empty()
+        if n == 1:
+            return self
+        else:
+            if n < 0:
+                message = "Parameter \"n\" can't be negative."
+                raise _ex.InvalidArgumentValueException(message)
+            if not self._is_repeatable():
+                raise _ex.CannotBeRepeatedException(self)
+            return __class__(
+                f"{self._quantify_conditional_group()}{{{n}}}",
+                escape=False)
+
+
+    def at_least(self, n: int, is_greedy: bool = True)-> 'Pregex':
+        '''
+        Applies quantifier ``{n,}`` to this instance's underlying pattern \
+        and returns the result as a ``Pregex`` instance.
+
+        :param int n: The minimum number of times that the pattern is to be matched.
+        :param bool is_greedy: Determines whether to declare this quantifier as greedy. \
+            When declared as such, the regex engine will try to match \
+            the expression as many times as possible. Defaults to ``True``.`
+
+        :raises InvalidArgumentTypeException: Parameter ``n`` is not an integer.
+        :raises InvalidArgumentValueException: Parameter ``n`` has a value of less than zero.
+        :raises CannotBeRepeatedException: This instance represents a non-repeatable pattern.
+        '''
+        if not isinstance(n, int) or isinstance(n, bool):
+            message = "Provided argument \"n\" is not an integer."
+            raise _ex.InvalidArgumentTypeException(message)
+        if n == 0:
+            return self.indefinite(is_greedy)
+        elif n == 1:
+            return self.one_or_more(is_greedy)
+        else:
+            if n < 0:
+                message = "Parameter \"n\" can't be negative."
+                raise _ex.InvalidArgumentValueException(message)
+            if self._get_type() == _Type.Empty:
+                return self
+            if not self._is_repeatable():
+                raise _ex.CannotBeRepeatedException(self)
+            return __class__(
+                f"{self._quantify_conditional_group()}{{{n},}}{'' if is_greedy else '?'}",
+                escape=False)
+
+
+    def at_most(self, n: int, is_greedy: bool = True) -> 'Pregex':
+        '''
+        Applies quantifier ``{,n}`` to this instance's underlying pattern \
+        and returns the result as a ``Pregex`` instance.
+
+        :param int n: The maximum number of times that the pattern is to be matched.
+        :param bool is_greedy: Determines whether to declare this quantifier as greedy. \
+            When declared as such, the regex engine will try to match \
+            the expression as many times as possible. Defaults to ``True``.
+
+        :raises InvalidArgumentTypeException: Parameter ``n`` is neither an integer nor ``None``.
+        :raises InvalidArgumentValueException: Parameter ``n`` has a value of less than zero.
+        :raises CannotBeRepeatedException: Parameter ``n`` has a value of greater than one, \
+            while this instance represents a non-repeatable pattern.
+
+        :note: Setting ``n`` equal to ``None`` indicates that there is no upper limit to \
+            the number of times the pattern is to be repeated.
+        '''
+        if not isinstance(n, int) or isinstance(n, bool):
+            if n == None:
+                return self.indefinite(is_greedy)
+            message = "Provided argument \"n\" is neither an integer nor None."
+            raise _ex.InvalidArgumentTypeException(message)
+        elif n == 0:
+            return self.exactly(n)
+        elif n == 1:
+            return self.optional(is_greedy)
+        else:
+            if n < 0:
+                message = "Parameter \"n\" can't be negative."
+                raise _ex.InvalidArgumentValueException(message)
+            if self._get_type() == _Type.Empty:
+                return self
+            if not self._is_repeatable():
+                raise _ex.CannotBeRepeatedException(self)
+            return __class__(
+                f"{self._quantify_conditional_group()}{{,{n}}}{'' if is_greedy else '?'}",
+                escape=False)
+
+
+    def at_least_at_most(self, n: int, m: int, is_greedy: bool = True) -> 'Pregex':
+        '''
+        Applies quantifier ``{n,m}`` to this instance's underlying pattern \
+        and returns the result as a ``Pregex`` instance.
+
+        :param int n: The minimum number of times that the pattern is to be matched.
+        :param int m: The minimum number of times that the pattern is to be matched.
+        :param bool is_greedy: Determines whether to declare this quantifier as greedy. \
+            When declared as such, the regex engine will try to match \
+            the expression as many times as possible. Defaults to ``True``.`
+
+        :raises InvalidArgumentTypeException: 
+            - Parameter ``pre`` is neither a ``Pregex`` instance nor a string.
+            - Parameter ``n`` is not an integer.
+            - Parameter ``m`` is neither an integer nor ``None``.
+        :raises InvalidArgumentValueException:
+            - Either parameter ``n`` or ``m`` has a value of less than zero.
+            - Parameter ``n`` has a greater value than that of parameter ``m``.
+        :raises CannotBeRepeatedException: This class is applied to a non-repeatable pattern.
+
+        :note: 
+            - Parameter ``is_greedy`` has no effect in the case that ``n`` equals ``m``.
+            - Setting ``m`` equal to ``None`` indicates that there is no upper limit to the \
+                number of times the pattern is to be repeated.
+        '''
+        if self._get_type() == _Type.Empty:
+            return self
+        if not isinstance(n, int) or isinstance(n, bool):
+            message = "Provided argument \"n\" is not an integer."
+            raise _ex.InvalidArgumentTypeException(message)
+        elif not isinstance(m, int) or isinstance(m, bool):
+            if m is not None:
+                message = "Provided argument \"m\" is neither an integer nor \"None\"."
+                raise _ex.InvalidArgumentTypeException(message)
+        elif n < 0:
+            message = "Parameter \"n\" can't be negative."
+            raise _ex.InvalidArgumentValueException(message)
+        elif m < 0:
+            message = "Parameter \"m\" can't be negative."
+            raise _ex.InvalidArgumentValueException(message)
+        elif m < n:
+            message = "The value of parameter \"m\" can't be"
+            message += " less than the value of parameter \"n\"."
+            raise _ex.InvalidArgumentValueException(message)
+        if n == m:
+            return self.exactly(n)
+        elif n == 0:
+            return self.at_most(m, is_greedy)
+        elif m is None:
+            return self.at_least(n, is_greedy)
+        else:
+            if self._get_type() == _Type.Empty:
+                return self
+            if not self._is_repeatable():
+                raise _ex.CannotBeRepeatedException(self)
+            return __class__(
+                    f"{self._quantify_conditional_group()}{{{n},{m}}}{'' if is_greedy else '?'}",
+                    escape=False)
+
+
+    '''
+    Operators
+    '''
+    def concat(self, pre: _Union['Pregex', str], on_right: bool = True) -> 'Pregex':
+        '''
+        Concatenates the provided pattern to this instance's underlying pattern \
+        and returns the resulting pattern as a ``Pregex`` instance.
+
+        :param Pregex | str pre: Either a string or a ``Pregex`` instance \
+            representing the pattern that is to take part in the concatenation.
+        :param bool on_right: If ``True``, then places the provided pattern on the \
+            right side of the concatenation, else on the left. Defaults to ``True``.
+
+        :raises InvalidArgumentTypeException: Parameter ``pre`` is neither \
+            a ``Pregex`` instance nor a string.
+        '''
+        pattern = self._concat_conditional_group()
+        pre = __class__._to_pregex(pre)._concat_conditional_group()
+        pattern = pattern + pre if on_right else pre + pattern
+        return __class__(pattern, escape=False)
+
+
+    def either(self, pre: _Union['Pregex', str], on_right: bool = True) -> 'Pregex':
+        '''
+        Applies the `alternation` operator ``|`` between the provided pattern \
+        and this instance's underlying pattern, and returns the resulting pattern \
+        as a ``Pregex`` instance.
+
+        :param Pregex | str pre: Either a string or a ``Pregex`` instance \
+            representing the pattern that is to take part in the alternation.
+        :param bool on_right: If ``True``, then places the provided pattern on the \
+            right side of the alternation, else on the left. Defaults to ``True``.
+
+        :raises InvalidArgumentTypeException: Parameter ``pre`` is neither \
+            a ``Pregex`` instance nor a string.
+        '''
+        pre = __class__._to_pregex(pre)
+        pattern = f"{self}|{pre}" if on_right else f"{pre}|{self}"
+        return __class__(pattern, escape=False)
+
+
+    def enclose(self, pre: _Union['Pregex', str]) -> 'Pregex':
+        '''
+        Concatenates the provided pattern to both sides of this instance's \
+        underlying pattern, and returns the resulting pattern as a ``Pregex`` \
+        instance.
+
+        :param Pregex | str pre: Either a string or a ``Pregex`` instance \
+            representing the ``enclosing`` pattern.
+
+        :raises InvalidArgumentTypeException: Parameter `pre` is neither a \
+            ``Pregex`` instance nor a string.
+        '''
+        pre = __class__._to_pregex(pre)._concat_conditional_group()
+        pattern = f"{pre}{self._concat_conditional_group()}{pre}"
+        return __class__(pattern, escape=False)
+        
+
+    '''
+    Groups
+    '''
+    def capture(self, name: str = None) -> 'Pregex':
+        '''
+        Creates a capturing group out of this instance's underlying pattern \
+        and returns the result as a ``Pregex`` instance.
+
+        :param Pregex | str pre: The pattern out of which the capturing group is created.
+        :param str name: The name that is assigned to the captured group for backreference \
+            purposes. A value of ``None`` indicates that no name is to be assigned to the group. \
+            Defaults to ``None``.
+
+        :raises InvalidArgumentTypeException: Parameter ``name`` is neither a string nor ``None``.
+        :raises InvalidCapturingGroupNameException: Parameter ``name`` is not a valid \
+            capturing-group name. Such name must contain word characters only and start \
+            with a non-digit character.
+
+        :note:
+            - Creating a capturing group out of a capturing group does nothing.
+            - Creating a capturing group out of a non-capturing group converts it into a capturing group.
+            - Creating a named capturing group out of an unnamed capturing group, assigns a name to it.
+            - Creating a named capturing group out of a named capturing group, changes the group's name.
+        '''
+        if name is not None:
+            if not isinstance(name, str):
+                message = "Provided argument \"name\" is not a string."
+                raise _ex.InvalidArgumentTypeException(message)
+            if _re.fullmatch("[A-Za-z_]\w*", name) is None:
+                raise _ex.InvalidCapturingGroupNameException(name)
+        if self.__type == _Type.Group:
+            pattern = self.__pattern.replace('?:', '', 1) if self.__pattern.startswith('(?:') else str(self)
+            if name is not None:
+                if pattern.startswith('(?P'):
+                    pattern = _re.sub('\(\?P<[^>]*>', f'(?P<{name}>', pattern)
+                else:
+                    pattern = f"(?P<{name}>{pattern[1:-1]})"
+        else:
+            pattern = f"({f'?P<{name}>' if name != None else ''}{self})"
+        return __class__(pattern, escape=False)
+
+
+    def group(self) -> 'Pregex':
+        '''
+        Creates a non-capturing group out of this instance's underlying pattern \
+        and returns the result as a ``Pregex`` instance.
+
+        :raises InvalidArgumentTypeException: Parameter ``pre`` is neither a \
+            ``Pregex`` instance nor a string.
+
+        :note:
+            - Creating a non-capturing group out of a non-capturing group does nothing.
+            - Creating a non-capturing group out of a capturing group converts it into a non-capturing group.
+        '''
+        if self.__type == _Type.Group:
+            if self.__pattern.startswith('(?P'):
+                pattern = _re.sub('\(\?P<[^>]*>', f'(?:', str(self))
+            elif not self.__pattern.startswith('(?:'):
+                pattern = self.__pattern.replace('(', '(?:', 1)
+            else:
+                pattern = str(self)
+        else:
+            pattern = f"(?:{self})"
+        return __class__(pattern, escape=False)
+
+
+    '''
+    Assertions
+    '''
+    def match_at_start(self) -> 'Pregex':
+        '''
+        Applies assertion ``\\A`` to this instance's underlying pattern \
+        so that it only matches if it is found at the start of a string, \
+        and returns the resulting pattern as a ``Pregex`` instance.
+
+        :note: The resulting pattern cannot have a repeating quantifier applied to it.
+        '''
+        return __class__(f"\\A{self._assert_conditional_group()}", escape=False)
+
+
+    def match_at_end(self) -> 'Pregex':
+        '''
+        Applies assertion ``\\Z`` to this instance's underlying pattern \
+        so that it only matches if it is found at the end of a string, \
+        and returns the resulting pattern as a ``Pregex`` instance.
+
+        :note: The resulting pattern cannot have a repeating quantifier applied to it.
+        '''
+        return __class__(f"{self._assert_conditional_group()}\\Z", escape=False)
+
+
+    def match_at_line_start(self) -> 'Pregex':
+        '''
+        Applies assertion ``^`` to this instance's underlying pattern \
+        so that it only matches if it is found at the start of a line, \
+        and returns the resulting pattern as a ``Pregex`` instance.
+
+        :note:
+            - The resulting pattern cannot have a repeating quantifier applied to it.
+            - Uses meta character ``^`` since the `MULTILINE` flag is considered on.
+        '''
+        return __class__(f"^{self._assert_conditional_group()}", escape=False)
+
+
+    def match_at_line_end(self) -> 'Pregex':
+        '''
+        Applies assertion ``$`` to this instance's underlying pattern \
+        so that it only matches if it is found at the end of a line, \
+        and returns the resulting pattern as a ``Pregex`` instance.
+
+        :note:
+            - The resulting pattern cannot have a repeating quantifier applied to it.
+            - Uses meta character ``$`` since the `MULTILINE` flag is considered on.
+        '''
+        return __class__(f"{self._assert_conditional_group()}$", escape=False)
+
+
+    def followed_by(self, pre: _Union['Pregex', str]) -> 'Pregex':
+        '''
+        Applies positive lookahead assertion ``(?=...)`` for the \
+        provided pattern to this instance's underlying pattern and \
+        returns the resulting pattern as a ``Pregex`` instance.
+
+        :param str | Pregex pre: A Pregex instance or string \
+            representing the `assertion` pattern.
+
+        :raises InvalidArgumentTypeException: The provided argument \
+            is neither a ``Pregex`` instance nor a string.
+
+        :note: The resulting pattern cannot have a repeating quantifier \
+            applied to it.
+        '''
+        pre = __class__._to_pregex(pre)
+        if pre._get_type() == _Type.Empty:
+            return self
+        return __class__(
+            f"{self._assert_conditional_group()}(?={pre})",
+            escape=False)
+
+
+    def preceded_by(self, pre: _Union['Pregex', str]) -> 'Pregex':
+        '''
+        Applies positive lookbehind assertion ``(?<=...)`` for the \
+        provided pattern to this instance's underlying pattern and \
+        returns the resulting pattern as a ``Pregex`` instance.
+
+        :param str | Pregex pre: A Pregex instance or string \
+            representing the `assertion` pattern.
+
+        :raises InvalidArgumentTypeException: The provided argument \
+            is neither a ``Pregex`` instance nor a string.
+        :raises NonFixedWidthPatternException: A non-fixed-width pattern \
+            is provided in place of parameter ``assertion``.
+
+        :note: The resulting pattern cannot have a repeating quantifier \
+            applied to it.
+        '''
+        pre = __class__._to_pregex(pre)
+        if pre._get_type() == _Type.Empty:
+            return self
+        if pre._get_type() == _Type.Quantifier \
+            and (_re.search("\\{\d+\\}$", str(pre)) is None):
+            raise _ex.NonFixedWidthPatternException(self, pre)
+        return __class__(
+            f"(?<={pre}){self._assert_conditional_group()}",
+            escape=False)
+
+
+    def enclosed_by(self, pre: _Union['Pregex', str]) -> 'Pregex':
+        '''
+        Applies both positive lookahead assertion ``(?=...)`` and positive \
+        lookbehind assertion ``(?<=...)`` for the provided pattern to this \
+        instance's underlying pattern and returns the resulting pattern as a \
+        ``Pregex`` instance.
+
+        :param Pregex pre: The assertion pattern.
+
+        :raises InvalidArgumentTypeException: The provided argument \
+            is neither a ``Pregex`` instance nor a string.
+        :raises NonFixedWidthPatternException: A non-fixed-width pattern \
+            is provided in place of parameter ``assertion``.
+
+        :note: The resulting pattern cannot have a repeating quantifier \
+            applied to it.
+        '''
+        pre = __class__._to_pregex(pre)
+        if pre._get_type() == _Type.Empty:
+            return self
+        if pre._get_type() == _Type.Quantifier \
+            and (_re.search("\\{\d+\\}$", str(pre)) is None):
+            raise _ex.NonFixedWidthPatternException(self, pre)
+        return __class__(
+            f"(?<={pre}){self._assert_conditional_group()}(?={pre})",
+            escape=False)
+
+
+    def not_followed_by(self, pre: _Union['Pregex', str]) -> 'Pregex':
+        '''
+        Applies negative lookahead assertion ``(?!...)`` for the provided \
+        pattern to this instance's underlying pattern and returns the resulting \
+        pattern as a ``Pregex`` instance.
+
+        :param Pregex | str pre: Either a string or a ``Pregex`` instance \
+            representing the assertion pattern.
+
+        :raises InvalidArgumentTypeException: The provided argument is neither \
+            a ``Pregex`` instance nor a string.
+        :raises EmptyNegativeAssertionException: The provided assertion pattern \
+            is the empty-string pattern.
+        '''
+        pre = __class__._to_pregex(pre)
+        if pre._get_type() == _Type.Empty:
+            raise _ex.EmptyNegativeAssertionException()
+        pattern = f"{self._assert_conditional_group()}(?!{pre})"
+        return __class__(pattern, escape=False)
+
+
+    def not_preceded_by(self, pre: _Union['Pregex', str]) -> 'Pregex':
+        '''
+        Applies negative lookbehind assertion ``(?<!...)`` for the provided \
+        pattern to this instance's underlying pattern and returns the resulting \
+        pattern as a ``Pregex`` instance.
+
+        :param Pregex | str pre: Either a string or a ``Pregex`` instance \
+            representing the assertion pattern.
+
+        :raises InvalidArgumentTypeException: The provided argument is neither \
+            a ``Pregex`` instance nor a string.
+        :raises EmptyNegativeAssertionException: The provided assertion pattern \
+            is the empty-string pattern.
+        :raises NonFixedWidthPatternException: The provided assertion pattern \
+            does not have a fixed width.
+        '''
+        pre = __class__._to_pregex(pre)
+        if pre._get_type() == _Type.Empty:
+            raise _ex.EmptyNegativeAssertionException()
+        if pre._get_type() == _Type.Quantifier \
+            and (_re.search("\\{\d+\\}$", str(pre)) is None):
+            raise _ex.NonFixedWidthPatternException(self, pre)
+        pattern = f"(?<!{pre}){self._assert_conditional_group()}"
+        return __class__(pattern, escape=False)
+
+
+    def not_enclosed_by(self, *pres: _Union['Pregex', str]) -> 'Pregex':
+        '''
+        Applies both negative lookahead assertion ``(?=...)``` and negative \
+        lookbehind assertion ``(?<!...)`` for the provided pattern to this \
+        instance's underlying pattern and returns the resulting pattern as a \
+        ``Pregex`` instance.
+
+        :param Pregex | str pre: Either a string or a ``Pregex`` instance \
+            representing the assertion pattern.
+
+        :raises InvalidArgumentTypeException: The provided argument is neither \
+            a ``Pregex`` instance nor a string.
+        :raises EmptyNegativeAssertionException: The provided assertion pattern \
+            is the empty-string pattern.
+        :raises NonFixedWidthPatternException: The provided assertion pattern \
+            does not have a fixed width.
+        '''
+        pattern = self._assert_conditional_group()
+        for pre in pres:
+            pre = __class__._to_pregex(pre)
+            if pre._get_type() == _Type.Empty:
+                raise _ex.EmptyNegativeAssertionException()
+            if pre._get_type() == _Type.Quantifier \
+                and (_re.search("\\{\d+\\}$", str(pre)) is None):
+                raise _ex.NonFixedWidthPatternException(self, pre)
+            pattern = f"(?<!{pre}){pattern}(?!{pre})"
+        return __class__(pattern, escape=False)
+
+
+    '''
     Protected Methods
     '''
     def _get_type(self) -> _Type:
@@ -418,11 +974,11 @@ class Pregex():
         return self.__type
 
 
-    def _is_quantifiable(self):
+    def _is_repeatable(self) -> bool:
         '''
         Returns ``True`` if this pattern can be quantified, else returns ``False``.
         '''
-        return self.__quantifiable
+        return self.__repeatable
 
 
     def _concat_conditional_group(self) -> str:
@@ -430,7 +986,7 @@ class Pregex():
         Returns this instance's pattern wrapped within a non-capturing group
         only if the instance's group-on-concat rule is set to ``True``.
         '''
-        return self._non_capturing_group() if self.__get_group_on_concat_rule() else str(self)
+        return str(self.group()) if self.__get_group_on_concat_rule() else str(self)
 
 
     def _quantify_conditional_group(self) -> str:
@@ -438,7 +994,7 @@ class Pregex():
         Returns this instance's pattern wrapped within a non-capturing group
         only if the instance's group-on-quantify rule is set to ``True``.
         '''
-        return self._non_capturing_group() if self.__get_group_on_quantify_rule() else str(self)
+        return str(self.group()) if self.__get_group_on_quantify_rule() else str(self)
 
 
     def _assert_conditional_group(self) -> str:
@@ -446,9 +1002,10 @@ class Pregex():
         Returns this instance's pattern wrapped within a non-capturing group
         only if the instance's group-on-assertion rule is set to ``True``.
         '''
-        return self._non_capturing_group() if self.__get_group_on_assert_rule() else str(self)
+        return str(self.group()) if self.__get_group_on_assert_rule() else str(self)
 
 
+    @staticmethod
     def _to_pregex(pre: 'Pregex' or str) -> 'Pregex':
         '''
         Returns ``pre`` exactly as provided if it is a ``Pregex`` instance, \
@@ -489,26 +1046,26 @@ class Pregex():
         return _re.sub(r"\\\\", r"\\", repr(self.__pattern)[1:-1])
         
 
-    def __add__(self, pre: str or 'Pregex') -> 'Pregex':
+    def __add__(self, pre: _Union['Pregex', str]) -> 'Pregex':
         '''
         Concatenates self with the provided string or ``Pregex`` instance,
         and returns the resulting ``Pregex`` instance.
 
-        :param pre: The string or ``Pregex`` class instance that is to be concatenated with \
-            this instance. 
+        :param pre: The string or ``Pregex`` class instance that is to be \
+            concatenated with this instance. 
         '''
-        return __class__(self._concat(__class__._to_pregex(pre)), escape=False)
+        return __class__(str(self.concat(__class__._to_pregex(pre))), escape=False)
 
 
-    def __radd__(self, pre: str or 'Pregex') -> 'Pregex':
+    def __radd__(self, pre: _Union['Pregex', str]) -> 'Pregex':
         '''
         Concatenates self with the provided string or ``Pregex`` instance,
         and returns the resulting ``Pregex`` instance.
 
-        :param pre: The string or ``Pregex`` instance that is to be concatenated with \
-            this instance. 
+        :param pre: The string or ``Pregex`` instance that is to be \
+            concatenated with this instance. 
         '''
-        return __class__(__class__._to_pregex(pre)._concat(self), escape=False)
+        return __class__(str(__class__._to_pregex(pre).concat(self)), escape=False)
 
 
     def __mul__(self, n: int) -> 'Pregex':
@@ -520,17 +1077,19 @@ class Pregex():
 
         :raises InvalidArgumentTypeException: Parameter ``n`` is not an integer.
         :raises InvalidArgumentValueException: Parameter ``n`` is less than zero.
-        :raises CannotBeQuantifiedException: ``self`` represents an non-quantifiable pattern.
+        :raises CannotBeRepeatedException: ``self`` represents an non-repeatable pattern.
         '''
-        if not self._is_quantifiable():
-            raise _ex.CannotBeQuantifiedException(self)
+        if not self._is_repeatable():
+            raise _ex.CannotBeRepeatedException(self)
         if not isinstance(n, int) or isinstance(n, bool):
             message = "Provided argument \"n\" is not an integer."
             raise _ex.InvalidArgumentTypeException(message)
         if n < 0:
             message = "Using multiplication operator with a negative integer is not allowed."
             raise _ex.InvalidArgumentValueException(message)
-        return __class__(self._exactly(n), escape=False)
+        if self._get_type() == _Type.Empty:
+            return self
+        return __class__(str(self.exactly(n)), escape=False)
 
 
     def __rmul__(self, n: int) -> 'Pregex':
@@ -542,17 +1101,19 @@ class Pregex():
 
         :raises InvalidArgumentTypeException: Parameter ``n`` is not an integer.
         :raises InvalidArgumentValueException: Parameter ``n`` is less than zero.
-        :raises CannotBeQuantifiedException: ``self`` represents an non-quantifiable pattern.
+        :raises CannotBeRepeatedException: ``self`` represents an non-repeatable pattern.
         '''
-        if not self._is_quantifiable():
-            raise _ex.CannotBeQuantifiedException(self)
+        if not self._is_repeatable():
+            raise _ex.CannotBeRepeatedException(self)
         if not isinstance(n, int) or isinstance(n, bool):
             message = "Provided argument \"n\" is not an integer."
             raise _ex.InvalidArgumentTypeException(message)
         if n < 0:
             message = "Using multiplication operator with a negative integer is not allowed."
             raise _ex.InvalidArgumentValueException(message)
-        return __class__(self._exactly(n), escape=False)
+        if self._get_type() == _Type.Empty:
+            return self
+        return __class__(str(self.exactly(n)), escape=False)
 
 
     def __get_group_on_concat_rule(self) -> bool:
@@ -708,483 +1269,17 @@ class Pregex():
         return text
 
 
-    '''
-    Quantifiers
-    '''
-    def _optional(self, is_greedy: bool = True)-> str:
-        '''
-        Applies quantifier ``?`` on this instance's underlying pattern and \
-        returns the resulting pattern as a string.
-
-        :param bool is_greedy: Determines whether to declare this quantifier as greedy. \
-            When declared as such, the regex engine will try to match \
-            the expression as many times as possible. Defaults to ``True``.
-        '''
-        return f"{self._quantify_conditional_group()}?{'' if is_greedy else '?'}"
-
-
-    def _indefinite(self, is_greedy: bool = True) -> str:
-        '''
-        Applies quantifier ``*`` on this instance's underlying pattern and \
-        returns the resulting pattern as a string.
-
-        :param bool is_greedy: Determines whether to declare this quantifier as greedy. \
-            When declared as such, the regex engine will try to match \
-            the expression as many times as possible. Defaults to ``True``.
-        '''
-        return f"{self._quantify_conditional_group()}*{'' if is_greedy else '?'}"
-
-
-    def _one_or_more(self, is_greedy: bool = True) -> str:
-        '''
-        Applies quantifier ``+`` on this instance's underlying pattern and \
-        returns the resulting pattern as a string.
-
-        :param bool is_greedy: Determines whether to declare this quantifier as greedy. \
-            When declared as such, the regex engine will try to match \
-            the expression as many times as possible. Defaults to ``True``.
-        '''
-        return f"{self._quantify_conditional_group()}+{'' if is_greedy else '?'}"
-
-
-    def _exactly(self, n: int) -> str:
-        '''
-        Applies quantifier ``{n}`` on this instance's underlying pattern and \
-        returns the resulting pattern as a string.
-
-        :param int n: The exact number of times that the provided pattern is to be matched.
-        '''
-        if n == 0:
-            return str(Empty())
-        if n == 1:
-            return str(self)
-        else:
-            return f"{self._quantify_conditional_group()}{{{n}}}"
-
-
-    def _at_least(self, n: int, is_greedy: bool = True)-> str:
-        '''
-        Applies quantifier ``{n,}`` on this instance's underlying pattern and \
-        returns the resulting pattern as a string.
-
-        :param int n: The minimum number of times that the provided pattern is to be matched.
-        :param bool is_greedy: Determines whether to declare this quantifier as greedy. \
-            When declared as such, the regex engine will try to match \
-            the expression as many times as possible. Defaults to ``True``.
-        '''
-        if n == 0:
-            return self._indefinite(is_greedy)
-        elif n == 1:
-            return self._one_or_more(is_greedy)
-        else:
-            return f"{self._quantify_conditional_group()}{{{n},}}{'' if is_greedy else '?'}"
-
-
-    def _at_most(self, n: int, is_greedy: bool = True) -> str:
-        '''
-        Applies quantifier ``{,n}`` on this instance's underlying pattern and \
-        returns the resulting pattern as a string.
-
-        :param int | None n: The maximum number of times that the provided pattern is to be matched.
-        :param bool is_greedy: Determines whether to declare this quantifier as greedy. \
-            When declared as such, the regex engine will try to match \
-            the expression as many times as possible. Defaults to ``True``.
-        '''
-        if n == None:
-            return self._indefinite(is_greedy)
-        elif n == 0:
-            return self._exactly(n)
-        elif n == 1:
-            return self._optional(is_greedy)
-        else:
-            return f"{self._quantify_conditional_group()}{{,{n}}}{'' if is_greedy else '?'}"
-
-
-    def _at_least_at_most(self, min: int, max: int, is_greedy: bool = True) -> str:
-        '''
-        Applies quantifier ``{min,max}`` on this instance's underlying pattern and \
-        returns the resulting pattern as a string.
-
-        :param int min: The minimum number of times that the provided pattern is to be matched.
-        :param int | None max: The maximum number of times that the provided pattern is to be matched.
-        :param bool is_greedy: Determines whether to declare this quantifier as greedy. \
-            When declared as such, the regex engine will try to match \
-            the expression as many times as possible. Defaults to ``True``.
-        '''
-        if min == max:
-            return self._exactly(min)
-        elif min == 0:
-            return self._at_most(max, is_greedy)
-        elif max is None:
-            return self._at_least(min, is_greedy)
-        else:
-            return f"{self._quantify_conditional_group()}{{{min},{max}}}{'' if is_greedy else '?'}"
-
-
-    '''
-    Operators
-    '''
-    def _concat(self, pre: 'Pregex') -> str:
-        '''
-        Concatenates the pattern of this instance with the provided pattern \
-        and returns the resulting pattern as a string.
-
-        :param Pregex pre: A ``Pregex`` instance containing the pattern on \
-            the right side of the concatenation.
-        '''
-        return f"{self._concat_conditional_group()}{pre._concat_conditional_group()}"
-
-
-    def _either(self, pre: 'Pregex') -> str:
-        '''
-        Applies the "alternation" operator ``|`` on this instance's underlying pattern and \
-        the provided pattern, and returns the resulting pattern as a string.
-
-        :param Pregex pre: A ``Pregex`` class instance containing the pattern on the \
-            right side of the alternation.
-        '''
-        if pre._get_type() == _Type.Empty:
-            return str(self)
-        return f"{self}|{pre}"
-
-
-    def _enclose(self, pre: 'Pregex') -> str:
-        '''
-        Concatenates the provided pattern to both the left and right side of \
-        this instance's underlying pattern, and returns the resulting pattern \
-        as a string.
-
-        :param Pregex pre: A ``Pregex`` instance containing the pattern that is \
-            to be concatenated to this instance's underlying pattern.
-        '''
-        pre = pre._concat_conditional_group()
-        return f"{pre}{self._concat_conditional_group()}{pre}"
-
-    '''
-    Groups
-    '''
-    def _capturing_group(self, name: str = None) -> str:
-        '''
-        Applies a function on this instance's underlying pattern, that does the \
-        following based on the nature of the pattern:
-            - If pattern is not a group, then wraps it within a capturing group.
-            - If pattern is a non-capturing group, then converts it to a capturing group.
-            - If pattern is a capturing-group and ``name`` is the empty string, then \
-                does nothing.
-            - If pattern is an unnamed capturing group and ``name`` is not the empty string, \
-                then assigns said name to the capturing group.
-            - If pattern is a named capturing group and ``name`` is not the empty string, \
-                then changes the capturing group's name to the provided name.
-
-        Finally, returns the resulting pattern as a string.
-
-        :param name: If this parameter is not equal to ``None``, then assigns \
-            it as a name to the capturing group. Defaults to ``None``.
-        '''
-        if self.__type == _Type.Group:
-            pattern = self.__pattern.replace('?:', '', 1) if self.__pattern.startswith('(?:') else str(self)
-            if name is not None:
-                if pattern.startswith('(?P'):
-                    pattern = _re.sub('\(\?P<[^>]*>', f'(?P<{name}>', pattern)
-                else:
-                    pattern = f"(?P<{name}>{pattern[1:-1]})"
-        else:
-            pattern = f"({f'?P<{name}>' if name != None else ''}{self})"
-        return pattern
-
-
-    def _non_capturing_group(self) -> str:
-        '''
-        Applies a function on this instance's underlying pattern, that does the \
-        following based on the nature of the pattern:
-            - If pattern is not a group, then wraps it within a non-capturing group.
-            - If pattern is a non-capturing group, then does nothing.
-            - If pattern is a capturing-group, then converts it to a non-capturing group.
-
-        Finally, returns the resulting pattern as a string.
-        '''
-        if self.__type == _Type.Group:
-            if self.__pattern.startswith('(?P'):
-                pattern = _re.sub('\(\?P<[^>]*>', f'(?:', str(self))
-            elif not self.__pattern.startswith('(?:'):
-                pattern = self.__pattern.replace('(', '(?:', 1)
-            else:
-                pattern = str(self)
-            return pattern
-        return f"(?:{self})"
-
-
-    '''
-    Assertions
-    '''
-    def _match_at_start(self) -> str:
-        '''
-        Applies assertion ``\A`` on this instance's underlying pattern and \
-        returns the resulting pattern as a string.
-        '''
-        return f"\\A{self._assert_conditional_group()}"
-
-
-    def _match_at_end(self) -> str:
-        '''
-        Applies assertion ``\Z`` on this instance's underlying pattern and \
-        returns the resulting pattern as a string.
-        '''
-        return f"{self._assert_conditional_group()}\\Z"
-
-
-    def _match_at_line_start(self) -> str:
-        '''
-        Applies assertion ``^`` on this instance's underlying pattern and \
-        returns the resulting pattern as a string.
-        '''
-        return f"^{self._assert_conditional_group()}"
-
-
-    def _match_at_line_end(self) -> str:
-        '''
-        Applies assertion ``$`` on this instance's underlying pattern and \
-        returns the resulting pattern as a string.
-        '''
-        return f"{self._assert_conditional_group()}$"
-
-
-    def _followed_by(self, pre: 'Pregex') -> str:
-        '''
-        Applies the "positive lookahead" assertion ``(?=pre)`` on this instance's underlying pattern \
-        and returns the resulting pattern as a string.
-
-        :param Pregex pre: The assertion pattern.
-        '''
-        if pre._get_type() == _Type.Empty:
-            return str(self)
-
-        return f"{self._assert_conditional_group()}(?={pre})"
-
-
-    def _not_followed_by(self, pre: str) -> 'Pregex':
-        '''
-        Applies the "negative lookahead" assertion ``(?!pre)`` on this instance's underlying \
-        pattern and returns the resulting pattern as a string.
-
-        :param Pregex pre: The assertion pattern.
-        '''
-        if pre._get_type() == _Type.Empty:
-            return str(self)
-        return f"{self._assert_conditional_group()}(?!{pre})"
-
-
-    def _preceded_by(self, pre: 'Pregex') -> str:
-        '''
-        Applies the "positive lookbehind" assertion ``(?<=pre)`` on this instance's underlying pattern \
-        and returns the resulting pattern as a string.
-
-        :param Pregex pre: The assertion pattern.
-        '''
-        if pre._get_type() == _Type.Empty:
-            return str(self)
-        return f"(?<={pre}){self._assert_conditional_group()}"
-
-
-    def _not_preceded_by(self, pre: 'Pregex') -> str:
-        '''
-        Applies the "negative lookbehind" assertion ``(?<!pre)`` on this instance's underlying \
-        pattern and returns the resulting pattern as a string.
-
-        :param Pregex pre: The assertion pattern.
-        '''
-        if pre._get_type() == _Type.Empty:
-            return str(self)
-        return f"(?<!{pre}){self._assert_conditional_group()}"
-
-
-    def _enclosed_by(self, pre: 'Pregex') -> str:
-        '''
-        Applies both the "positive lookbehind" assertion ``(?<=pre)`` and \
-        "positive lookahead" assertion ``(?=pre)`` on this instance's underlying \
-        pattern and returns the resulting pattern as a string.
-
-        :param Pregex pre: The assertion pattern.
-        '''
-        if pre._get_type() == _Type.Empty:
-            return str(self)
-        return f"(?<={pre}){self._assert_conditional_group()}(?={pre})"
-
-
-    def _not_enclosed_by(self, pre: 'Pregex') -> str:
-        '''
-        Applies both the "negative lookbehind" assertion ``(?<!pre)`` and \
-        "negative lookahead" assertion ``(?!pre)`` on this instance's underlying \
-        pattern and returns the resulting pattern as a string.
-
-        :param Pregex pre: The assertion pattern.
-        '''
-        if pre._get_type() == _Type.Empty:
-            return str(self)
-        return f"(?<!{pre}){self._assert_conditional_group()}(?!{pre})"
-
-
 class Empty(Pregex):
     '''
     Matches the empty string ``''``.
 
-    :note:
-        - Applying a quantifer to ``Empty`` results in ``Empty``.
-        - Wrapping ``Empty`` within a group results in ``Empty``.
+    :note: Applying a quantifer to ``Empty`` results in ``Empty``.
     '''
 
     def __init__(self) -> 'Empty':
         '''
         Matches the empty string ``''``.
 
-        :note: 
-            - Applying a quantifer to ``Empty`` results in ``Empty``.
-            - Wrapping ``Empty`` within a group results in ``Empty``.
+        :note: Applying a quantifer to ``Empty`` results in ``Empty``.
         '''
         super().__init__("")
-
-
-    def __mul__(self, n: int) -> 'Empty':
-        '''
-        Returns self. \
-
-        :param int n: Does nothing.
-
-        :raises InvalidArgumentTypeException: Parameter ``n`` is not an integer.
-        :raises InvalidArgumentValueException: Parameter ``n`` is less than zero.
-        '''
-        if not isinstance(n, int) or isinstance(n, bool):
-            message = "Provided argument \"n\" is not an integer."
-            raise _ex.InvalidArgumentTypeException(message)
-        if n < 0:
-            message = "Using multiplication operator with a negative integer is not allowed."
-            raise _ex.InvalidArgumentValueException(message)
-        return self
-
-
-    def __rmul__(self, n: int) -> 'Empty':
-        '''
-        Returns self. \
-
-        :param int n: Does nothing.
-
-        :raises InvalidArgumentTypeException: Parameter ``n`` is not an integer.
-        :raises InvalidArgumentValueException: Parameter ``n`` is less than zero.
-        '''
-        if not isinstance(n, int) or isinstance(n, bool):
-            message = "Provided argument \"n\" is not an integer."
-            raise _ex.InvalidArgumentTypeException(message)
-        if n < 0:
-            message = "Using multiplication operator with a negative integer is not allowed."
-            raise _ex.InvalidArgumentValueException(message)
-        return self
-
-
-    def __add__(self, pre: str or Pregex) -> Pregex:
-        '''
-        Returns the provided string or ``Pregex`` instance as a ``Pregex`` instance.
-
-        :param pre: The string or ``Pregex`` instance that is returned. 
-        '''
-        return __class__._to_pregex(pre)
-
-
-    def __radd__(self, pre: str or Pregex) -> Pregex:
-        '''
-        Returns the provided string or ``Pregex`` instance as a ``Pregex`` instance.
-
-        :param pre: The string or ``Pregex`` instance that is returned. 
-        '''
-        return __class__._to_pregex(pre)
-
-    
-    def _optional(self, is_greedy: bool = True)-> str:
-        '''
-        Returns self as a string.
-
-        :param bool is_greedy: Does nothing.
-        '''
-        return str(self)
-
-
-    def _indefinite(self, is_greedy: bool = True) -> str:
-        '''
-        Returns self as a string.
-
-        :param bool is_greedy: Does nothing.
-        '''
-        return str(self)
-
-
-    def _one_or_more(self, is_greedy: bool = True) -> str:
-        '''
-        Returns self as a string.
-
-        :param bool is_greedy: Does nothing.
-        '''
-        return str(self)
-
-
-    def _exactly(self, n: int) -> str:
-        '''
-        Returns self as a string.
-
-        :param int n: Does nothing.
-        '''
-        return str(self)
-
-
-    def _at_least(self, n: int, is_greedy: bool = True)-> str:
-        '''
-        Returns self as a string.
-
-        :param int n: Does nothing.
-        :param bool is_greedy: Does nothing.
-        '''
-        return str(self)
-
-
-    def _at_most(self, n: int, is_greedy: bool = True) -> str:
-        '''
-        Returns self as a string.
-
-        :param int n: Does nothing.
-        :param bool is_greedy: Does nothing.
-        '''
-        return str(self)
-
-
-    def _at_least_at_most(self, min: int, max: int, is_greedy: bool = True) -> str:
-        '''
-        Returns self as a string.
-
-        :param int min: Does nothing.
-        :param int max: Does nothing.
-        :param bool is_greedy: Does nothing.
-        '''
-        return str(self)
-
-
-    def _either(self, pre: 'Pregex') -> str:
-        '''
-        Returns 'pre' as a string.
-
-        :param Pregex pre: The "Pregex" instance that is returned by this method.
-        '''
-        return str(pre)
-
-
-    def _capturing_group(self, name: str = '') -> str:
-        '''
-        Returns self as a string.
-
-        :param str name: Does nothing.
-        '''
-        return str(self)
-
-
-    def _non_capturing_group(self) -> str:
-        '''
-        Returns self as a string.
-        '''
-        return str(self)

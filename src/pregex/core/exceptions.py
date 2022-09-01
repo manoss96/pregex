@@ -6,7 +6,7 @@ class InvalidArgumentValueException(Exception):
         along with the exception.
     '''
 
-    def __init__(self, message):
+    def __init__(self, message: str):
         '''
         This exception is thrown whenever an argument of invalid value is provided.
 
@@ -24,7 +24,7 @@ class InvalidArgumentTypeException(Exception):
         along with the exception.
     '''
 
-    def __init__(self, message):
+    def __init__(self, message: str):
         '''
         This exception is thrown whenever an argument of invalid type is provided.
 
@@ -183,7 +183,7 @@ class InvalidRangeException(Exception):
     :param int end: The integer because of which this exception was thrown.
     '''
 
-    def __init__(self, start, end):
+    def __init__(self, start: int, end: int):
         '''
         This exception is thrown whenever there was provided a pair \
         of values ``start`` and ``end``, where ``start`` comes after ``end``.
@@ -194,7 +194,7 @@ class InvalidRangeException(Exception):
         super().__init__(f"\"[{start}-{end}]\" is not a valid range.")
 
 
-class CannotBeQuantifiedException(Exception):
+class CannotBeRepeatedException(Exception):
     '''
     This exception is thrown whenever an instance of a class \
     that is part of the ``assertions`` module is being quantified.
@@ -209,7 +209,7 @@ class CannotBeQuantifiedException(Exception):
 
         :param __Assertion pre: The ``__Assertion`` instance because of which this exception was thrown.
         '''
-        m = f"Instances of class \"{type(pre).__name__}\" are not quantifiable,"
+        m = f"Instances of class \"{type(pre).__name__}\" are not repeatable,"
         m += " with the sole exception to this being the \"Optional\" quantifier \"?\"."
         super().__init__(m)
 

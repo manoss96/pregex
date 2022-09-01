@@ -6,7 +6,7 @@ PRegEx's modules are divided into two subpackages, namely ``pregex.core`` and
 ``pregex.meta``, the former of which predominantly contains modules whose classes
 represent some fundamental RegEx operator, whereas the latter acts as a collection
 of various classes that build upon those within the core modules in order to provide
-for ready-made patterns that can be used "straight out of the box".
+ready-made patterns that can be used "straight out of the box".
 
 pregex.core
 =================
@@ -40,8 +40,8 @@ corresponding *Token* class for that symbol.
    from pregex.core.tokens import Newline, Copyright
 
    # Both of these statements are 'True'.
-   Newline().is_exact_match("\n")
-   Copyright().is_exact_match("©")
+   Newline().is_exact_match('\n')
+   Copyright().is_exact_match('©')
 
 
 Lastly, there is module :py:mod:`pregex.core.classes` which does not only
@@ -100,7 +100,7 @@ extended even further!
    from pregex.core.classes import AnyLetter
    from pregex.meta.essentials import Integer
 
-   pre = AnyLetter() + "." + Integer(start=50, end=1000)
+   pre = AnyLetter() + '.' + Integer(start=50, end=1000)
    text = "a.1 b.5 c.11 d.23 e.77 f.117 g.512 h.789 i.1011"
 
    print(pre.get_matches(text)) # This prints "['e.77 f.117', 'g.512', 'h.789']"

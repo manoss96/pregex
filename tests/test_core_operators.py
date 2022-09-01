@@ -17,11 +17,13 @@ class TestConcat(unittest.TestCase):
     def test_concat_class_type(self):
         self.assertEqual(Concat("a", "b")._get_type(), _Type.Other)
     
-    def test_concat_on_str(self):
-        self.assertEqual(str(Concat(TEST_STR_1, TEST_STR_2, TEST_STR_3)), f"{TEST_STR_1}{TEST_STR_2}{TEST_STR_3}")
+    def test_concat_on_pattern(self):
+        self.assertEqual(str(Concat(TEST_STR_1, TEST_STR_2)), f"{TEST_STR_1}{TEST_STR_2}")
+        self.assertEqual(str(Concat(Pregex(TEST_STR_1), Pregex(TEST_STR_2))), f"{TEST_STR_1}{TEST_STR_2}")
 
-    def test_concat_on_literal(self):
-        self.assertEqual(str(Concat(Pregex(TEST_STR_1), TEST_STR_2)), f"{TEST_STR_1}{TEST_STR_2}")
+    def test_concat_on_multiple_pattern(self):
+        self.assertEqual(str(Concat(TEST_STR_1, TEST_STR_2, TEST_STR_3)),
+            f"{TEST_STR_1}{TEST_STR_2}{TEST_STR_3}")
 
     def test_concat_on_quantifier(self):
         quantifier = Exactly(TEST_STR_1, 2)
@@ -66,11 +68,13 @@ class TestEither(unittest.TestCase):
         self.assertNotEqual(("a" + Either("a", "b") + "b")._get_type(), _Type.Alternation)
         self.assertNotEqual(("a|" + Either("a", "b") + "|b")._get_type(), _Type.Alternation)
 
-    def test_either_on_str(self):
-        self.assertEqual(str(Either(TEST_STR_1, TEST_STR_2, TEST_STR_3)), f"{TEST_STR_1}|{TEST_STR_2}|{TEST_STR_3}")
+    def test_either_on_pattern(self):
+        self.assertEqual(str(Either(TEST_STR_1, TEST_STR_2)), f"{TEST_STR_1}|{TEST_STR_2}")
+        self.assertEqual(str(Either(Pregex(TEST_STR_1), Pregex(TEST_STR_2))), f"{TEST_STR_1}|{TEST_STR_2}")
 
-    def test_either_on_literal(self):
-        self.assertEqual(str(Either(Pregex(TEST_STR_1), TEST_STR_2)), f"{TEST_STR_1}|{TEST_STR_2}")
+    def test_either_on_multiple_pattern(self):
+        self.assertEqual(str(Either(TEST_STR_1, TEST_STR_2, TEST_STR_3)),
+            f"{TEST_STR_1}|{TEST_STR_2}|{TEST_STR_3}")
 
     def test_either_on_quantifier(self):
         quantifier = Exactly(TEST_STR_1, 2)
@@ -89,7 +93,7 @@ class TestEither(unittest.TestCase):
         self.assertEqual(str(Either(any_ll, TEST_STR_3)), f"{any_ll}|{TEST_STR_3}")
 
     def test_either_on_empty_token(self):
-        self.assertEqual(str(Either(TEST_STR_1, Empty(), TEST_STR_2)), f"{TEST_STR_1}|{TEST_STR_2}")
+        self.assertEqual(str(Either(TEST_STR_1, Empty(), TEST_STR_2)), f"{TEST_STR_1}||{TEST_STR_2}")
 
     def test_either_on_not_enough_arguments_exception(self):
         self.assertRaises(NotEnoughArgumentsException, Either, TEST_STR_1)
@@ -104,8 +108,15 @@ class TestEnclose(unittest.TestCase):
         self.assertEqual(str(Enclose(TEST_STR_1, TEST_STR_2)), f"{TEST_STR_2}{TEST_STR_1}{TEST_STR_2}")
         self.assertEqual(str(Enclose(Pregex(TEST_STR_1), Pregex(TEST_STR_2))), f"{TEST_STR_2}{TEST_STR_1}{TEST_STR_2}")
 
+    def test_enclose_on_multiple_pattern(self):
+        self.assertEqual(str(Enclose(TEST_STR_1, TEST_STR_2, TEST_STR_3)),
+            f"{TEST_STR_3}{TEST_STR_2}{TEST_STR_1}{TEST_STR_2}{TEST_STR_3}")
+
     def test_enclose_on_empty_token(self):
         self.assertEqual(str(Enclose(TEST_STR_1, Empty())), f"{TEST_STR_1}")
+
+    def test_enclose_on_not_enough_arguments_exception(self):
+        self.assertRaises(NotEnoughArgumentsException, Enclose, TEST_STR_1)
 
 
 if __name__=="__main__":

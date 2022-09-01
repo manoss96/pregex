@@ -24,7 +24,7 @@ class TestMatchAtStart(unittest.TestCase):
         self.assertEqual(MatchAtStart("abc")._get_type(), _Type.Assertion)
 
     def test_match_at_start_on_quantifiability(self):
-        self.assertEqual(MatchAtStart("a")._is_quantifiable(), False)
+        self.assertEqual(MatchAtStart("a")._is_repeatable(), False)
 
 
 class TestMatchAtEnd(unittest.TestCase):
@@ -36,7 +36,7 @@ class TestMatchAtEnd(unittest.TestCase):
         self.assertEqual(MatchAtEnd("a")._get_type(), _Type.Assertion)
 
     def test_match_at_end_on_quantifiability(self):
-        self.assertEqual(MatchAtEnd("a")._is_quantifiable(), False)
+        self.assertEqual(MatchAtEnd("a")._is_repeatable(), False)
 
 
 class TestMatchAtLineStart(unittest.TestCase):
@@ -48,7 +48,7 @@ class TestMatchAtLineStart(unittest.TestCase):
         self.assertEqual(MatchAtLineStart("a")._get_type(), _Type.Assertion)
 
     def test_match_at_line_start_on_quantifiability(self):
-        self.assertEqual(MatchAtLineStart("a")._is_quantifiable(), False)
+        self.assertEqual(MatchAtLineStart("a")._is_repeatable(), False)
 
 
 class TestMatchAtLineEnd(unittest.TestCase):
@@ -61,7 +61,7 @@ class TestMatchAtLineEnd(unittest.TestCase):
 
 
     def test_match_at_line_end_on_quantifiability(self):
-        self.assertEqual(MatchAtLineEnd("a")._is_quantifiable(), False)
+        self.assertEqual(MatchAtLineEnd("a")._is_repeatable(), False)
 
 
 class TestWordBoundary(unittest.TestCase):
@@ -80,7 +80,7 @@ class TestWordBoundary(unittest.TestCase):
         self.assertEqual(WordBoundary()._get_type(), _Type.Assertion)
 
     def test_word_boundary_on_quantifiability(self):
-        self.assertEqual(WordBoundary()._is_quantifiable(), True)
+        self.assertEqual(WordBoundary()._is_repeatable(), True)
     
     def test_left_word_boundary(self):
         self.assertEqual(str(self.left_word_boundary), f"\\b{TEST_STR}")
@@ -89,7 +89,7 @@ class TestWordBoundary(unittest.TestCase):
         self.assertEqual(self.left_word_boundary._get_type(), _Type.Assertion)
 
     def test_left_word_boundary_on_quantifiability(self):
-        self.assertEqual(self.left_word_boundary._is_quantifiable(), True)
+        self.assertEqual(self.left_word_boundary._is_repeatable(), True)
 
     def test_right_word_boundary(self):
         self.assertEqual(str(self.right_word_boundary), f"{TEST_STR}\\b")
@@ -98,7 +98,7 @@ class TestWordBoundary(unittest.TestCase):
         self.assertEqual(self.right_word_boundary._get_type(), _Type.Assertion)
 
     def test_right_word_boundary_on_quantifiability(self):
-        self.assertEqual(self.right_word_boundary._is_quantifiable(), True)
+        self.assertEqual(self.right_word_boundary._is_repeatable(), True)
 
     def test_left_and_right_word_boundary(self):
         self.assertEqual(str(self.left_and_right_word_boundary), f"\\b{TEST_STR}\\b")
@@ -107,7 +107,7 @@ class TestWordBoundary(unittest.TestCase):
         self.assertEqual(self.left_and_right_word_boundary._get_type(), _Type.Assertion)
 
     def test_left_and_right_word_boundary_on_quantifiability(self):
-        self.assertEqual(self.left_and_right_word_boundary._is_quantifiable(), True)
+        self.assertEqual(self.left_and_right_word_boundary._is_repeatable(), True)
 
 
 class TestNonWordBoundary(unittest.TestCase):
@@ -126,7 +126,7 @@ class TestNonWordBoundary(unittest.TestCase):
         self.assertEqual(NonWordBoundary()._get_type(), _Type.Assertion)
 
     def test_non_word_boundary_on_quantifiability(self):
-        self.assertEqual(NonWordBoundary()._is_quantifiable(), True)
+        self.assertEqual(NonWordBoundary()._is_repeatable(), True)
     
     def test_left_non_word_boundary(self):
         self.assertEqual(str(self.left_non_word_boundary), f"\\B{TEST_STR}")
@@ -135,7 +135,7 @@ class TestNonWordBoundary(unittest.TestCase):
         self.assertEqual(self.left_non_word_boundary._get_type(), _Type.Assertion)
 
     def test_left_non_word_boundary_on_quantifiability(self):
-        self.assertEqual(self.left_non_word_boundary._is_quantifiable(), True)
+        self.assertEqual(self.left_non_word_boundary._is_repeatable(), True)
 
     def test_right_non_word_boundary(self):
         self.assertEqual(str(self.right_non_word_boundary), f"{TEST_STR}\\B")
@@ -144,7 +144,7 @@ class TestNonWordBoundary(unittest.TestCase):
         self.assertEqual(self.right_non_word_boundary._get_type(), _Type.Assertion)
 
     def test_right_non_word_boundary_on_quantifiability(self):
-        self.assertEqual(self.right_non_word_boundary._is_quantifiable(), True)
+        self.assertEqual(self.right_non_word_boundary._is_repeatable(), True)
 
     def test_left_and_right_non_word_boundary(self):
         self.assertEqual(str(self.left_and_right_non_word_boundary), f"\\B{TEST_STR}\\B")
@@ -153,7 +153,7 @@ class TestNonWordBoundary(unittest.TestCase):
         self.assertEqual(self.left_and_right_non_word_boundary._get_type(), _Type.Assertion)
 
     def test_left_and_right_non_word_boundary_on_quantifiability(self):
-        self.assertEqual(self.left_and_right_non_word_boundary._is_quantifiable(), True)
+        self.assertEqual(self.left_and_right_non_word_boundary._is_repeatable(), True)
 
 
 class TestFollowedBy(unittest.TestCase):
@@ -165,7 +165,7 @@ class TestFollowedBy(unittest.TestCase):
         self.assertEqual(FollowedBy("a", "b")._get_type(), _Type.Assertion)
 
     def test_followed_by_on_quantifiability(self):
-        self.assertEqual(FollowedBy("a", "b")._is_quantifiable(), False)
+        self.assertEqual(FollowedBy("a", "b")._is_repeatable(), False)
 
     def test_followed_by_on_empty_token_as_assertion_pattern(self):
         self.assertEqual(str(FollowedBy(pre1, Empty())), f"{pre1}")
@@ -183,7 +183,7 @@ class TestNotFollowedBy(unittest.TestCase):
         self.assertEqual(NotFollowedBy("a", "b")._get_type(), _Type.Assertion)
 
     def test_not_followed_by_on_quantifiability(self):
-        self.assertEqual(NotFollowedBy("a", "b")._is_quantifiable(), True)
+        self.assertEqual(NotFollowedBy("a", "b")._is_repeatable(), True)
 
     def test_not_followed_by_on_not_enough_arguments_exception(self):
         self.assertRaises(NotEnoughArgumentsException, NotFollowedBy, pre1)
@@ -204,7 +204,7 @@ class TestPrecededBy(unittest.TestCase):
         self.assertEqual(PrecededBy("a", "b")._get_type(), _Type.Assertion)
 
     def test_preceded_by_on_quantifiability(self):
-        self.assertEqual(PrecededBy("a", "b")._is_quantifiable(), False)
+        self.assertEqual(PrecededBy("a", "b")._is_repeatable(), False)
 
     def test_preceded_by_on_quantifier(self):
         exactly = Exactly(pre2, 3)
@@ -227,7 +227,7 @@ class TestNotPrecededBy(unittest.TestCase):
         self.assertEqual(NotPrecededBy("a", "b")._get_type(), _Type.Assertion)
 
     def test_not_preceded_by_on_quantifiability(self):
-        self.assertEqual(NotPrecededBy("a", "b")._is_quantifiable(), True)
+        self.assertEqual(NotPrecededBy("a", "b")._is_repeatable(), True)
 
     def test_not_preceded_by_on_exactly_quantifier(self):
         exactly = Exactly(pre2, 3)
@@ -258,7 +258,7 @@ class TestEnclosedBy(unittest.TestCase):
         self.assertEqual(EnclosedBy("a", "b")._get_type(), _Type.Assertion)
 
     def test_enclosed_by_on_quantifiability(self):
-        self.assertEqual(EnclosedBy("a", "b")._is_quantifiable(), False)
+        self.assertEqual(EnclosedBy("a", "b")._is_repeatable(), False)
 
     def test_enclosed_by_on_quantifier(self):
         exactly = Exactly(pre2, 3)
@@ -282,7 +282,7 @@ class TestNotEnclosedBy(unittest.TestCase):
         self.assertEqual(NotEnclosedBy("a", "b")._get_type(), _Type.Assertion)
 
     def test_not_enclosed_by_on_quantifiability(self):
-        self.assertEqual(NotEnclosedBy("a", "b")._is_quantifiable(), True)
+        self.assertEqual(NotEnclosedBy("a", "b")._is_repeatable(), True)
 
     def test_not_enclosed_by_on_exactly_quantifier(self):
         exactly = Exactly(pre2, 3)

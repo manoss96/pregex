@@ -2,7 +2,7 @@ import re
 import unittest
 from pregex.core.pre import Pregex, Empty, _Type
 from pregex.core.assertions import MatchAtStart, WordBoundary, NonWordBoundary
-from pregex.core.exceptions import CannotBeQuantifiedException, \
+from pregex.core.exceptions import CannotBeRepeatedException, \
     InvalidArgumentValueException, InvalidArgumentTypeException
 
 
@@ -165,6 +165,51 @@ class TestPregex(unittest.TestCase):
         self.assertEqual(self.pre1.split_by_capture(self.TEXT, include_empty=True), self.SPLIT_BY_GROUP)
         self.assertEqual(self.pre1.split_by_capture(self.TEXT, include_empty=False), self.SPLIT_BY_GROUP_WITHOUT_EMPTY)
 
+    def test_pregex_on_quantifiers(self):
+        pre = Pregex('a')
+        self.assertEqual(str(pre.optional()), f"{pre}?")
+        self.assertEqual(str(pre.indefinite()), f"{pre}*")
+        self.assertEqual(str(pre.one_or_more()), f"{pre}+")
+        self.assertEqual(str(pre.exactly(n=3)), f"{pre}{{{3}}}")
+        self.assertEqual(str(pre.at_least(n=3)), f"{pre}{{3,}}")
+        self.assertEqual(str(pre.at_most(n=3)), f"{pre}{{,3}}")
+        self.assertEqual(str(pre.at_least_at_most(n=3, m=5)), f"{pre}{{{3},{5}}}")
+
+    def test_pregex_on_groups(self):
+        pre = Pregex('a')
+        self.assertEqual(str(pre.capture()), f"({pre})")
+        self.assertEqual(str(pre.group()), f"(?:{pre})")
+
+    def test_pregex_on_operators(self):
+        pre, other_pre, other_str = Pregex('a'), Pregex("abc"), "abc"
+        self.assertEqual(str(pre.concat(other_pre)), f"{pre}{other_pre}")
+        self.assertEqual(str(pre.concat(other_pre, on_right=False)), f"{other_pre}{pre}")
+        self.assertEqual(str(pre.either(other_pre)), f"{pre}|{other_pre}")
+        self.assertEqual(str(pre.either(other_pre, on_right=False)), f"{other_pre}|{pre}")
+        self.assertEqual(str(pre.enclose(other_pre)), f"{other_pre}{pre}{other_pre}")
+
+    def test_pregex_on_anchor_assertions(self):
+        pre = Pregex('a')
+        self.assertEqual(str(pre.match_at_start()), f"\\A{pre}")
+        self.assertEqual(str(pre.match_at_line_start()), f"^{pre}")
+        self.assertEqual(str(pre.match_at_end()), f"{pre}\\Z")
+        self.assertEqual(str(pre.match_at_line_end()), f"{pre}$")
+        self.assertEqual(str(pre + WordBoundary()), f"{pre}\\b")
+        self.assertEqual(str(WordBoundary() + pre), f"\\b{pre}")
+        self.assertEqual(str(WordBoundary() + pre + WordBoundary()), f"\\b{pre}\\b")
+        self.assertEqual(str(pre + NonWordBoundary()), f"{pre}\\B")
+        self.assertEqual(str(NonWordBoundary() + pre), f"\\B{pre}")
+        self.assertEqual(str(NonWordBoundary() + pre + NonWordBoundary()), f"\\B{pre}\\B")
+
+    def test_pregex_on_lookaround_assertions(self):
+        pre, other = Pregex('a'), Pregex("abc")
+        self.assertEqual(str(pre.followed_by(other)), f"{pre}(?={other})")
+        self.assertEqual(str(pre.not_followed_by(other)), f"{pre}(?!{other})")
+        self.assertEqual(str(pre.preceded_by(other)), f"(?<={other}){pre}")
+        self.assertEqual(str(pre.not_preceded_by(other)), f"(?<!{other}){pre}")
+        self.assertEqual(str(pre.enclosed_by(other)), f"(?<={other}){pre}(?={other})")
+        self.assertEqual(str(pre.not_enclosed_by(other)), f"(?<!{other}){pre}(?!{other})")
+
 
     '''
     Test Protected Methods
@@ -205,7 +250,7 @@ class TestPregex(unittest.TestCase):
         self.assertRaises(InvalidArgumentValueException, self.pre1.__mul__, -1)
         for val in ["s", 1.1, True]:
             self.assertRaises(InvalidArgumentTypeException, self.pre1.__mul__, val)
-        self.assertRaises(CannotBeQuantifiedException, MatchAtStart("x").__mul__, 2)
+        self.assertRaises(CannotBeRepeatedException, MatchAtStart("x").__mul__, 2)
 
     def test_pregex_on_right_side_multiplication(self):
         self.assertEqual(str(self.pre1.__rmul__(1)), self.PATTERN)
@@ -214,7 +259,7 @@ class TestPregex(unittest.TestCase):
         self.assertRaises(InvalidArgumentValueException, self.pre1.__rmul__, -1)
         for val in ["s", 1.1, True]:
             self.assertRaises(InvalidArgumentTypeException, self.pre1.__rmul__, val)
-        self.assertRaises(CannotBeQuantifiedException, MatchAtStart("x").__rmul__, 2)
+        self.assertRaises(CannotBeRepeatedException, MatchAtStart("x").__rmul__, 2)
 
     '''
     Test Pregex's "__infer_type".
@@ -265,29 +310,31 @@ class TestEmpty(unittest.TestCase):
         self.assertEqual(str(self.pre * 3), f"{self.pre}")
 
     def test_empty_on_quantifiers(self):
-        self.assertEqual(self.pre._optional(), f"{self.pre}")
-        self.assertEqual(self.pre._indefinite(), f"{self.pre}")
-        self.assertEqual(self.pre._one_or_more(), f"{self.pre}")
-        self.assertEqual(self.pre._exactly(n=3), f"{self.pre}")
-        self.assertEqual(self.pre._at_least(n=3), f"{self.pre}")
-        self.assertEqual(self.pre._at_most(n=3), f"{self.pre}")
-        self.assertEqual(self.pre._at_least_at_most(min=3, max=5), f"{self.pre}")
+        self.assertEqual(str(self.pre.optional()), f"{self.pre}")
+        self.assertEqual(str(self.pre.indefinite()), f"{self.pre}")
+        self.assertEqual(str(self.pre.one_or_more()), f"{self.pre}")
+        self.assertEqual(str(self.pre.exactly(n=3)), f"{self.pre}")
+        self.assertEqual(str(self.pre.at_least(n=3)), f"{self.pre}")
+        self.assertEqual(str(self.pre.at_most(n=3)), f"{self.pre}")
+        self.assertEqual(str(self.pre.at_least_at_most(n=3, m=5)), f"{self.pre}")
 
     def test_empty_on_groups(self):
-        self.assertEqual(self.pre._capturing_group(), f"{self.pre}")
-        self.assertEqual(self.pre._non_capturing_group(), f"{self.pre}")
+        self.assertEqual(str(self.pre.capture()), f"({self.pre})")
+        self.assertEqual(str(self.pre.group()), f"(?:{self.pre})")
 
     def test_empty_on_operators(self):
-        other = Pregex("abc")
-        self.assertEqual(self.pre._concat(other), f"{other}")
-        self.assertEqual(self.pre._either(other), f"{other}")
-        self.assertEqual(self.pre._enclose(other), f"{other}{other}")
+        other_pre, other_str = Pregex("abc"), "abc"
+        self.assertEqual(str(self.pre.concat(other_pre)), f"{other_pre}")
+        self.assertEqual(str(self.pre.concat(other_pre, on_right=False)), f"{other_pre}")
+        self.assertEqual(str(self.pre.either(other_pre)), f"|{other_pre}")
+        self.assertEqual(str(self.pre.either(other_pre, on_right=False)), f"{other_pre}|")
+        self.assertEqual(str(self.pre.enclose(other_pre)), f"{other_pre}{other_pre}")
 
     def test_empty_on_anchor_assertions(self):
-        self.assertEqual(self.pre._match_at_start(), "\\A")
-        self.assertEqual(self.pre._match_at_line_start(), "^")
-        self.assertEqual(self.pre._match_at_end(), "\\Z")
-        self.assertEqual(self.pre._match_at_line_end(), "$")
+        self.assertEqual(str(self.pre.match_at_start()), "\\A")
+        self.assertEqual(str(self.pre.match_at_line_start()), "^")
+        self.assertEqual(str(self.pre.match_at_end()), "\\Z")
+        self.assertEqual(str(self.pre.match_at_line_end()), "$")
         self.assertEqual(str(self.pre + WordBoundary()), "\\b")
         self.assertEqual(str(WordBoundary() + self.pre), "\\b")
         self.assertEqual(str(WordBoundary() + self.pre + WordBoundary()), "\\b\\b")
@@ -297,10 +344,12 @@ class TestEmpty(unittest.TestCase):
 
     def test_empty_on_lookaround_assertions(self):
         other = Pregex("abc")
-        self.assertEqual(self.pre._followed_by(other), f"(?={other})")
-        self.assertEqual(self.pre._not_followed_by(other), f"(?!{other})")
-        self.assertEqual(self.pre._preceded_by(other), f"(?<={other})")
-        self.assertEqual(self.pre._not_preceded_by(other), f"(?<!{other})")
+        self.assertEqual(str(self.pre.followed_by(other)), f"(?={other})")
+        self.assertEqual(str(self.pre.not_followed_by(other)), f"(?!{other})")
+        self.assertEqual(str(self.pre.preceded_by(other)), f"(?<={other})")
+        self.assertEqual(str(self.pre.not_preceded_by(other)), f"(?<!{other})")
+        self.assertEqual(str(self.pre.enclosed_by(other)), f"(?<={other})(?={other})")
+        self.assertEqual(str(self.pre.not_enclosed_by(other)), f"(?<!{other})(?!{other})")
 
 
 if __name__=="__main__":

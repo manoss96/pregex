@@ -1,9 +1,3 @@
-import re as _re
-import pregex.core.pre as _pre
-import pregex.core.exceptions as _ex
-from string import whitespace as _whitespace
-
-
 __doc__ = """
 All classes within this module represent the so-called RegΕx "character classes",
 which can be used in order to define a set or "class" of characters that can be matched.
@@ -80,7 +74,8 @@ any string of length one or any instance of a class that is part of the
    pre.print_pattern() # This prints "[\da\\n]"
 
 However, in the case of negated classes one is forced to wrap any tokens
-within an :class:`AnyButFrom` class instance in order to do the same:
+within an :class:`AnyButFrom` class instance in order to achieve the same
+result:
 
 .. code-block:: python
 
@@ -161,8 +156,8 @@ this as it doesn't help much in making the code any easier to read.
    pre.print_pattern() # This prints "[0-9]"
 
 Therefore, in order to create a negated class one can either negate a regular `Any*`
-class by placing ``~`` in front of it, or use its `AnyBut*` negated class equivalent.
-The result is entirely the same and which one you'll use is just a matter of choice.
+class or use its `AnyBut*` negated class equivalent. The result is entirely the same
+and which one you'll use is just a matter of choice.
 
 Classes & methods
 -------------------------------------------
@@ -170,6 +165,12 @@ Classes & methods
 Below are listed all classes within :py:mod:`pregex.core.classes`
 along with any possible methods they may possess.
 """
+
+
+import re as _re
+import pregex.core.pre as _pre
+import pregex.core.exceptions as _ex
+from string import whitespace as _whitespace
 
 
 class __Class(_pre.Pregex):
@@ -236,6 +237,7 @@ class __Class(_pre.Pregex):
         return self.__verbose
 
 
+    @staticmethod
     def __simplify(pattern: str, is_negated: bool, simplify_word: bool) -> str:
         '''
         Converts a verbose pattern to its simplified form.
@@ -262,7 +264,7 @@ class __Class(_pre.Pregex):
         # Replace negated class shorthand-notation characters with their non-class shorthand-notation.
         return _re.sub(r"\[\^(\\w|\\d|\\s)\]", lambda m: m.group(1).upper(), pattern)
 
-    
+    @staticmethod    
     def __chars_to_ranges(chars: set[str]) -> tuple[set[str], set[str]]:
         '''
         Checks whether the provided set of characters can be simplified to
@@ -309,6 +311,7 @@ class __Class(_pre.Pregex):
         return ranges, chars
 
 
+    @staticmethod
     def __verbose_to_shorthand(classes: set[str], simplify_word: bool) -> set[str]:
         '''
         This method searches the provided set for subsets of character classes that \
@@ -613,7 +616,7 @@ class __Class(_pre.Pregex):
             f"[{'^' if pre1.__is_negated else ''}{''.join(result)}]",
             pre1.__is_negated)
 
-
+    @staticmethod
     def __extract_classes(pattern: str, unescape: bool = False) -> tuple[set[str], set[str]]:
         '''
         Extracts all classes from the provided class pattern and returns them \
@@ -647,6 +650,7 @@ class __Class(_pre.Pregex):
         return ranges, chars
 
 
+    @staticmethod
     def __separate_classes(classes: 'str') -> tuple[set[str], set[str]]:
         '''
         Extracts all classes from the provided character class pattern and \
@@ -662,6 +666,7 @@ class __Class(_pre.Pregex):
         return (ranges, set(_re.findall(r"\\?.", classes, flags=_re.DOTALL)))
 
     
+    @staticmethod
     def __modify_classes(classes: set[str], escape: bool) -> set[str]:
         '''
         Either escapes or unescapes any character within the provided classes that \
@@ -689,6 +694,7 @@ class __Class(_pre.Pregex):
         return modified_classes
 
 
+    @staticmethod
     def __split_range(pattern: str) -> tuple[str, str]:
         '''
         Splits the provided range pattern and returns result as a tuple \
@@ -1231,7 +1237,7 @@ class AnyKoreanLetter(__Class):
 
 class AnyButKoreanLetter(__Class):
     '''
-    Matches any character except for characters in the Koren alphabet.
+    Matches any character except for characters in the Korean alphabet.
     '''
     def __init__(self) -> 'AnyButKoreanLetter':
         '''
