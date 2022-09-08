@@ -98,10 +98,10 @@ And this is the RegEx pattern to which the above Pregex instance compiles:
 
 Although it could be argued that this pattern can be more easily
 studied while in its Pregex form, at least by people who are not entirely
-familiar with RegEx's syntax, it is still not quite clear what this pattern
-is trying to match. By following a different pattern-building approach, we
-are going to slightly modify the above Pregex instance so that it is a lot
-more easy to read, without messing with the underlying RegEx pattern.
+familiar with RegEx's syntax, it is still not quite clear what it's purpose
+is. By following a different pattern-building approach, we are going to
+slightly modify the above Pregex instance so that it is a lot more easy
+to read, without messing with the underlying RegEx pattern.
 
 
 Breaking down a pattern
@@ -216,5 +216,5 @@ that appear within a possible match are:
 To give a concrete example, this pattern will match strings like ``a!+#c``, ``a!--12``
 and ``12+-+a#``, but it won't work for strings like ``a!#$f``, ``a!+#3`` and ``1!-a#``.
 
-Having read all the above, try adopting these practices when building patterns
-with PRegEx so you make the most out of it!
+Having read all the above, try adopting these practices yourself when building
+patterns with PRegEx so you make the most out of it!

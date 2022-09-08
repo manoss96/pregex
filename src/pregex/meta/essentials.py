@@ -864,15 +864,6 @@ class Date(_pre.Pregex):
     '''
     __date_separators: tuple[str, str] = ("-", "/")
 
-    __date_value_pre: dict[str, _pre.Pregex] = {
-        "d": _cl.AnyDigit() - "0", 
-        "dd": _op.Either("0" + (_cl.AnyDigit() - "0"), Integer(10, 31)),
-        "m": _cl.AnyDigit() - "0",
-        "mm": _op.Either("0" + (_cl.AnyDigit() - "0"), Integer(10, 12)),
-        "yy": _cl.AnyDigit() * 2, 
-        "yyyy": _cl.AnyDigit() * 4, 
-    }
-
     def __init__(self, *formats: str) -> _pre.Pregex:
         '''
         Matches any date within a range of predefined formats.
@@ -940,13 +931,22 @@ class Date(_pre.Pregex):
         
         values = format.split(separator)
 
-        date_pre = _pre.Empty()
+        date_to_pre: dict[str, _pre.Pregex] = {
+            "d": _cl.AnyDigit() - "0", 
+            "dd": _op.Either("0" + (_cl.AnyDigit() - "0"), Integer(10, 31)),
+            "m": _cl.AnyDigit() - "0",
+            "mm": _op.Either("0" + (_cl.AnyDigit() - "0"), Integer(10, 12)),
+            "yy": _cl.AnyDigit() * 2, 
+            "yyyy": _cl.AnyDigit() * 4, 
+        }
+
+        pre = _pre.Empty()
         for i, value in enumerate(values):
-            date_pre += __class__.__date_value_pre[value]
+            pre += date_to_pre[value]
             if i < len(values) - 1:
-                date_pre += separator
+                pre += separator
                 
-        return date_pre
+        return pre
 
 
     def __date_formats() -> list[str]:
@@ -1013,13 +1013,13 @@ class Email(_pre.Pregex):
     Matches any email address.
 
     :param bool capture_local_part: If set to ``True``, then the local-part \
-        of each Email address match is separately captured as well. Defaults \
+        of each email address match is separately captured as well. Defaults \
         to ``False``.
     :param bool capture_domain: If set to ``True``, then the domain name \
-        of each Email address match is separately captured as well. \
+        of each email address match is separately captured as well. \
         Defaults to ``False``.
 
-    :note: Not guaranteed to match every possible e-mail address.
+    :note: Not guaranteed to match every possible email address.
     '''
 
     def __init__(self, capture_local_part: bool = False, capture_domain: bool = False) -> _pre.Pregex:

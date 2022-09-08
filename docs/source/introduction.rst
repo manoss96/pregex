@@ -9,9 +9,9 @@ Let's face it, although RegEx is without a doubt an extremely useful tool, its s
 This is where PRegEx comes in! PRegEx, which stands for Programmable Regular Expressions, is a Python package that can be used in order to construct Regular Expression patterns in a more human-friendly way. Through the use of PRegEx, one is able to fully utilize the powerful tool that is RegEx without having to deal with any of its nuisances that seem to drive people crazy! PRegEx achieves that by offering the following:
 
 1. An easy-to-remember syntax that resembles the good ol' imperative way of programming!
-2. Adds modularity to building RegEx patterns, as one can easily break down a complex pattern into simpler subpatterns which can then be combined together.
-3. No longer having to escape meta characters such as "." and "*" as this is handled internally by PRegEx!
-4. Acts as a higher-level API on top of Python's built-in "re" module, providing access to its core functionality while saving you the trouble of having to deal with "re.Match" instances.
+2. No longer having to group patterns or escape meta characters, as both are handled internally by PRegEx!
+3. Modularity to building RegEx patterns, as one can easily break down a complex pattern into multiple simpler ones which can then be combined together.
+4. A higher-level API on top of Python's built-in "re" module, providing access to its core functionality and more, while saving you the trouble of having to deal with "re.Match" instances.
 
 And remember, no matter how complex the abstraction, it's always just a pure
 RegEx pattern that sits underneath which you can fetch and use any way you like!
@@ -114,9 +114,10 @@ contain a domain name to be captured.
 Finally, you might have noticed that we built our pattern by utilizing
 various classes that were imported from modules under *pregex.core*. These
 modules contain classes through which the RegEx syntax is essentially replaced.
-However, PRegEx also includes a second set of modules, namely those under
+However, PRegEx also includes another set of modules, namely those under
 subpackage *pregex.meta*, whose classes build upon those in *pregex.core* so
-as to provide higher-level patterns that are a bit more difficult to construct!
+as to provide numerous pre-built patterns that you can just import and use
+right away!
 
 .. code-block:: python
 

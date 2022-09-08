@@ -204,13 +204,12 @@ class CannotBeRepeatedException(Exception):
 
     def __init__(self, pre):
         '''
-        This exception is thrown whenever an instance of a class \
-        that is part of the ``assertions`` module is being quantified.
+        This exception is thrown whenever there is an attempt to \
+        repeat a non-repeatable pattern.
 
         :param __Assertion pre: The ``__Assertion`` instance because of which this exception was thrown.
         '''
-        m = f"Instances of class \"{type(pre).__name__}\" are not repeatable,"
-        m += " with the sole exception to this being the \"Optional\" quantifier \"?\"."
+        m = f"Pattern \"{pre.get_pattern()}\" is non-repeatable."
         super().__init__(m)
 
 

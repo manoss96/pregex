@@ -1224,7 +1224,7 @@ class Pregex():
             if _re.fullmatch(r"\.|\\(?:w|d|s)", pattern,
                 flags=__class__.__flags | _re.IGNORECASE) is not None:
                 return _Type.Class, True
-            elif _re.fullmatch(r"\.|\\(?:b|B)", pattern,
+            elif _re.fullmatch(r"\\b", pattern,
                 flags=__class__.__flags | _re.IGNORECASE) is not None:
                 return _Type.Assertion, True
             else:

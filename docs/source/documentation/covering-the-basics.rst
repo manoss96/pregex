@@ -6,7 +6,7 @@ In this section you will learn about the :class:`~pregex.core.pre.Pregex` class,
 and how instances of this class can be effectively combined together in order
 to construct complex RegEx patterns.
 
-Understanding Pregex
+The Pregex class
 ============================================
 
 The basic idea behind PRegEx is to provide higher-level abstractions
@@ -45,7 +45,7 @@ Being wrapped within instances of the same type allows for these Pregex
 patterns to be easily combined together into even more complex patterns.
 Consider for example the code snippet below where we construct a Pregex
 pattern that will match either any word that starts with "ST" or "st",
-or any three-digit integer number:
+or any three-digit integer:
 
 .. code-block:: python
 
@@ -61,9 +61,9 @@ or any three-digit integer number:
    pre = WordBoundary() + Either(starts_with_st, three_digit_integer) + WordBoundary()
 
 By both using PRegEx's human-friendly syntax and breaking down the pattern into simpler
-subpatterns, it is not hard to tell how this pattern is constructed, as well as what its
-purpose is. Furthermore, the resulting pattern is a Pregex instance itself, and as such,
-it has access to all of the class's methods:
+subpatterns, it is not hard to follow this pattern's construction process, as well as
+what its purpose is. Furthermore, the resulting pattern is a Pregex instance itself,
+and as such, it has access to all of the class's methods:
 
 .. code-block:: python
 
@@ -124,7 +124,7 @@ overloaded addition operator ``+``.
 
    pre = Pregex('a') + Pregex('b') + Optional('c')
 
-   print(pre.get_pattern()) # This prints 'abc?'
+   pre.print_pattern() # This prints 'abc?'
 
 This of course works with simple strings as well, as long as there
 is at least one Pregex instance involved in the operation:
@@ -135,7 +135,7 @@ is at least one Pregex instance involved in the operation:
 
    pre = 'a' + 'b' + Optional('c')
 
-   print(pre.get_pattern()) # This prints 'abc?'
+   pre.print_pattern() # This prints 'abc?'
 
 Concatenating patterns this way is encouraged as it leads to much more
 easy-to-read code.
@@ -153,7 +153,7 @@ repeated an exact number of times:
 
    pre = 3 * Pregex('a')
 
-   print(pre.get_pattern()) # This prints 'a{3}'
+   pre.print_pattern() # This prints 'a{3}'
 
 As it is the case with the addition operator ``+``, it is recommended
 that one also makes use of the multiplication operator ``*`` whenever
@@ -163,7 +163,7 @@ possible.
 Pattern chaining
 ==================
 Apart from PRegEx's standard pattern-building API which involves
-wrapping strings and Pregex instances within other Pregex instances,
+wrapping strings and/or Pregex instances within other Pregex instances,
 there also exists a more functional-like approach to constructing patterns.
 More specifically, every Pregex instance has access to a number of methods
 that can be used so as to apply basic RegEx operators to its underlying

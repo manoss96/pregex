@@ -103,7 +103,7 @@ extended even further!
    pre = AnyLetter() + '.' + Integer(start=50, end=1000)
    text = "a.1 b.5 c.11 d.23 e.77 f.117 g.512 h.789 i.1011"
 
-   print(pre.get_matches(text)) # This prints "['e.77 f.117', 'g.512', 'h.789']"
+   print(pre.get_matches(text)) # This prints "['e.77', 'f.117', 'g.512', 'h.789']"
 
 Click on any one of pregex's *meta* modules below to check out its classes:
 

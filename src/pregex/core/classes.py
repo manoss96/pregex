@@ -856,7 +856,15 @@ class AnyWordChar(__Class):
         Returns ``True`` if this instance supports matching foreign alphabetic \
         characters, else returns ``False``.
         '''
-        return self.__is_global 
+        return self.__is_global
+
+
+    def __invert__(self) -> '__Class':
+        '''
+        Returns an instance of class "AnyButWordChar" where parameter "is_global" \
+        is set according to the value of this instance's "is_global" parameter.
+        '''
+        return AnyButWordChar(is_global=self._is_global())
 
 
 class AnyButWordChar(__Class):
@@ -893,7 +901,15 @@ class AnyButWordChar(__Class):
         Returns ``True`` if this instance also excludes foreign alphabetic \
         characters from matching, else returns ``False``.
         '''
-        return self.__is_global 
+        return self.__is_global
+
+
+    def __invert__(self) -> '__Class':
+        '''
+        Returns an instance of class "AnyWordChar" where parameter "is_global" \
+        is set according to the value of this instance's "is_global" parameter.
+        '''
+        return AnyWordChar(is_global=self._is_global())
 
 
 class AnyPunctuation(__Class):
