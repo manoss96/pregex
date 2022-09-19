@@ -160,6 +160,98 @@ that one also makes use of the multiplication operator ``*`` whenever
 possible.
 
 
+The "empty string" pattern
+================================
+
+Invoking the ``Pregex`` class's constructor without supplying it with a
+value for parameter ``pattern``, causes said parameter to take its default
+value, that is, the empty string ``''``. This is a good starting point
+to begin constructing your pattern:
+
+.. code-block:: python
+
+   from pregex.core.pre.Pregex
+
+   # Initialize your pattern as the empty string pattern.
+   pre = Pregex()
+
+   # Start building your pattern...
+   for subpattern in subpatterns:
+      if '!' in subpattern.get_pattern():
+         pre = pre.concat(subpattern + '?')
+      else:
+         pre = pre.concat(subpattern + '!')
+
+On top of that, any ``Pregex`` instance whose underlying pattern
+is the empty string pattern, has the following properties:
+
+1. Applying a quantifier to the empty string pattern results in itself:
+
+  .. code-block:: python
+
+    from pregex.core.pre import Pregex
+    from pregex.core.quantifiers import OneOrMore
+
+    pre = OneOrMore(Pregex())
+    pre.print_pattern() # This prints ''
+
+2. Creating a group out of the empty string pattern results in itself:
+
+  .. code-block:: python
+
+    from pregex.core.pre import Pregex
+    from pregex.core.group import Group
+
+    pre = Group(Pregex())
+    pre.print_pattern() # This prints ''
+
+3. Applying the alternation operation between the empty string
+   pattern and an ordinary pattern results in the latter:
+
+  .. code-block:: python
+
+    from pregex.core.pre import Pregex
+    from pregex.core.operators import Either
+
+    pre = Either(Pregex(), 'a')
+    pre.print_pattern() # This prints 'a'
+
+4. Applying a positive lookahead assertion based on the empty
+   string pattern to any pattern results in that pattern:
+
+  .. code-block:: python
+
+    from pregex.core.pre import Pregex
+    from pregex.core.assertions import FollowedBy
+
+    pre = FollowedBy('a', Pregex())
+    pre.print_pattern() # This prints 'a'
+
+The above properties make it easy to write concise code
+like the following, without compromising your pattern:
+
+.. code-block:: python
+
+   from pregex.core.pre.Pregex
+   from pregex.core.groups import Capture
+   from pregex.core.operators import Either
+   from pregex.core.quantifiers import OneOrMore
+
+   pre = Either(
+      'a',
+      'b' if i > 5 else Pregex(),
+      OneOrMore('c' if i > 10 else Pregex())
+   ) + Capture('d' if i > 15 else Pregex())
+
+This is the underlying pattern of instance ``pre`` when
+executing the above code snippet for various values of ``i``:
+
+* For ``i`` equal to ``1`` the resulting pattern is ``a``
+* For ``i`` equal to ``6`` the resulting pattern is ``a|b``
+* For ``i`` equal to ``11`` the resulting pattern is ``a|b|c+``
+* For ``i`` equal to ``16`` the resulting pattern is ``(?:a|b|c+)(d)``
+   
+
 Pattern chaining
 ==================
 Apart from PRegEx's standard pattern-building API which involves
@@ -186,9 +278,9 @@ to construct more complex patterns. This technique is called
 
 .. code-block:: python
 
-  from pregex.core.pre import Empty
+  from pregex.core.pre import Pregex
 
-  pre = Empty() \
+  pre = Pregex() \
       .concat('a') \
       .either('b') \
       .one_or_more() \

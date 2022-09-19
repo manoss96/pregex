@@ -13,6 +13,7 @@ along with any possible methods they may possess.
 
 import pregex.core.pre as _pre
 from typing import Union as _Union
+from typing import Optional as _Optional
 
 
 class __Quantifier(_pre.Pregex):
@@ -25,8 +26,9 @@ class __Quantifier(_pre.Pregex):
 
     :raises InvalidArgumentTypeException: Parameter ``pre`` is neither a \
         ``Pregex`` instance nor a string.
-    :raises CannotBeRepeatedException: ``self`` is not an instance of class ``Optional`` and \
-        the provided pattern represents a non-repeatable pattern.
+    :raises CannotBeRepeatedException: Parameter ``pre`` represents a non-repeatable \
+        pattern. Whether this exception is thrown also depends on certain parameter values.
+
     '''
     def __init__(self, pre: _Union[_pre.Pregex, str], is_greedy: bool, transform) -> '__Quantifier':
         '''
@@ -38,8 +40,8 @@ class __Quantifier(_pre.Pregex):
 
         :raises InvalidArgumentTypeException: Parameter ``pre`` is neither a \
             ``Pregex`` instance nor a string.
-        :raises CannotBeRepeatedException: ``self`` is not an instance of class \
-            ``Optional`` and the provided pattern represents a non-repeatable pattern.
+        :raises CannotBeRepeatedException: Parameter ``pre`` represents a non-repeatable \
+            pattern. Whether this exception is thrown also depends on certain parameter values.
         '''
         pattern = transform(__class__._to_pregex(pre), is_greedy)
         super().__init__(str(pattern), escape=False)
@@ -84,7 +86,7 @@ class Indefinite(__Quantifier):
 
     :raises InvalidArgumentTypeException: Parameter ``pre`` is neither a \
         ``Pregex`` instance nor a string.
-    :raises CannotBeRepeatedException: This class is applied to a non-repeatable pattern.
+    :raises CannotBeRepeatedException: Parameter ``pre`` represents a non-repeatable pattern.
     '''
 
     def __init__(self, pre: _Union[_pre.Pregex, str], is_greedy: bool = True) -> _pre.Pregex:
@@ -96,7 +98,7 @@ class Indefinite(__Quantifier):
             When declared as such, the regex engine will try to match \
             the expression as many times as possible. Defaults to ``True``.
 
-        :raises CannotBeRepeatedException: This class is applied to a non-repeatable pattern.
+        :raises CannotBeRepeatedException: Parameter ``pre`` represents a non-repeatable pattern.
         '''
         super().__init__(pre, is_greedy, lambda pre, is_greedy: pre.indefinite(is_greedy))
 
@@ -112,7 +114,7 @@ class OneOrMore(__Quantifier):
 
     :raises InvalidArgumentTypeException: Parameter ``pre`` is neither a \
         ``Pregex`` instance nor a string.
-    :raises CannotBeRepeatedException: This class is applied to a non-repeatable pattern.
+    :raises CannotBeRepeatedException: Parameter ``pre`` represents a non-repeatable pattern.
     '''
 
     def __init__(self, pre: _Union[_pre.Pregex, str], is_greedy: bool = True) -> _pre.Pregex:
@@ -126,7 +128,7 @@ class OneOrMore(__Quantifier):
 
         :raises InvalidArgumentTypeException: Parameter ``pre`` is neither a \
             ``Pregex`` instance nor a string.
-        :raises CannotBeRepeatedException: This class is applied to a non-repeatable pattern.
+        :raises CannotBeRepeatedException: Parameter ``pre`` represents a non-repeatable pattern.
         '''
         super().__init__(pre, is_greedy, lambda pre, is_greedy: pre.one_or_more(is_greedy))
 
@@ -142,7 +144,8 @@ class Exactly(__Quantifier):
         - Parameter ``pre`` is neither a ``Pregex`` instance nor a string.
         - Parameter ``n`` is not an integer.
     :raises InvalidArgumentValueException: Parameter ``n`` has a value of less than zero.
-    :raises CannotBeRepeatedException: This class is applied to a non-repeatable pattern.
+    :raises CannotBeRepeatedException: Parameter ``pre`` represents a non-repeatable \
+        pattern while parameter ``n`` has been set to a value of greater than ``1``.
     '''
 
     def __init__(self, pre: _Union[_pre.Pregex, str], n: int) -> _pre.Pregex:
@@ -156,7 +159,8 @@ class Exactly(__Quantifier):
             - Parameter ``pre`` is neither a ``Pregex`` instance nor a string.
             - Parameter ``n`` is not an integer.
         :raises InvalidArgumentValueException: Parameter ``n`` has a value of less than zero.
-        :raises CannotBeRepeatedException: This class is applied to a non-repeatable pattern.
+        :raises CannotBeRepeatedException: Parameter ``pre`` represents a non-repeatable \
+            pattern while parameter ``n`` has been set to a value of greater than ``1``.
         '''
         super().__init__(pre, False, lambda pre, _: pre.exactly(n))
 
@@ -175,7 +179,7 @@ class AtLeast(__Quantifier):
         - Parameter ``pre`` is neither a ``Pregex`` instance nor a string.
         - Parameter ``n`` is not an integer.
     :raises InvalidArgumentValueException: Parameter ``n`` has a value of less than zero.
-    :raises CannotBeRepeatedException: This class is applied to a non-repeatable pattern.
+    :raises CannotBeRepeatedException: Parameter ``pre`` represents a non-repeatable pattern.
     '''
 
     def __init__(self, pre: _Union[_pre.Pregex, str], n: int, is_greedy: bool = True) -> _pre.Pregex:
@@ -192,7 +196,7 @@ class AtLeast(__Quantifier):
             - Parameter ``pre`` is neither a ``Pregex`` instance nor a string.
             - Parameter ``n`` is not an integer.
         :raises InvalidArgumentValueException: Parameter ``n`` has a value of less than zero.
-        :raises CannotBeRepeatedException: This class is applied to a non-repeatable pattern.
+        :raises CannotBeRepeatedException: Parameter ``pre`` represents a non-repeatable pattern.
         '''
         super().__init__(pre, is_greedy, lambda pre, is_greedy: pre.at_least(n, is_greedy))
 
@@ -202,7 +206,7 @@ class AtMost(__Quantifier):
     Matches the provided pattern up to a maximum number of times.
 
     :param Pregex | str pre: The pattern that is to be quantified.
-    :param int n | None: The maximum number of times that the provided pattern is to be matched.
+    :param int n: The maximum number of times that the provided pattern is to be matched.
     :param bool is_greedy: Indicates whether to declare this quantifier as greedy. \
         When declared as such, the regex engine will try to match \
         the expression as many times as possible. Defaults to ``True``.
@@ -211,18 +215,19 @@ class AtMost(__Quantifier):
         - Parameter ``pre`` is neither a ``Pregex`` instance nor a string.
         - Parameter ``n`` is neither an integer nor ``None``.
     :raises InvalidArgumentValueException: Parameter ``n`` has a value of less than zero.
-    :raises CannotBeRepeatedException: This class is applied to a non-repeatable pattern.
+    :raises CannotBeRepeatedException: Parameter ``pre`` represents a non-repeatable \
+        pattern while parameter ``n`` has been set to a value of greater than ``1``.
 
     :note: Setting ``n`` equal to ``None`` indicates that there is no upper limit to the number of \
         times the pattern is to be repeated.
     '''
 
-    def __init__(self, pre: _Union[_pre.Pregex, str], n: int, is_greedy: bool = True) -> _pre.Pregex:
+    def __init__(self, pre: _Union[_pre.Pregex, str], n: _Optional[int], is_greedy: bool = True) -> _pre.Pregex:
         '''
         Matches the provided pattern up to a maximum number of times.
 
         :param Pregex | str pre: The pattern that is to be quantified.
-        :param int n | None: The maximum number of times that the provided pattern is to be matched.
+        :param int n: The maximum number of times that the provided pattern is to be matched.
         :param bool is_greedy: Indicates whether to declare this quantifier as greedy. \
             When declared as such, the regex engine will try to match \
             the expression as many times as possible. Defaults to ``True``.
@@ -231,7 +236,8 @@ class AtMost(__Quantifier):
             - Parameter ``pre`` is neither a ``Pregex`` instance nor a string.
             - Parameter ``n`` is neither an integer nor ``None``.
         :raises InvalidArgumentValueException: Parameter ``n`` has a value of less than zero.
-        :raises CannotBeRepeatedException: This class is applied to a non-repeatable pattern.
+        :raises CannotBeRepeatedException: Parameter ``pre`` represents a non-repeatable \
+        pattern while parameter ``n`` has been set to a value of greater than ``1``.
 
         :note: Setting ``n`` equal to ``None`` indicates that there is no upper limit to the number of \
             times the pattern is to be repeated.
@@ -245,7 +251,7 @@ class AtLeastAtMost(__Quantifier):
 
     :param Pregex | str pre: The pattern that is to be quantified.
     :param int n: The minimum number of times that the provided pattern is to be matched.
-    :param int | None m: The maximum number of times that the provided pattern is to be matched.
+    :param int m: The maximum number of times that the provided pattern is to be matched.
     :param bool is_greedy: Indicates whether to declare this quantifier as greedy. \
         When declared as such, the regex engine will try to match \
         the expression as many times as possible. Defaults to ``True``.
@@ -257,7 +263,8 @@ class AtLeastAtMost(__Quantifier):
     :raises InvalidArgumentValueException:
         - Either parameter ``n`` or ``m`` has a value of less than zero.
         - Parameter ``n`` has a greater value than that of parameter ``m``.
-    :raises CannotBeRepeatedException: This class is applied to a non-repeatable pattern.
+    :raises CannotBeRepeatedException: Parameter ``pre`` represents a non-repeatable \
+        pattern while parameter ``m`` has been set to a value of greater than ``1``.
 
     :note: 
         - Parameter ``is_greedy`` has no effect in the case that ``n`` equals ``m``.
@@ -265,13 +272,13 @@ class AtLeastAtMost(__Quantifier):
             number of times the pattern is to be repeated.
     '''
 
-    def __init__(self, pre: _Union[_pre.Pregex, str], n: int, m: int, is_greedy: bool = True) -> _pre.Pregex:
+    def __init__(self, pre: _Union[_pre.Pregex, str], n: int, m: _Optional[int], is_greedy: bool = True) -> _pre.Pregex:
         '''
         Matches the provided expression between a minimum and a maximum number of times.
 
         :param Pregex | str pre: The pattern that is to be quantified.
         :param int n: The minimum number of times that the provided pattern is to be matched.
-        :param int | None m: The maximum number of times that the provided pattern is to be matched.
+        :param int m: The maximum number of times that the provided pattern is to be matched.
         :param bool is_greedy: Indicates whether to declare this quantifier as greedy. \
             When declared as such, the regex engine will try to match \
             the expression as many times as possible. Defaults to ``True``.
@@ -283,7 +290,8 @@ class AtLeastAtMost(__Quantifier):
         :raises InvalidArgumentValueException:
             - Either parameter ``n`` or ``m`` has a value of less than zero.
             - Parameter ``n`` has a greater value than that of parameter ``m``.
-        :raises CannotBeRepeatedException: This class is applied to a non-repeatable pattern.
+        :raises CannotBeRepeatedException: Parameter ``pre`` represents a non-repeatable \
+            pattern while parameter ``m`` has been set to a value of greater than ``1``.
 
         :note: 
             - Parameter ``is_greedy`` has no effect in the case that ``n`` equals ``m``.

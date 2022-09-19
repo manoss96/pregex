@@ -22,7 +22,7 @@ including the following statements at the top of their Python script:
   * Module :py:mod:`pregex.core.operators` is imported as ``op``
   * Module :py:mod:`pregex.core.quantifiers` is imported as ``qu``
   * Module :py:mod:`pregex.core.tokens` is imported as ``tk``
-  * Classes :class:`pregex.core.pre.Pregex` and :class:`pregex.core.pre.Empty` are imported as is.
+  * Class :class:`pregex.core.pre.Pregex` is imported as is.
 
   Take a look at the example below to better understand how this works:
 

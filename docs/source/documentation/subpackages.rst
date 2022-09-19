@@ -100,10 +100,17 @@ extended even further!
    from pregex.core.classes import AnyLetter
    from pregex.meta.essentials import Integer
 
-   pre = AnyLetter() + '.' + Integer(start=50, end=1000)
-   text = "a.1 b.5 c.11 d.23 e.77 f.117 g.512 h.789 i.1011"
+   pre = AnyLetter() + Integer(start=50, end=1000, is_extensible=True)
+   text = "a1 b5 c11 d23 e77 f117 g512 h789 i1011"
 
-   print(pre.get_matches(text)) # This prints "['e.77', 'f.117', 'g.512', 'h.789']"
+   print(pre.get_matches(text)) # This prints "['e77', 'f117', 'g512', 'h789']"
+
+Just don't forget to set parameter ``is_extensible`` to ``True``, as
+this prevents some additional assertions from being applied to the
+pattern, which even though are essential in order for it to be able
+to match what is supposed to, at the same time they might introduce
+certain complications when it comes to the pattern serving as a building
+block to a larger pattern.
 
 Click on any one of pregex's *meta* modules below to check out its classes:
 

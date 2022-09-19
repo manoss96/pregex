@@ -1,6 +1,6 @@
 import re
 import unittest
-from pregex.core.pre import Pregex, Empty, _Type
+from pregex.core.pre import Pregex, _Type
 from pregex.core.assertions import MatchAtStart, WordBoundary, NonWordBoundary
 from pregex.core.exceptions import CannotBeRepeatedException, \
     InvalidArgumentValueException, InvalidArgumentTypeException
@@ -8,43 +8,81 @@ from pregex.core.exceptions import CannotBeRepeatedException, \
 
 class TestPregex(unittest.TestCase):
 
-    TEXT = "A0z aaa _9 z9z 99a B0c"
-    PATTERN = "([A-Za-z_])[0-9]+([a-z]?)"
+    TEXT = "A0z aaa _9 z9z 99a B0cDDDD"
+    PATTERN = "(?P<group_1>[A-Za-z_])[0-9]+(?P<group_2>[a-z]?)(?P<group_3>DDDD)?"
 
     pre1 = Pregex(PATTERN, escape=False)
     pre2 = Pregex(PATTERN, escape=False)
     # pre2 is compiled.
     pre2.compile()
 
-    MATCHES = ["A0z", "_9", "z9z", "B0c"]
-    MATCHES_AND_POS = [("A0z", 0, 3), ("_9", 8, 10), ("z9z", 11, 14), ("B0c", 19, 22)]
+    MATCHES = ["A0z", "_9", "z9z", "B0cDDDD"]
+    MATCHES_AND_POS = [("A0z", 0, 3), ("_9", 8, 10), ("z9z", 11, 14), ("B0cDDDD", 19, 26)]
 
-    GROUPS = [("A", "z"), ("_", ""), ("z", "z"), ("B", "c")]
+    GROUPS = [("A", "z", None), ("_", "", None), ("z", "z", None), ("B", "c", 'DDDD')]
     GROUPS_AND_POS = [
-        [("A", 0, 1), ("z", 2, 3)],
-        [("_", 8, 9), ('', 10, 10)],
-        [("z", 11, 12), ("z", 13, 14)],
-        [("B", 19, 20), ("c", 21, 22)]
+        [('A', 0, 1), ('z', 2, 3), (None, -1, -1)],
+        [('_', 8, 9), ('', 10, 10), (None, -1, -1)],
+        [('z', 11, 12), ('z', 13, 14), (None, -1, -1)],
+        [('B', 19, 20), ('c', 21, 22), ('DDDD', 22, 26)]
     ]
     GROUPS_AND_RELATIVE_POS = [
-        [("A", 0, 1), ("z", 2, 3)],
-        [("_", 0, 1), ('', 2, 2)],
-        [("z", 0, 1), ("z", 2, 3)],
-        [("B", 0, 1), ("c", 2, 3)]
+        [('A', 0, 1), ('z', 2, 3), (None, -1, -1)],
+        [('_', 0, 1), ('', 2, 2), (None, -1, -1)],
+        [('z', 0, 1), ('z', 2, 3), (None, -1, -1)],
+        [('B', 0, 1), ('c', 2, 3), ('DDDD', 3, 7)]
     ]
 
-    GROUPS_WITHOUT_EMPTY = [("A", "z"), tuple("_"), ("z", "z"), ("B", "c")]
+    GROUPS_WITHOUT_EMPTY = [("A", "z", None), ("_", None), ("z", "z", None), ("B", "c", 'DDDD')]
     GROUPS_AND_POS_WITHOUT_EMPTY = [
-        [("A", 0, 1), ("z", 2, 3)],
-        [("_", 8, 9)],
-        [("z", 11, 12), ("z", 13, 14)],
-        [("B", 19, 20), ("c", 21, 22)]
+        [("A", 0, 1), ("z", 2, 3), (None, -1, -1)],
+        [("_", 8, 9), (None, -1, -1)],
+        [("z", 11, 12), ("z", 13, 14), (None, -1, -1)],
+        [("B", 19, 20), ("c", 21, 22), ('DDDD', 22, 26)]
     ]
     GROUPS_AND_RELATIVE_POS_WITHOUT_EMPTY = [
-        [("A", 0, 1), ("z", 2, 3)],
-        [("_", 0, 1)],
-        [("z", 0, 1), ("z", 2, 3)],
-        [("B", 0, 1), ("c", 2, 3)]
+        [("A", 0, 1), ("z", 2, 3), (None, -1, -1)],
+        [("_", 0, 1), (None, -1, -1)],
+        [("z", 0, 1), ("z", 2, 3), (None, -1, -1)],
+        [("B", 0, 1), ("c", 2, 3), ('DDDD', 3, 7)]
+    ]
+
+    GROUPS_AS_DICTS =  [
+        {'group_1': 'A', 'group_2': 'z', 'group_3': None},
+        {'group_1': '_', 'group_2': '', 'group_3': None},
+        {'group_1': 'z', 'group_2': 'z', 'group_3': None},
+        {'group_1': 'B', 'group_2': 'c', 'group_3': 'DDDD'},
+    ]
+    GROUPS_AND_POS_AS_DICTS =  [
+        {'group_1': ('A', 0, 1), 'group_2': ('z', 2, 3), 'group_3': (None, -1, -1)},
+        {'group_1': ('_', 8, 9), 'group_2': ('', 10, 10), 'group_3': (None, -1, -1)},
+        {'group_1': ('z', 11, 12), 'group_2': ('z', 13, 14), 'group_3': (None, -1, -1)},
+        {'group_1': ('B', 19, 20), 'group_2': ('c', 21, 22), 'group_3': ('DDDD', 22, 26)},
+    ]
+    GROUPS_AND_RELATIVE_POS_AS_DICTS =  [
+        {'group_1': ('A', 0, 1), 'group_2': ('z', 2, 3), 'group_3': (None, -1, -1)},
+        {'group_1': ('_', 0, 1), 'group_2': ('', 2, 2), 'group_3': (None, -1, -1)},
+        {'group_1': ('z', 0, 1), 'group_2': ('z', 2, 3), 'group_3': (None, -1, -1)},
+        {'group_1': ('B', 0, 1), 'group_2': ('c', 2, 3), 'group_3': ('DDDD', 3, 7)},
+    ]
+
+    GROUPS_AS_DICTS_WITHOUT_EMPTY =  [
+        {'group_1': 'A', 'group_2': 'z', 'group_3': None},
+        {'group_1': '_', 'group_3': None},
+        {'group_1': 'z', 'group_2': 'z', 'group_3': None},
+        {'group_1': 'B', 'group_2': 'c', 'group_3': 'DDDD'},
+    ]
+    GROUPS_AND_POS_AS_DICTS_WITHOUT_EMPTY =  [
+        {'group_1': ('A', 0, 1), 'group_2': ('z', 2, 3), 'group_3': (None, -1, -1)},
+        {'group_1': ('_', 8, 9), 'group_3': (None, -1, -1)},
+        {'group_1': ('z', 11, 12), 'group_2': ('z', 13, 14), 'group_3': (None, -1, -1)},
+        {'group_1': ('B', 19, 20), 'group_2': ('c', 21, 22), 'group_3': ('DDDD', 22, 26)},
+    ]
+    GROUPS_AND_RELATIVE_POS_AS_DICTS_WITHOUT_EMPTY =  [
+        {'group_1': ('A', 0, 1), 'group_2': ('z', 2, 3), 'group_3': (None, -1, -1)},
+        {'group_1': ('_', 0, 1), 'group_3': (None, -1, -1)},
+        {'group_1': ('z', 0, 1), 'group_2': ('z', 2, 3), 'group_3': (None, -1, -1)},
+        {'group_1': ('B', 0, 1), 'group_2': ('c', 2, 3), 'group_3': ('DDDD', 3, 7)},
     ]
     
     SPLIT_BY_MATCH = [" aaa ", " ", " 99a "]
@@ -90,79 +128,184 @@ class TestPregex(unittest.TestCase):
     def test_pregex_on_has_match(self):
         self.assertEqual(self.pre1.has_match(self.TEXT), True)
         self.assertEqual(self.pre1.has_match("ab"), False)
+
+    def test_pregex_on_compiled_has_match(self):
         self.assertEqual(self.pre2.has_match(self.TEXT), True)
+        self.assertEqual(self.pre2.has_match("ab"), False)
 
     def test_pregex_on_is_exact_match(self):
         self.assertEqual(self.pre1.is_exact_match("A0a"), True)
         self.assertEqual(self.pre1.is_exact_match("A0ab"), False)
         self.assertEqual(self.pre1.is_exact_match("aA0a"), False)
+
+    def test_pregex_on_compiled_is_exact_match(self):
         self.assertEqual(self.pre2.is_exact_match("A0a"), True)
+        self.assertEqual(self.pre2.is_exact_match("A0ab"), False)
+        self.assertEqual(self.pre2.is_exact_match("aA0a"), False)
     
     def test_pregex_on_iterate_matches(self):
         self.assertEqual([match for match in self.pre1.iterate_matches(self.TEXT)], self.MATCHES)
+
+    def test_pregex_on_compiled_iterate_matches(self):
         self.assertEqual([match for match in self.pre2.iterate_matches(self.TEXT)], self.MATCHES)
 
     def test_pregex_on_iterate_matches_and_pos(self):
         self.assertEqual([tup for tup in self.pre1.iterate_matches_and_pos(self.TEXT)], self.MATCHES_AND_POS)
+
+    def test_pregex_on_compiled_iterated_matches_and_pos(self):
         self.assertEqual([tup for tup in self.pre2.iterate_matches_and_pos(self.TEXT)], self.MATCHES_AND_POS)
 
     def test_pregex_on_iterate_captures(self):
         self.assertEqual([group_tup for group_tup in self.pre1.iterate_captures(self.TEXT)], self.GROUPS)
+
+    def test_pregex_on_compiled_iterate_captures(self):
+        self.assertEqual([group_tup for group_tup in self.pre2.iterate_captures(self.TEXT)], self.GROUPS)
+
+    def test_pregex_on_iterate_captures_without_empty(self):
         self.assertEqual([group_tup for group_tup in self.pre1.iterate_captures(self.TEXT, include_empty=False)],
             self.GROUPS_WITHOUT_EMPTY)
-        self.assertEqual([group_tup for group_tup in self.pre2.iterate_captures(self.TEXT)], self.GROUPS)
 
     def test_pregex_on_iterate_captures_and_pos(self):
         self.assertEqual([group_list for group_list in self.pre1.iterate_captures_and_pos(self.TEXT)], self.GROUPS_AND_POS)
+
+    def test_pregex_on_compiled_iterate_captures_and_post(self):
+        self.assertEqual([group_list for group_list in self.pre2.iterate_captures_and_pos(self.TEXT)], self.GROUPS_AND_POS)
+
+    def test_pregex_on_iterate_captures_and_pos_without_empty(self):
         self.assertEqual([group_list for group_list in self.pre1.iterate_captures_and_pos(self.TEXT, include_empty=False)],
             self.GROUPS_AND_POS_WITHOUT_EMPTY)
-        self.assertEqual([group_list for group_list in self.pre2.iterate_captures_and_pos(self.TEXT)], self.GROUPS_AND_POS)
 
     def test_pregex_on_iterate_captures_and_pos_relative_to_match(self):
         self.assertEqual([group_list for group_list in self.pre1.iterate_captures_and_pos(self.TEXT, relative_to_match=True)],
             self.GROUPS_AND_RELATIVE_POS)
+    
+    def test_pregex_on_iterate_captures_and_pos_relative_to_match_without_empty(self):
         self.assertEqual([group_list for group_list in self.pre1.iterate_captures_and_pos(self.TEXT,
             include_empty=False, relative_to_match=True)], self.GROUPS_AND_RELATIVE_POS_WITHOUT_EMPTY)
-        self.assertEqual([group_list for group_list in self.pre2.iterate_captures_and_pos(self.TEXT, relative_to_match=True)],
-            self.GROUPS_AND_RELATIVE_POS)
+
+    def test_pregex_on_iterate_named_captures(self):
+        self.assertEqual([group_dict for group_dict in self.pre1.iterate_named_captures(self.TEXT)], self.GROUPS_AS_DICTS)
+
+    def test_pregex_on_compiled_iterate_named_captures(self):
+        self.assertEqual([group_dict for group_dict in self.pre2.iterate_named_captures(self.TEXT)], self.GROUPS_AS_DICTS)
+
+    def test_pregex_on_iterate_named_captures_without_empty(self):
+        self.assertEqual([group_dict for group_dict in self.pre1.iterate_named_captures(self.TEXT, include_empty=False)],
+            self.GROUPS_AS_DICTS_WITHOUT_EMPTY)
+
+    def test_pregex_on_iterate_named_captures_and_pos(self):
+        self.assertEqual([group_dict for group_dict in self.pre1.iterate_named_captures_and_pos(self.TEXT)],
+            self.GROUPS_AND_POS_AS_DICTS)
+
+    def test_pregex_on_compiled_iterate_named_captures_and_pos(self):
+        self.assertEqual([group_dict for group_dict in self.pre2.iterate_named_captures_and_pos(self.TEXT)],
+            self.GROUPS_AND_POS_AS_DICTS)
+
+    def test_pregex_on_iterate_named_captures_and_pos_without_empty(self):
+        self.assertEqual([group_dict for group_dict in self.pre1.iterate_named_captures_and_pos(self.TEXT, include_empty=False)],
+            self.GROUPS_AND_POS_AS_DICTS_WITHOUT_EMPTY)
+
+    def test_pregex_on_iterate_named_captures_and_relative_pos(self):
+        self.assertEqual([group_dict for group_dict in self.pre1.iterate_named_captures_and_pos(self.TEXT, relative_to_match=True)],
+            self.GROUPS_AND_RELATIVE_POS_AS_DICTS)
+
+    def test_pregex_on_iterate_named_captures_and_relative_pos_without_empty(self):
+        self.assertEqual([group_dict for group_dict in self.pre1.iterate_named_captures_and_pos(
+            self.TEXT, include_empty=False, relative_to_match=True)],
+            self.GROUPS_AND_RELATIVE_POS_AS_DICTS_WITHOUT_EMPTY)
 
     def test_pregex_on_get_matches(self):
         self.assertEqual(self.pre1.get_matches(self.TEXT), self.MATCHES)
+
+    def test_pregex_on_compiled_get_matches(self):
         self.assertEqual(self.pre2.get_matches(self.TEXT), self.MATCHES)
 
     def test_pregex_on_get_matches_and_pos(self):
         self.assertEqual(self.pre1.get_matches_and_pos(self.TEXT), self.MATCHES_AND_POS)
+
+    def test_pregex_on_compiled_get_matches_and_pos(self):    
         self.assertEqual(self.pre2.get_matches_and_pos(self.TEXT), self.MATCHES_AND_POS)
 
     def test_pregex_on_get_captures(self):
         self.assertEqual(self.pre1.get_captures(self.TEXT), self.GROUPS)
+    
+    def test_pregex_on_compiled_get_captures(self):
+        self.assertEqual(self.pre2.get_captures(self.TEXT), self.GROUPS)
+
+    def test_pregex_on_get_captures_without_empty(self):
         self.assertEqual(self.pre1.get_captures(self.TEXT, include_empty=False), self.GROUPS_WITHOUT_EMPTY)
-        self.assertEqual(self.pre2.get_captures(self.TEXT, include_empty=False), self.GROUPS_WITHOUT_EMPTY)
 
     def test_pregex_on_get_captures_and_pos(self):
         self.assertEqual(self.pre1.get_captures_and_pos(self.TEXT), self.GROUPS_AND_POS)
+
+    def test_pregex_on_compiled_get_captures_and_pos(self):
+        self.assertEqual(self.pre2.get_captures_and_pos(self.TEXT), self.GROUPS_AND_POS)
+
+    def test_pregex_on_get_captures_and_pos_without_empty(self):
         self.assertEqual(self.pre1.get_captures_and_pos(self.TEXT, include_empty=False), self.GROUPS_AND_POS_WITHOUT_EMPTY)
-        self.assertEqual(self.pre2.get_captures_and_pos(self.TEXT, include_empty=False), self.GROUPS_AND_POS_WITHOUT_EMPTY)
 
     def test_pregex_on_get_captures_and_relative_pos(self):
         self.assertEqual(self.pre1.get_captures_and_pos(self.TEXT, relative_to_match=True), self.GROUPS_AND_RELATIVE_POS)
+
+    def test_pregex_on_get_captures_and_relative_pos_without_empty(self):
         self.assertEqual(self.pre1.get_captures_and_pos(self.TEXT, include_empty=False, relative_to_match=True),
             self.GROUPS_AND_RELATIVE_POS_WITHOUT_EMPTY)
-        self.assertEqual(self.pre2.get_captures_and_pos(self.TEXT, include_empty=False, relative_to_match=True),
-            self.GROUPS_AND_RELATIVE_POS_WITHOUT_EMPTY)
+
+    def test_pregex_on_get_named_captures(self):
+        self.assertEqual(self.pre1.get_named_captures(self.TEXT), self.GROUPS_AS_DICTS)
+    
+    def test_pregex_on_compiled_get_captures(self):
+        self.assertEqual(self.pre2.get_named_captures(self.TEXT), self.GROUPS_AS_DICTS)
+
+    def test_pregex_on_get_named_captures_without_empty(self):
+        self.assertEqual(self.pre1.get_named_captures(self.TEXT, include_empty=False),
+            self.GROUPS_AS_DICTS_WITHOUT_EMPTY)
+
+    def test_pregex_on_get_named_captures_and_pos(self):
+        self.assertEqual(self.pre1.get_named_captures_and_pos(self.TEXT), self.GROUPS_AND_POS_AS_DICTS)
+
+    def test_pregex_on_compiled_get_named_captures_and_pos(self):
+        self.assertEqual(self.pre2.get_named_captures_and_pos(self.TEXT), self.GROUPS_AND_POS_AS_DICTS)
+
+    def test_pregex_on_get_named_captures_and_pos_without_empty(self):
+        self.assertEqual(self.pre1.get_named_captures_and_pos(self.TEXT, include_empty=False),
+            self.GROUPS_AND_POS_AS_DICTS_WITHOUT_EMPTY)
+
+    def test_pregex_on_get_named_captures_and_relative_pos(self):
+        self.assertEqual(self.pre1.get_named_captures_and_pos(self.TEXT, relative_to_match=True),
+            self.GROUPS_AND_RELATIVE_POS_AS_DICTS)
+
+    def test_pregex_on_get_named_captures_and_relative_pos_without_empty(self):
+        self.assertEqual(self.pre1.get_named_captures_and_pos(self.TEXT, include_empty=False,
+            relative_to_match=True), self.GROUPS_AND_RELATIVE_POS_AS_DICTS_WITHOUT_EMPTY)
 
     def test_pregex_on_replace(self):
         repl = "bb"
         self.assertEqual(self.pre1.replace(self.TEXT, repl), "bb aaa bb bb 99a bb")
-        self.assertEqual(self.pre1.replace(self.TEXT, repl, count=1), "bb aaa _9 z9z 99a B0c")
-        self.assertEqual(self.pre2.replace(self.TEXT, repl, count=1), "bb aaa _9 z9z 99a B0c")
+        self.assertEqual(self.pre1.replace(self.TEXT, repl, count=1), "bb aaa _9 z9z 99a B0cDDDD")
+
+    def test_pregex_on_compiled_replace(self):
+        repl = "bb"
+        self.assertEqual(self.pre2.replace(self.TEXT, repl), "bb aaa bb bb 99a bb")
+        self.assertEqual(self.pre1.replace(self.TEXT, repl, count=1), "bb aaa _9 z9z 99a B0cDDDD")
+
+    def test_pregex_on_replace_invalid_argument_value_exception(self):
+        repl = "bb"
         self.assertRaises(InvalidArgumentValueException, self.pre1.replace, self.TEXT, repl, -1)
 
     def test_pregex_on_split_by_match(self):
         self.assertEqual(self.pre1.split_by_match(self.TEXT), self.SPLIT_BY_MATCH)
 
+    def test_pregex_on_compiled_split_by_match(self):
+        self.assertEqual(self.pre2.split_by_match(self.TEXT), self.SPLIT_BY_MATCH)
+
     def test_pregex_on_split_by_capture(self):
         self.assertEqual(self.pre1.split_by_capture(self.TEXT, include_empty=True), self.SPLIT_BY_GROUP)
+
+    def test_pregex_on_compiled_split_by_capture(self):
+        self.assertEqual(self.pre2.split_by_capture(self.TEXT, include_empty=True), self.SPLIT_BY_GROUP)
+
+    def test_pregex_on_split_by_capture_without_empty(self):
         self.assertEqual(self.pre1.split_by_capture(self.TEXT, include_empty=False), self.SPLIT_BY_GROUP_WITHOUT_EMPTY)
 
     def test_pregex_on_quantifiers(self):
@@ -287,19 +430,19 @@ class TestPregex(unittest.TestCase):
         self.assertEqual(Pregex("((abc|acd)|(ab)){1234,1245}", escape=False)._get_type(), _Type.Quantifier)
 
 
-class TestEmpty(unittest.TestCase):
+class TestPregexEmpty(unittest.TestCase):
 
-    pre = Empty()
+    pre = Pregex()
     text = "text"
 
     def test_empty(self):
-        self.assertEqual(str(Empty()), "")
+        self.assertEqual(str(Pregex()), "")
 
     def test_empty_on_type(self):
-        self.assertEqual(Empty()._get_type(), _Type.Empty)
+        self.assertEqual(Pregex()._get_type(), _Type.Empty)
 
     def test_empty_on_match(self):
-        self.assertTrue(Empty().get_matches("") == [""])
+        self.assertTrue(Pregex().get_matches("") == [""])
 
     def test_empty_on_addition(self):
         self.assertEqual(str(self.pre + self.text), f"{self.text}")
@@ -319,11 +462,11 @@ class TestEmpty(unittest.TestCase):
         self.assertEqual(str(self.pre.at_least_at_most(n=3, m=5)), f"{self.pre}")
 
     def test_empty_on_groups(self):
-        self.assertEqual(str(self.pre.capture()), f"({self.pre})")
-        self.assertEqual(str(self.pre.group()), f"(?:{self.pre})")
+        self.assertEqual(str(self.pre.capture()), '')
+        self.assertEqual(str(self.pre.group()), '')
 
     def test_empty_on_operators(self):
-        other_pre, other_str = Pregex("abc"), "abc"
+        other_pre = Pregex("abc")
         self.assertEqual(str(self.pre.concat(other_pre)), f"{other_pre}")
         self.assertEqual(str(self.pre.concat(other_pre, on_right=False)), f"{other_pre}")
         self.assertEqual(str(self.pre.either(other_pre)), f"|{other_pre}")

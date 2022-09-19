@@ -1,8 +1,9 @@
 __doc__ = """
 This module contains a number of classes that represent special characters.
 Each token represents one and only one character. It is recommended that you
-use these classes instead of providing their corresponding characters as strings
-on your own, as this might lead to all sorts of errors due to escaping.
+make use of these classes instead of providing their corresponding characters
+as strings on your own in order to prevent any errors that relate to character
+escaping from happening.
 
 Classes & methods
 -------------------------------------------
@@ -38,7 +39,7 @@ class Backslash(__Token):
 
     def __init__(self) -> 'Backslash':
         '''
-         Matches a backslash character.
+        Matches a single backslash character.
         '''
         super().__init__(r"\\")
 
@@ -62,7 +63,7 @@ class CarriageReturn(__Token):
 
     def __init__(self) -> 'CarriageReturn':
         '''
-         Matches a carriage return character.
+        Matches a single carriage return character.
         '''
         super().__init__("\r")
 
@@ -122,7 +123,7 @@ class FormFeed(__Token):
 
     def __init__(self) -> 'FormFeed':
         '''
-         Matches a form feed character.
+        Matches a single form feed character.
         '''
         super().__init__("\f")
 

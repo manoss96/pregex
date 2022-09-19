@@ -13,7 +13,7 @@ or you can even check out the source code itself by visiting pregex on
 ==================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Introduction
 
    introduction

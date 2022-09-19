@@ -1,7 +1,7 @@
 import unittest
 from pregex.core.operators import *
 from pregex.core.quantifiers import Exactly
-from pregex.core.pre import Pregex, Empty, _Type
+from pregex.core.pre import Pregex, _Type
 from pregex.core.classes import AnyLowercaseLetter
 from pregex.core.assertions import FollowedBy, MatchAtStart
 from pregex.core.exceptions import NotEnoughArgumentsException
@@ -49,11 +49,14 @@ class TestConcat(unittest.TestCase):
         followed_by = FollowedBy("a", "b")
         self.assertEqual(str(Concat(followed_by, TEST_STR_1)), f"{followed_by}{TEST_STR_1}")
 
-    def test_concat_on_empty_token(self):
-        self.assertEqual(str(Concat(TEST_STR_1, Empty())), TEST_STR_1)
+    def test_concat_on_a_single_pattern(self):
+        self.assertEqual(str(Concat(TEST_STR_1)), f"{TEST_STR_1}")
 
-    def test_concat_on_not_enough_arguments_exception(self):
-        self.assertRaises(NotEnoughArgumentsException, Concat, TEST_STR_1)
+    def test_concat_on_no_patterns(self):
+        self.assertEqual(str(Concat()), '')
+
+    def test_concat_on_empty_string(self):
+        self.assertEqual(str(Concat(TEST_STR_1, Pregex())), TEST_STR_1)
 
 
 class TestEither(unittest.TestCase):
@@ -92,11 +95,14 @@ class TestEither(unittest.TestCase):
         any_ll = AnyLowercaseLetter()
         self.assertEqual(str(Either(any_ll, TEST_STR_3)), f"{any_ll}|{TEST_STR_3}")
 
-    def test_either_on_empty_token(self):
-        self.assertEqual(str(Either(TEST_STR_1, Empty(), TEST_STR_2)), f"{TEST_STR_1}||{TEST_STR_2}")
+    def test_either_on_a_single_pattern(self):
+        self.assertEqual(str(Either(TEST_STR_1)), f"{TEST_STR_1}")
 
-    def test_either_on_not_enough_arguments_exception(self):
-        self.assertRaises(NotEnoughArgumentsException, Either, TEST_STR_1)
+    def test_either_on_no_patterns(self):
+        self.assertEqual(str(Either()), '')
+
+    def test_either_on_empty_string(self):
+        self.assertEqual(str(Either(TEST_STR_1, Pregex(), TEST_STR_2)), f"{TEST_STR_1}|{TEST_STR_2}")
 
 
 class TestEnclose(unittest.TestCase):
@@ -108,15 +114,15 @@ class TestEnclose(unittest.TestCase):
         self.assertEqual(str(Enclose(TEST_STR_1, TEST_STR_2)), f"{TEST_STR_2}{TEST_STR_1}{TEST_STR_2}")
         self.assertEqual(str(Enclose(Pregex(TEST_STR_1), Pregex(TEST_STR_2))), f"{TEST_STR_2}{TEST_STR_1}{TEST_STR_2}")
 
-    def test_enclose_on_multiple_pattern(self):
+    def test_enclose_on_multiple_patterns(self):
         self.assertEqual(str(Enclose(TEST_STR_1, TEST_STR_2, TEST_STR_3)),
             f"{TEST_STR_3}{TEST_STR_2}{TEST_STR_1}{TEST_STR_2}{TEST_STR_3}")
 
-    def test_enclose_on_empty_token(self):
-        self.assertEqual(str(Enclose(TEST_STR_1, Empty())), f"{TEST_STR_1}")
+    def test_enclose_on_no_enclosing_patterns(self):
+        self.assertEqual(str(Enclose(TEST_STR_1)), f"{TEST_STR_1}")
 
-    def test_enclose_on_not_enough_arguments_exception(self):
-        self.assertRaises(NotEnoughArgumentsException, Enclose, TEST_STR_1)
+    def test_enclose_on_empty_string(self):
+        self.assertEqual(str(Enclose(TEST_STR_1, Pregex())), f"{TEST_STR_1}")
 
 
 if __name__=="__main__":

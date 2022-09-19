@@ -1,7 +1,7 @@
 __doc__ = """
-This module contains all necessary classes that are used to construct both capturing
-and non-capturing groups, as well as any other class that relates to group-related
-concepts, such as backreferences and conditionals.
+This module contains all necessary classes that are used to construct both
+capturing and non-capturing groups, as well as any other classes which relate
+to concepts that are based on groups, such as backreferences and conditionals.
 
 Pattern grouping
 -------------------------------------------
@@ -19,7 +19,7 @@ deemed necessary. Consider for instance the following code snippet:
 In the first case, quantifier :class:`~pregex.core.quantifiers.Optional` is applied to the pattern
 directly, whereas in the second case the pattern is placed into a non-capturing group
 so that "aa" is quantified as a whole. Even so, one can also explicitly construct a
-non-capturing group out of any pattern if one wishes to do so by making use of the
+non-capturing group out of any pattern if they wish to do so by making use of the
 :class:`Group` class:
 
 .. code-block:: python
@@ -34,7 +34,7 @@ Capturing patterns
 
 You'll find however that :class:`Capture` is probably the most important class
 of this module, as it is used to create a capturing group out of a pattern,
-so that said pattern is also captured separately whenever a match occurs.
+so that said pattern is captured separately whenever a match occurs.
 
 .. code-block:: python
 
@@ -62,6 +62,7 @@ import re as _re
 import pregex.core.pre as _pre
 import pregex.core.exceptions as _ex
 from typing import Union as _Union
+from typing import Optional as _Optional
 
 
 class __Group(_pre.Pregex):
@@ -95,14 +96,15 @@ class Capture(__Group):
     Creates a capturing group out of the provided pattern.
 
     :param Pregex | str pre: The pattern out of which the capturing group is created.
-    :param str name: The name that is assigned to the captured group for backreference purposes. \
-        A value of ``None`` indicates that no name is to be assigned to the group. Defaults to ``None``.
+    :param str name: The name that is assigned to the captured group \
+        for backreference purposes. A value of ``None`` indicates that no name \
+        is to be assigned to the group. Defaults to ``None``.
 
     :raises InvalidArgumentTypeException:
         - Parameter ``pre`` is neither a ``Pregex`` instance nor a string.
         - Parameter ``name`` is neither a string nor ``None``.
     :raises InvalidCapturingGroupNameException: Parameter ``name`` is not a valid \
-        capturing-group name. Such name must contain word characters only and start \
+        capturing group name. Such name must contain word characters only and start \
         with a non-digit character.
 
     :note:
@@ -112,20 +114,21 @@ class Capture(__Group):
         - Creating a named capturing group out of a named capturing group, changes the group's name.
     '''
 
-    def __init__(self, pre: _Union[_pre.Pregex, str], name: str = None):
+    def __init__(self, pre: _Union[_pre.Pregex, str], name: _Optional[str] = None):
         '''
         Creates a capturing group out of the provided pattern.
 
         :param Pregex | str pre: The pattern that is to be wrapped \
             within a capturing group.
-        :param str name: The name that is assigned to the captured group for backreference purposes. \
-            A value of ``None`` indicates that no name is to be assigned to the group. Defaults to ``None``.
+        :param str name: The name that is assigned to the captured group \
+            for backreference purposes. A value of ``None`` indicates that no name \
+            is to be assigned to the group. Defaults to ``None``.
 
         :raises InvalidArgumentTypeException:
             - Parameter ``pre`` is neither a ``Pregex`` instance nor a string.
             - Parameter ``name`` is neither a string nor ``None``.
         :raises InvalidCapturingGroupNameException: Parameter ``name`` is not a valid \
-            capturing-group name. Such name must contain word characters only and start \
+            capturing group name. Such name must contain word characters only and start \
             with a non-digit character.
 
         :note:
@@ -170,35 +173,37 @@ class Group(__Group):
 
 class Backreference(__Group):
     '''
-    Creates a backreference to some previously declared capturing group.\
+    Creates a backreference to some previously declared capturing group.
 
     :param int | str ref: A reference to some previously declared capturing group. \
-        Can either be an integer, in which case the capturing group is referenced by \
-        order, or a string, in which case the capturing group is referenced by name.
+        This parameter can either be an integer, in which case the capturing group \
+        is referenced by order, or a string, in which case the capturing group is \
+        referenced by name.
 
     :raises InvalidArgumentTypeException: Parameter ``ref`` is neither an integer \
         nor a string.
     :raises InvalidArgumentValueException: Parameter ``ref`` is an integer but \
         has a value of either less than ``1`` or greater than ``10``.
     :raises InvalidCapturingGroupNameException: Parameter ``ref`` is a string but \
-        not a valid capturing-group name. Such name must contain word characters \
+        not a valid capturing group name. Such name must contain word characters \
         only and start with a non-digit character.
     '''
 
     def __init__(self, ref: _Union[int, str]):
         '''
-        Creates a backreference to some previously declared capturing group.\
+        Creates a backreference to some previously declared capturing group.
 
         :param int | str ref: A reference to some previously declared capturing group. \
-            Can either be an integer, in which case the capturing group is referenced by \
-            order, or a string, in which case the capturing group is referenced by name.
+            This parameter can either be an integer, in which case the capturing group \
+            is referenced by order, or a string, in which case the capturing group is \
+            referenced by name.
 
         :raises InvalidArgumentTypeException: Parameter ``ref`` is neither an integer \
             nor a string.
         :raises InvalidArgumentValueException: Parameter ``ref`` is an integer but \
             has a value of either less than ``1`` or greater than ``10``.
         :raises InvalidCapturingGroupNameException: Parameter ``ref`` is a string but \
-            not a valid capturing-group name. Such name must contain word characters \
+            not a valid capturing group name. Such name must contain word characters \
             only and start with a non-digit character.
         '''
         if isinstance(ref, int):
@@ -222,13 +227,14 @@ class Backreference(__Group):
 class Conditional(__Group):
     '''
     Given the name of a capturing group, matches ``pre1`` only if said capturing group has \
-    been previously matched. Furthermore, if a second pattern ``pre2`` is provided, then this \
-    pattern is matched in case the referenced capturing group was not matched, though one \
-    should be aware that for this to be possible, the referenced capturing group must be optional.
+    been previously matched. Furthermore, if a second pattern ``pre2`` is provided, then \
+    this pattern is matched in case the referenced capturing group was not, though one \
+    should be aware that for this to be possible, the referenced capturing group must \
+    be optional.
 
     :param str name: The name of the referenced capturing group.
     :param Pregex | str pre1: The pattern that is to be matched in case condition is true.
-    :param Pregex | str | None pre2: The pattern that is to be matched in case condition \
+    :param Pregex | str pre2: The pattern that is to be matched in case condition \
         is false. Defaults to ``None``.
 
     :raises InvalidArgumentTypeException:
@@ -236,20 +242,21 @@ class Conditional(__Group):
         - Parameter ``pre1`` is neither a ``Pregex`` instance nor a string.
         - Parameter ``pre2`` is neither a ``Pregex`` instance nor a string nor ``None``.
     :raises InvalidCapturingGroupNameException: Parameter ``name`` is not a valid \
-        capturing-group name. Such name must contain word characters only and start \
+        capturing group name. Such name must contain word characters only and start \
         with a non-digit character.
     '''
 
-    def __init__(self, name: str, pre1: _Union[_pre.Pregex, str], pre2: _Union[_pre.Pregex, str] = None):
+    def __init__(self, name: str, pre1: _Union[_pre.Pregex, str], pre2: _Optional[_Union[_pre.Pregex, str]] = None):
         '''
         Given the name of a capturing group, matches ``pre1`` only if said capturing group has \
-        been previously matched. Furthermore, if a second pattern ``pre2`` is provided, then this \
-        pattern is matched in case the referenced capturing group was not matched, though one \
-        should be aware that for this to be possible, the referenced capturing group must be optional.
+        been previously matched. Furthermore, if a second pattern ``pre2`` is provided, then \
+        this pattern is matched in case the referenced capturing group was not, though one \
+        should be aware that for this to be possible, the referenced capturing group must \
+        be optional.
 
         :param str name: The name of the referenced capturing group.
         :param Pregex | str pre1: The pattern that is to be matched in case condition is true.
-        :param Pregex | str | None pre2: The pattern that is to be matched in case condition \
+        :param Pregex | str pre2: The pattern that is to be matched in case condition \
             is false. Defaults to ``None``.
 
         :raises InvalidArgumentTypeException:
@@ -257,7 +264,7 @@ class Conditional(__Group):
             - Parameter ``pre1`` is neither a ``Pregex`` instance nor a string.
             - Parameter ``pre2`` is neither a ``Pregex`` instance nor a string nor ``None``.
         :raises InvalidCapturingGroupNameException: Parameter ``name`` is not a valid \
-            capturing-group name. Such name must contain word characters only and start \
+            capturing group name. Such name must contain word characters only and start \
             with a non-digit character.
         '''
         if not isinstance(name, str):

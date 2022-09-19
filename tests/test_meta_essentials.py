@@ -59,6 +59,10 @@ class TestWord(unittest.TestCase):
     def test_word_is_global_on_matches(self):
         self.assertEqual(Word(is_global=False).get_matches("Γειά σου"), [])
 
+    def test_word_on_extensibility(self):
+        pre = Word(is_extensible=True) + "g"
+        self.assertEqual(pre.get_matches(TEXT), ['evening'])
+
     def test_word_on_invalid_argument_type_exception(self):
         self.assertRaises(InvalidArgumentTypeException, Word, min_chars='1')
         self.assertRaises(InvalidArgumentTypeException, Word, min_chars=1, max_chars='1')
@@ -71,7 +75,7 @@ class TestWord(unittest.TestCase):
 
 class TestWordContains(unittest.TestCase):
 
-    infixes = ['re', 'ey']
+    infixes = ['re', 'ey', 'in']
 
     def test_word_contains_on_pattern(self):
         infix = 'a'
@@ -83,10 +87,14 @@ class TestWordContains(unittest.TestCase):
         f"\\b\{p}*(?:{'|'.join(self.infixes)})\w*\\b" for p in get_permutations("A-Z", "a-z", "\\d", "_"))
     
     def test_word_contains_on_matches(self):
-        self.assertEqual(WordContains(self.infixes).get_matches(TEXT), ["Hey", "there", "are"])
+        self.assertEqual(WordContains(self.infixes).get_matches(TEXT), ["Hey", "there", "are", "fine", "evening"])
 
     def test_word_contains_is_global_on_matches(self):
         self.assertEqual(WordContains(['ά', 'σ']).get_matches('Γειά σου!'), ["Γειά", "σου"])
+
+    def test_word_contains_on_extensibility(self):
+        pre = WordContains(self.infixes, is_extensible=True) + 'e'
+        self.assertEqual(pre.get_matches(TEXT), ['fine'])
 
     def test_word_contains_on_invalid_argument_type_exception(self):
         self.assertRaises(InvalidArgumentTypeException, WordContains, infix=1)
@@ -112,6 +120,10 @@ class TestWordStartsWith(unittest.TestCase):
     def test_word_starts_with_is_global_on_matches(self):
         self.assertEqual(WordStartsWith('Γ').get_matches('Γειά σου!'), ["Γειά"])
 
+    def test_word_starts_with_on_extensibility(self):
+        pre = WordStartsWith(self.prefixes, is_extensible=True) + 'y'
+        self.assertEqual(pre.get_matches(TEXT), ['Hey'])
+
     def test_word_starts_with_on_invalid_argument_type_exception(self):
         self.assertRaises(InvalidArgumentTypeException, WordStartsWith, prefix=1)
         self.assertRaises(InvalidArgumentTypeException, WordStartsWith, prefix=['a', 1])
@@ -135,6 +147,10 @@ class TestWordEndsWith(unittest.TestCase):
 
     def test_word_ends_with_is_global_on_matches(self):
         self.assertEqual(WordEndsWith('ά').get_matches('Γειά σου!'), ["Γειά"])
+
+    def test_word_ends_with_on_extensibility(self):
+        pre = 'H' + WordEndsWith(self.suffixes, is_extensible=True)
+        self.assertEqual(pre.get_matches(TEXT), ['How'])
 
     def test_word_ends_with_on_invalid_argument_type_exception(self):
         self.assertRaises(InvalidArgumentTypeException, WordEndsWith, suffix=1)
@@ -161,6 +177,10 @@ class TestNumeral(unittest.TestCase):
 
     def test_numeral_on_n_min_n_max(self):
         self.assertEqual(Numeral(n_min=3, n_max=3).get_matches(self.text), ["123", "156", "999"])
+
+    def test_numeral_on_extensibility(self):
+        pre = '1' + Numeral(is_extensible=True)
+        self.assertEqual(pre.get_matches(self.text), ["10", "123", "1234", "156", "1901"])
 
     def test_numeral_on_invalid_argument_type_exception(self):
         self.assertRaises(InvalidArgumentTypeException, Numeral, base='2')
@@ -195,8 +215,12 @@ class TestInteger(unittest.TestCase):
             ["3", "7", "10"])
 
     def test_integer_include_sign_on_matches(self):
-        self.assertEqual(Integer(ignore_sign=False).get_matches(self.text),
+        self.assertEqual(Integer(include_sign=True).get_matches(self.text),
             ["0", "1", "+3", "7", "10", "123", "-128", "+142", "1234069"])
+
+    def test_integer_on_extensibility(self):
+        pre = 'a' + Integer(include_sign=True, is_extensible=True)
+        self.assertEqual(pre.get_matches(self.text), ["a+141"])
 
     def test_integer_on_invalid_argument_type_exception(self):
         self.assertRaises(InvalidArgumentTypeException, Integer, start='1')
@@ -227,6 +251,10 @@ class TestPositiveInteger(unittest.TestCase):
         self.assertEqual(PositiveInteger(start=3, end=10).get_matches(self.text),
             ["+3", "7", "10"])
 
+    def test_positive_integer_on_extensibility(self):
+        pre = 'a' + PositiveInteger(is_extensible=True)
+        self.assertEqual(pre.get_matches(self.text), ["a+141"])
+
     def test_positive_integer_on_invalid_argument_type_exception(self):
         self.assertRaises(InvalidArgumentTypeException, PositiveInteger, start='1')
         self.assertRaises(InvalidArgumentTypeException, PositiveInteger, start=1, end='1')
@@ -256,6 +284,10 @@ class TestNegativeInteger(unittest.TestCase):
         self.assertEqual(NegativeInteger(start=3, end=7).get_matches(self.text),
             ["-3", "-7"])
 
+    def test_negative_integer_on_extensibility(self):
+        pre = 'a' + NegativeInteger(is_extensible=True)
+        self.assertEqual(pre.get_matches(self.text), ["a-141"])
+
     def test_negative_integer_on_invalid_argument_type_exception(self):
         self.assertRaises(InvalidArgumentTypeException, NegativeInteger, start='1')
         self.assertRaises(InvalidArgumentTypeException, NegativeInteger, start=1, end='1')
@@ -267,7 +299,7 @@ class TestNegativeInteger(unittest.TestCase):
 
 class TestUnsignedInteger(unittest.TestCase):
 
-    text = "0 00 a -b 01 -1 cd ! 003 -3 7 000010 -10 123 -128 a-141 +-142 1234069"
+    text = "0 00 a -b 01 -1 cd ! 003 -3 7 000010 -10 123 -128 a-141 +-142 1234069 b14"
 
     def test_unsigned_integer_on_matches(self):
         self.assertEqual(UnsignedInteger().get_matches(self.text),
@@ -284,6 +316,10 @@ class TestUnsignedInteger(unittest.TestCase):
     def test_unsigned_integer_start_end_on_matches(self):
         self.assertEqual(UnsignedInteger(start=3, end=7).get_matches(self.text),
             ["7"])
+
+    def test_unsigned_integer_on_extensibility(self):
+        pre = 'b' + UnsignedInteger(is_extensible=True)
+        self.assertEqual(pre.get_matches(self.text), ["b14"])
 
     def test_unsigned_integer_on_invalid_argument_type_exception(self):
         self.assertRaises(InvalidArgumentTypeException, UnsignedInteger, start='1')
@@ -330,12 +366,13 @@ class TestDecimal(unittest.TestCase):
         self.assertEqual(Decimal(start=3, end=10, min_decimal=2, max_decimal=4).get_matches(self.text),
             ["3.789", "10.5555"])
 
-    def test_decimal_exclude_sign_on_matches(self):
-        self.assertEqual(Decimal(ignore_sign=False).get_matches(self.text),
+    def test_decimal_include_sign_on_matches(self):
+        self.assertEqual(Decimal(include_sign=True).get_matches(self.text),
             [".1", "0.1", "1.22", "+3.789", "+10.5555", "-128.99999", "+142.2"])
 
-    def test_decimal_on_type(self):
-        self.assertEqual(Decimal()._get_type(), _Type.Assertion)
+    def test_decimal_on_extensibility(self):
+        pre = 'a' + Decimal(include_sign=True, is_extensible=True)
+        self.assertEqual(pre.get_matches(self.text), ["a+141.1"])
 
     def test_decimal_on_invalid_argument_type_exception(self):
         self.assertRaises(InvalidArgumentTypeException, Decimal, start='1')
@@ -352,7 +389,7 @@ class TestDecimal(unittest.TestCase):
 
 class TestPositiveDecimal(unittest.TestCase):
 
-    text = ".1 0.1 00 a b 01 1.22 cd ! 003 +3.789 7 000010 ++10.5555 123. -128.99999 a+141 ++142"
+    text = ".1 0.1 00 a b 01 1.22 cd ! 003 +3.789 7 000010 ++10.5555 123. -128.99999 a+141.1"
 
     def test_positive_decimal_on_matches(self):
         self.assertEqual(PositiveDecimal().get_matches(self.text),
@@ -386,6 +423,10 @@ class TestPositiveDecimal(unittest.TestCase):
         self.assertEqual(PositiveDecimal(start=3, end=10, min_decimal=2, max_decimal=4).get_matches(self.text),
             ["+3.789", "+10.5555"])
 
+    def test_positive_decimal_on_extensibility(self):
+        pre = 'a' + PositiveDecimal(is_extensible=True)
+        self.assertEqual(pre.get_matches(self.text), ["a+141.1"])
+
     def test_positive_decimal_on_invalid_argument_type_exception(self):
         self.assertRaises(InvalidArgumentTypeException, PositiveDecimal, start='1')
         self.assertRaises(InvalidArgumentTypeException, PositiveDecimal, end='1')
@@ -401,7 +442,7 @@ class TestPositiveDecimal(unittest.TestCase):
 
 class TestNegativeDecimal(unittest.TestCase):
 
-    text = "-.1 -0.1 00 a b 01 -1.22 cd ! 003 -3.789 -7 000010 +-10.5555 123. +128.99999 a-141 +-142"
+    text = "-.1 -0.1 00 a b 01 -1.22 cd ! 003 -3.789 -7 000010 +-10.5555 123. +128.99999 a-141.1 +-142"
 
     def test_negative_decimal_on_matches(self):
         self.assertEqual(NegativeDecimal().get_matches(self.text),
@@ -435,6 +476,10 @@ class TestNegativeDecimal(unittest.TestCase):
         self.assertEqual(NegativeDecimal(start=3, end=10, min_decimal=2, max_decimal=4).get_matches(self.text),
             ["-3.789", "-10.5555"])
 
+    def test_negative_decimal_on_extensibility(self):
+        pre = 'a' + NegativeDecimal(is_extensible=True)
+        self.assertEqual(pre.get_matches(self.text), ["a-141.1"])
+
     def test_negative_decimal_on_invalid_argument_type_exception(self):
         self.assertRaises(InvalidArgumentTypeException, NegativeDecimal, start='1')
         self.assertRaises(InvalidArgumentTypeException, NegativeDecimal, end='1')
@@ -450,7 +495,7 @@ class TestNegativeDecimal(unittest.TestCase):
 
 class TestUnsignedDecimal(unittest.TestCase):
 
-    text = ".1 0.1 00 a b 01 -1.22 cd ! 003 3.789 -7 000010 10.5555 123. +128.99999 a-141 +-142"
+    text = ".1 0.1 00 a b 01 -1.22 cd ! 003 3.789 -7 000010 10.5555 123. +128.99999 a-141 +-142 b14.1"
 
     def test_unsigned_decimal_on_matches(self):
         self.assertEqual(UnsignedDecimal().get_matches(self.text),
@@ -484,6 +529,10 @@ class TestUnsignedDecimal(unittest.TestCase):
         self.assertEqual(UnsignedDecimal(start=3, end=10, min_decimal=2, max_decimal=4).get_matches(self.text),
             ["3.789", "10.5555"])
 
+    def test_unsigned_decimal_on_extensibility(self):
+        pre = 'b' + UnsignedDecimal(is_extensible=True)
+        self.assertEqual(pre.get_matches(self.text), ["b14.1"])
+
     def test_unsigned_decimal_on_invalid_argument_type_exception(self):
         self.assertRaises(InvalidArgumentTypeException, UnsignedDecimal, start='1')
         self.assertRaises(InvalidArgumentTypeException, UnsignedDecimal, end='1')
@@ -507,6 +556,7 @@ class TestDate(unittest.TestCase):
     24/11/01
     1/3/1996
     1996/11/20
+    a1998/10/21 (extensible-only)
 
     Invalid
     -------
@@ -527,8 +577,12 @@ class TestDate(unittest.TestCase):
         ])
 
     def test_date_on_specified_matches(self):
-        self.assertEqual(Date("dd/mm/yyyy").get_matches(self.text),
+        self.assertEqual(Date(formats=["dd/mm/yyyy"]).get_matches(self.text),
             ["24/11/2001"])
+
+    def test_date_on_extensibility(self):
+        pre = 'a' + Date(is_extensible=True)
+        self.assertEqual(pre.get_matches(self.text), ["a1998/10/21"])
 
 
 class TestIPv4(unittest.TestCase):
@@ -538,6 +592,7 @@ class TestIPv4(unittest.TestCase):
     -----
     192.168.1.1
     0.0.0.0
+    .10.10.10.10. (extensible-only)
     
     Invalid
     -------
@@ -549,6 +604,10 @@ class TestIPv4(unittest.TestCase):
     def test_ipv4_on_matches(self):
         self.assertEqual(IPv4().get_matches(self.text), ["192.168.1.1", "0.0.0.0"])
 
+    def test_ipv4_on_extensibility(self):
+        pre = '.' + IPv4(is_extensible=True) + '.'
+        self.assertEqual(pre.get_matches(self.text), [".10.10.10.10."])
+
 
 class TestIPv6(unittest.TestCase):
 
@@ -559,6 +618,7 @@ class TestIPv6(unittest.TestCase):
     f23b::fb2:8a2e:370:7334
     ::1
     ::
+    :::: (extensible-only)
 
     Invalid
     -------
@@ -574,6 +634,10 @@ class TestIPv6(unittest.TestCase):
             "f23b::fb2:8a2e:370:7334",
             "::1",
             "::"])
+
+    def test_ipv6_on_extensibility(self):
+        pre = ':' + IPv6(is_extensible=True) + ':'
+        self.assertEqual(pre.get_matches(self.text), ["::::"])
 
 
 class TestEmail(unittest.TestCase):
@@ -626,6 +690,10 @@ class TestEmail(unittest.TestCase):
             ("mail-archive2",)
         ])
 
+    def test_email_on_extensibility(self):
+        pre = 'abcd' + Email(is_extensible=True)
+        self.assertEqual(pre.get_matches(self.text), ["abcdef@mail.com"])
+
 
 class TestHttpUrl(unittest.TestCase):
 
@@ -674,6 +742,10 @@ class TestHttpUrl(unittest.TestCase):
             ("domain5",),
             ("domain6",)
         ])
+
+    def test_http_url_on_extensibility(self):
+        pre = 'www.you' + HttpUrl(is_extensible=True)
+        self.assertEqual(pre.get_matches(self.text), ["www.youtube.com"])
         
 
 if __name__=="__main__":

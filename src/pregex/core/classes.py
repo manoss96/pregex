@@ -1,5 +1,5 @@
 __doc__ = """
-All classes within this module represent the so-called RegΕx "character classes",
+All classes within this module represent the so-called RegΕx *character classes*,
 which can be used in order to define a set or "class" of characters that can be matched.
 
 Class types
@@ -831,9 +831,9 @@ class AnyWordChar(__Class):
     :param bool is_global: Indicates whether to include foreign alphabetic \
         characters or not. Defaults to ``False``.
 
-    :note: Attempting to subtract a regular class instance from an instance of this \
-        class for which parameter ``is_global`` has been set to ``True`` will \
-        cause a ``GlobalWordCharSubtractionException`` exception to be thrown.
+    :raises GlobalWordCharSubtractionException: There is an attempt to subtract \
+        a regular character class from an instance of this class for which \
+        parameter ``is_global`` has been set to ``True``.
     '''
 
     def __init__(self, is_global: bool = False) -> 'AnyWordChar':
@@ -843,9 +843,9 @@ class AnyWordChar(__Class):
         :param bool is_global: Indicates whether to include foreign alphabetic \
             characters or not. Defaults to ``False``.
 
-        :note: Attempting to subtract a regular class instance from an instance of this \
-            class for which parameter ``is_global`` has been set to ``True`` will \
-            cause a ``GlobalWordCharSubtractionException`` exception to be thrown.
+        :raises GlobalWordCharSubtractionException: There is an attempt to subtract \
+            a regular character class from an instance of this class for which \
+            parameter ``is_global`` has been set to ``True``.
         '''
         super().__init__('[a-zA-Z0-9_]', is_negated=False, simplify_word=is_global)
         self.__is_global = is_global
@@ -875,9 +875,9 @@ class AnyButWordChar(__Class):
     :param bool is_global: Indicates whether to include foreign alphabetic \
         characters or not. Defaults to ``False``.
 
-    :note: Attempting to subtract a negated class instance from an instance of this \
-        class for which parameter ``is_global`` has been set to ``True`` will \
-        cause a ``GlobalWordCharSubtractionException`` exception to be thrown.
+    :raises GlobalWordCharSubtractionException: There is an attempt to subtract \
+        a negated character class from an instance of this class for which \
+        parameter ``is_global`` has been set to ``True``.
     '''
 
     def __init__(self, is_global: bool = False) -> 'AnyButWordChar':
@@ -888,9 +888,9 @@ class AnyButWordChar(__Class):
         :param bool is_global: Indicates whether to include foreign alphabetic \
             characters or not. Defaults to ``False``.
 
-        :note: Attempting to subtract a negated class instance from an instance of this \
-            class for which parameter ``is_global`` has been set to ``True`` will \
-            cause a ``GlobalWordCharSubtractionException`` exception to be thrown.
+        :raises GlobalWordCharSubtractionException: There is an attempt to subtract \
+            a negated character class from an instance of this class for which \
+            parameter ``is_global`` has been set to ``True``.
         '''
         super().__init__('[^a-zA-Z0-9_]', is_negated=True, simplify_word=is_global)
         self.__is_global = is_global
@@ -974,8 +974,8 @@ class AnyBetween(__Class):
     :raises InvalidRangeException: A non-valid range is provided.
 
     :note: Any pair of characters ``start``, ``end`` constitutes a valid range \
-        as long as that the code point of ``end`` is greater than the code \
-        point of ``start``, as defined by the Unicode Standard.
+        as long as the code point of character ``end`` is greater than the code \
+        point of character ``start``, as defined by the Unicode Standard.
     '''
 
     def __init__(self, start: str, end: str) -> 'AnyBetween':
@@ -990,8 +990,8 @@ class AnyBetween(__Class):
         :raises InvalidRangeException: A non-valid range is provided.
 
         :note: Any pair of characters ``start``, ``end`` constitutes a valid range \
-            as long as that the code point of ``end`` is greater than the code \
-            point of ``start``, as defined by the Unicode Standard.
+            as long as the code point of character ``end`` is greater than the code \
+            point of character ``start``, as defined by the Unicode Standard.
         '''
         for c in (start, end):
             if isinstance(c, (str, _pre.Pregex)):
@@ -1011,7 +1011,7 @@ class AnyBetween(__Class):
 
 class AnyButBetween(__Class):
     '''
-    Matches any character except for all characters within the provided range.
+    Matches any character except for those within the provided range.
 
     :param str start: The first character of the range.
     :param str end: The last character of the range.
@@ -1021,13 +1021,13 @@ class AnyButBetween(__Class):
     :raises InvalidRangeException: A non-valid range is provided.
 
     :note: Any pair of characters ``start``, ``end`` constitutes a valid range \
-        as long as that the code point of ``end`` is greater than the code \
-        point of ``start``, as defined by the Unicode Standard.
+        as long as the code point of character ``end`` is greater than the code \
+        point of character ``start``, as defined by the Unicode Standard.
     '''
 
     def __init__(self, start: str, end: str) -> 'AnyButBetween':
         '''
-        Matches any character except for all characters within the provided range.
+        Matches any character except for those within the provided range.
 
         :param str start: The first character of the range.
         :param str end: The last character of the range.
@@ -1037,8 +1037,8 @@ class AnyButBetween(__Class):
         :raises InvalidRangeException: A non-valid range is provided.
 
         :note: Any pair of characters ``start``, ``end`` constitutes a valid range \
-            as long as that the code point of ``end`` is greater than the code \
-            point of ``start``, as defined by the Unicode Standard.
+            as long as the code point of character ``end`` is greater than the code \
+            point of character ``start``, as defined by the Unicode Standard.
         '''
         for c in (start, end):
             if isinstance(c, (str, _pre.Pregex)):
@@ -1060,24 +1060,28 @@ class AnyFrom(__Class):
     '''
     Matches any one of the provided characters.
 
-    :param str | Pregex \*chars: One or more characters to match from. Each character must be \
-        a string of length one, provided either as is or wrapped within a `tokens` class.
+    :param str | Pregex \*chars: One or more characters to match from. \
+        Each character must be either a string of length one or an instance \
+        of a class defined within the :py:mod:`pregex.core.tokens` module.
 
     :raises NotEnoughArgumentsExceptions: No arguments are provided.
-    :raises InvalidArgumentTypeException: At least one of the provided arguments \
-        is neither a `token` class instance nor a single-character string.
+    :raises InvalidArgumentTypeException: At least one of the provided \
+        arguments is neither a string of length one nor an instance of \
+        a class defined within :py:mod:`pregex.core.tokens`.
     '''
 
     def __init__(self, *chars: str or _pre.Pregex) -> 'AnyFrom':
         '''
         Matches any one of the provided characters.
 
-        :param str | Pregex \*chars: One or more characters to match from. Each character must be \
-            a string of length one, provided either as is or wrapped within a `tokens` class.
+        :param str | Pregex \*chars: One or more characters to match from. \
+            Each character must be either a string of length one or an instance \
+            of a class defined within the :py:mod:`pregex.core.tokens` module.
 
         :raises NotEnoughArgumentsExceptions: No arguments are provided.
-        :raises InvalidArgumentTypeException: At least one of the provided arguments \
-            is neither a `token` class instance nor a single-character string.
+        :raises InvalidArgumentTypeException: At least one of the provided \
+            arguments is neither a string of length one nor an instance of \
+            a class defined within :py:mod:`pregex.core.tokens`.
         '''
         if len(chars) == 0:
             message = f"No characters were provided to \"{__class__.__name__}\"."
@@ -1099,24 +1103,28 @@ class AnyButFrom(__Class):
     '''
     Matches any character except for the provided characters.
 
-    :param str | Pregex \*chars: One or more characters not to match from. Each character must be \
-        a string of length one, provided either as is or wrapped within a `tokens` class.
+    :param str | Pregex \*chars: One or more characters not to match from.
+        Each character must be either a string of length one or an instance \
+        of a class defined within the :py:mod:`pregex.core.tokens` module.
 
     :raises NotEnoughArgumentsExceptions: No arguments are provided.
-    :raises InvalidArgumentTypeException: At least one of the provided arguments \
-        is neither a `token` class instance nor a single-character string.
+    :raises InvalidArgumentTypeException: At least one of the provided \
+        arguments is neither a string of length one nor an instance of \
+        a class defined within :py:mod:`pregex.core.tokens`.
     '''
 
     def __init__(self, *chars: str or _pre.Pregex) -> 'AnyButFrom':
         '''
         Matches any character except for the provided characters.
 
-        :param str | Pregex \*chars: One or more characters not to match from. Each character must be \
-            a string of length one, provided either as is or wrapped within a `tokens` class.
+        :param str | Pregex \*chars: One or more characters not to match from.
+            Each character must be either a string of length one or an instance \
+            of a class defined within the :py:mod:`pregex.core.tokens` module.
 
         :raises NotEnoughArgumentsExceptions: No arguments are provided.
-        :raises InvalidArgumentTypeException: At least one of the provided arguments \
-            is neither a `token` class instance nor a single-character string.
+        :raises InvalidArgumentTypeException: At least one of the provided \
+            arguments is neither a string of length one nor an instance of \
+            a class defined within :py:mod:`pregex.core.tokens`.
         '''
         if len(chars) == 0:
             message = f"No characters were provided to \"{__class__.__name__}\"."

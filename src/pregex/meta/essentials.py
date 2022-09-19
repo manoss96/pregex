@@ -16,10 +16,44 @@ import pregex.core.operators as _op
 import pregex.core.exceptions as _ex
 import pregex.core.assertions as _asr
 import pregex.core.quantifiers as _qu
+from typing import Union as _Union
+from typing import Optional as _Optional
+
+
+class __Word(_pre.Pregex):
+    '''
+    This is the base class for every "Word" class.
+
+    :param Pregex pre: A Pregex instance representing the word pattern.
+    :param bool is_extensible: If ``True``, then no additional assertions \
+        are imposed upon the underlying pattern, other than any necessary ones, \
+        which in turn prevents certain complications from arising whenever it \
+        serves as a building block to a larger pattern. As a general rule of thumb, \
+        set this parameter to ``True`` if you wish to extend the resulting instance's \
+        underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+        Defaults to ``False``.
+    '''
+
+    def __init__(self, pre: _pre.Pregex, is_extensible: bool):
+        '''
+        This is the base class for every "Word" class.
+
+        :param Pregex pre: A Pregex instance representing the word pattern.
+        :param bool is_extensible: If ``True``, then no additional assertions \
+            are imposed upon the underlying pattern, other than any necessary ones, \
+            which in turn prevents certain complications from arising whenever it \
+            serves as a building block to a larger pattern. As a general rule of thumb, \
+            set this parameter to ``True`` if you wish to extend the resulting instance's \
+            underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+            Defaults to ``False``.
+        '''
+        if not is_extensible:
+            pre = pre.enclose(_asr.WordBoundary())
+        super().__init__(str(pre), escape=False)
 
 
 
-class Word(_pre.Pregex):
+class Word(__Word):
     '''
     Matches any word.
 
@@ -29,6 +63,13 @@ class Word(_pre.Pregex):
         be considered a match. If set to "None", then it is considered that there is no upper
         limit to the amount of characters a word can have. Defaults to ``None``.
     :param is_global: Determines whether to include foreign characters. Defaults to ``True``.
+    :param bool is_extensible: If ``True``, then no additional assertions \
+        are imposed upon the underlying pattern, other than any necessary ones, \
+        which in turn prevents certain complications from arising whenever it \
+        serves as a building block to a larger pattern. As a general rule of thumb, \
+        set this parameter to ``True`` if you wish to extend the resulting instance's \
+        underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+        Defaults to ``False``.
 
     :raises InvalidArgumentTypeException:
         - Parameter ``min_chars`` is not an integer.
@@ -37,7 +78,8 @@ class Word(_pre.Pregex):
         - Either parameter ``min_chars`` or ``max_chars`` has a value of less than ``1``.
         - Parameter ``min_chars`` has a greater value than that of parameter ``max_chars``.
     '''
-    def __init__(self, min_chars: int = 1, max_chars: int = None, is_global: bool = True) -> _pre.Pregex:
+    def __init__(self, min_chars: int = 1, max_chars: _Optional[int] = None,
+        is_global: bool = True, is_extensible: bool = False) -> _pre.Pregex:
         '''
         Matches any word.
 
@@ -47,6 +89,13 @@ class Word(_pre.Pregex):
             be considered a match. If set to "None", then it is considered that there is no upper
             limit to the amount of characters a word can have. Defaults to ``None``.
         :param is_global: Determines whether to include foreign characters. Defaults to ``True``.
+        :param bool is_extensible: If ``True``, then no additional assertions \
+            are imposed upon the underlying pattern, other than any necessary ones, \
+            which in turn prevents certain complications from arising whenever it \
+            serves as a building block to a larger pattern. As a general rule of thumb, \
+            set this parameter to ``True`` if you wish to extend the resulting instance's \
+            underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+            Defaults to ``False``.
 
         :raises InvalidArgumentTypeException:
             - Parameter ``min_chars`` is not an integer.
@@ -74,29 +123,44 @@ class Word(_pre.Pregex):
             message += " greater than the value of parameter \"min\"."
             raise _ex.InvalidArgumentValueException(message)
         
-        pre = pre \
-            .at_least_at_most(n=min_chars, m=max_chars) \
-            .enclose(_asr.WordBoundary())
-        super().__init__(str(pre), escape=False)
+        pre = pre.at_least_at_most(n=min_chars, m=max_chars)
+        super().__init__(pre, is_extensible)
 
 
-class WordContains(_pre.Pregex):
+class WordContains(__Word):
     '''
     Matches any word that contains either one of the provided strings.
 
-    :param list[str] | str infix: Either a string or a list of strings at least one of which \
-        a word must contain in order to be considered a match.
-    :param is_global: Determines whether to include foreign characters. Defaults to ``True``.
+    :param str | list[str] infix: Either a string or a list of strings at \
+        least one of which a word must contain in order to be considered a match.
+    :param is_global: Determines whether to include foreign characters. \
+        Defaults to ``True``.
+    :param bool is_extensible: If ``True``, then no additional assertions \
+        are imposed upon the underlying pattern, other than any necessary ones, \
+        which in turn prevents certain complications from arising whenever it \
+        serves as a building block to a larger pattern. As a general rule of thumb, \
+        set this parameter to ``True`` if you wish to extend the resulting instance's \
+        underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+        Defaults to ``False``.
 
     :raises InvalidArgumentTypeException: At least one of the provided infixes is not a string.
     '''
-    def __init__(self, infix: list[str] or str, is_global: bool = True) -> _pre.Pregex:
+    def __init__(self, infix: _Union[str, list[str]],
+        is_global: bool = True, is_extensible: bool = False) -> _pre.Pregex:
         '''
         Matches any word that contains either one of the provided strings.
 
-        :param list[str] | str infix: Either a string or a list of strings at least one of which \
-            a word must contain in order to be considered a match.
-        :param is_global: Determines whether to include foreign characters. Defaults to ``True``.
+        :param str | list[str] infix: Either a string or a list of strings at \
+            least one of which a word must contain in order to be considered a match.
+        :param is_global: Determines whether to include foreign characters. \
+            Defaults to ``True``.
+        :param bool is_extensible: If ``True``, then no additional assertions \
+            are imposed upon the underlying pattern, other than any necessary ones, \
+            which in turn prevents certain complications from arising whenever it \
+            serves as a building block to a larger pattern. As a general rule of thumb, \
+            set this parameter to ``True`` if you wish to extend the resulting instance's \
+            underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+            Defaults to ``False``.
 
         :raises InvalidArgumentTypeException: At least one of the provided infixes is not a string.
         '''
@@ -107,30 +171,46 @@ class WordContains(_pre.Pregex):
                 message = f"Provided infix argument \"{s}\" is not a string."
                 raise _ex.InvalidArgumentTypeException(message)
         pre = _op.Enclose(
-            _op.Either(*infix) if len(infix) > 1 else _pre.Pregex(infix[0]),
-            _qu.Indefinite(_cl.AnyWordChar(is_global=is_global)),
-            _asr.WordBoundary()
+            _op.Either(*infix),
+            _qu.Indefinite(_cl.AnyWordChar(is_global=is_global))
         )
-        super().__init__(str(pre), escape=False)
+        super().__init__(pre, is_extensible)
 
 
-class WordStartsWith(_pre.Pregex):
+class WordStartsWith(__Word):
     '''
     Matches any word that starts with either one of the provided strings.
 
-    :param list[str] | str prefix: Either a string or a list of strings with \
+    :param str | list[str] prefix: Either a string or a list of strings with \
         any of which a word must start in order to be considered a match.
-    :param is_global: Determines whether to include foreign characters. Defaults to ``True``.
+    :param is_global: Determines whether to include foreign characters. \
+        Defaults to ``True``.
+    :param bool is_extensible: If ``True``, then no additional assertions \
+        are imposed upon the underlying pattern, other than any necessary ones, \
+        which in turn prevents certain complications from arising whenever it \
+        serves as a building block to a larger pattern. As a general rule of thumb, \
+        set this parameter to ``True`` if you wish to extend the resulting instance's \
+        underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+        Defaults to ``False``.
 
     :raises InvalidArgumentTypeException: At least one of the provided prefixes is not a string.
     '''
-    def __init__(self, prefix: list[str] or str, is_global: bool = True) -> _pre.Pregex:
+    def __init__(self, prefix: _Union[str, list[str]],
+        is_global: bool = True, is_extensible: bool = False) -> _pre.Pregex:
         '''
         Matches any word that starts with either one of the provided strings.
 
-        :param list[str] | str prefix: Either a string or a list of strings with \
+        :param str | list[str] prefix: Either a string or a list of strings with \
             any of which a word must start in order to be considered a match.
-        :param is_global: Determines whether to include foreign characters. Defaults to ``True``.
+        :param is_global: Determines whether to include foreign characters. \
+            Defaults to ``True``.
+        :param bool is_extensible: If ``True``, then no additional assertions \
+            are imposed upon the underlying pattern, other than any necessary ones, \
+            which in turn prevents certain complications from arising whenever it \
+            serves as a building block to a larger pattern. As a general rule of thumb, \
+            set this parameter to ``True`` if you wish to extend the resulting instance's \
+            underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+            Defaults to ``False``.
 
         :raises InvalidArgumentTypeException: At least one of the provided prefixes is not a string.
         '''
@@ -140,29 +220,46 @@ class WordStartsWith(_pre.Pregex):
             if not isinstance(s, str):
                 message = f"Provided prefix argument \"{s}\" is not a string."
                 raise _ex.InvalidArgumentTypeException(message)
-        pre = _op.Either(*prefix) if len(prefix) > 1 else prefix[0]
+        pre = _op.Either(*prefix)
         pre = pre + _qu.Indefinite(_cl.AnyWordChar(is_global=is_global))
-        pre = pre.enclose(_asr.WordBoundary())
-        super().__init__(str(pre), escape=False)
+        super().__init__(pre, is_extensible)
 
 
-class WordEndsWith(_pre.Pregex):
+class WordEndsWith(__Word):
     '''
     Matches any word that ends with either one of the provided strings.
 
-    :param list[str] | str prefix: Either a string or a list of strings with \
+    :param str | list[str] suffix: Either a string or a list of strings with \
         any of which a word must end in order to be considered a match.
-    :param is_global: Determines whether to include foreign characters. Defaults to ``True``.
+    :param is_global: Determines whether to include foreign characters. \
+        Defaults to ``True``.
+    :param bool is_extensible: If ``True``, then no additional assertions \
+        are imposed upon the underlying pattern, other than any necessary ones, \
+        which in turn prevents certain complications from arising whenever it \
+        serves as a building block to a larger pattern. As a general rule of thumb, \
+        set this parameter to ``True`` if you wish to extend the resulting instance's \
+        underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+        Defaults to ``False``.
+
 
     :raises InvalidArgumentTypeException: At least one of the provided suffixes is not a string.
     '''
-    def __init__(self, suffix: list[str] or str, is_global: bool = True) -> _pre.Pregex:
+    def __init__(self, suffix: _Union[str, list[str]],
+        is_global: bool = True, is_extensible: bool = False) -> _pre.Pregex:
         '''
         Matches any word that ends with either one of the provided strings.
 
-        :param list[str] | str prefix: Either a string or a list of strings with \
+        :param str | list[str] suffix: Either a string or a list of strings with \
             any of which a word must end in order to be considered a match.
-        :param is_global: Determines whether to include foreign characters. Defaults to ``True``.
+        :param is_global: Determines whether to include foreign characters. \
+            Defaults to ``True``.
+        :param bool is_extensible: If ``True``, then no additional assertions \
+            are imposed upon the underlying pattern, other than any necessary ones, \
+            which in turn prevents certain complications from arising whenever it \
+            serves as a building block to a larger pattern. As a general rule of thumb, \
+            set this parameter to ``True`` if you wish to extend the resulting instance's \
+            underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+            Defaults to ``False``.
 
         :raises InvalidArgumentTypeException: At least one of the provided suffixes is not a string.
         '''
@@ -172,13 +269,12 @@ class WordEndsWith(_pre.Pregex):
             if not isinstance(s, str):
                 message = f"Provided suffix argument \"{s}\" is not a string."
                 raise _ex.InvalidArgumentTypeException(message)
-        pre = _op.Either(*suffix) if len(suffix) > 1 else suffix[0]
+        pre = _op.Either(*suffix)
         pre = _qu.Indefinite(_cl.AnyWordChar(is_global=is_global)) + pre
-        pre = pre.enclose(_asr.WordBoundary())
-        super().__init__(str(pre), escape=False)
+        super().__init__(pre, is_extensible)
 
 
-class Numeral(_pre.Pregex):
+class Numeral(__Word):
     '''
     Matches any numeral.
 
@@ -186,8 +282,15 @@ class Numeral(_pre.Pregex):
         Defaults to ``10``.
     :param int n_min: The minimum amount of digits the number may contain. \
         Defaults to ``1``.
-    :param int | None n_max: The maximum amount of digits the number may contain. \
+    :param int n_max: The maximum amount of digits the number may contain. \
         Defaults to ``None``.
+    :param bool is_extensible: If ``True``, then no additional assertions \
+        are imposed upon the underlying pattern, other than any necessary ones, \
+        which in turn prevents certain complications from arising whenever it \
+        serves as a building block to a larger pattern. As a general rule of thumb, \
+        set this parameter to ``True`` if you wish to extend the resulting instance's \
+        underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+        Defaults to ``False``.
 
     :raises InvalidArgumentTypeException: 
         - Parameter ``base`` or ``n_min`` is not an integer.
@@ -200,7 +303,8 @@ class Numeral(_pre.Pregex):
     :note: Setting ``n_max`` equal to ``None`` indicates that there is no upper limit to \
         the number of digits.
     '''
-    def __init__(self, base: int = 10, n_min: int = 1, n_max: int = None) -> _pre.Pregex:
+    def __init__(self, base: int = 10, n_min: int = 1,
+        n_max: _Optional[int] = None, is_extensible: bool = False) -> _pre.Pregex:
         '''
         Matches any numeral.
 
@@ -208,8 +312,15 @@ class Numeral(_pre.Pregex):
             Defaults to ``10``.
         :param int n_min: The minimum amount of digits the number may contain. \
             Defaults to ``1``.
-        :param int | None n_max: The maximum amount of digits the number may contain. \
+        :param int n_max: The maximum amount of digits the number may contain. \
             Defaults to ``None``.
+        :param bool is_extensible: If ``True``, then no additional assertions \
+            are imposed upon the underlying pattern, other than any necessary ones, \
+            which in turn prevents certain complications from arising whenever it \
+            serves as a building block to a larger pattern. As a general rule of thumb, \
+            set this parameter to ``True`` if you wish to extend the resulting instance's \
+            underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+            Defaults to ``False``.
 
         :raises InvalidArgumentTypeException: 
             - Parameter ``base`` or ``n_min`` is not an integer.
@@ -254,10 +365,8 @@ class Numeral(_pre.Pregex):
                 14 : _cl.AnyFrom("d", "D"), 15 : _cl.AnyFrom("e", "E"), 16 : _cl.AnyFrom("f", "F")}
             for i in range(2, base + 1):
                 pre = pre | digit_map[i]
-        pre = pre \
-            .at_least_at_most(n=n_min, m=n_max) \
-            .enclose(_asr.WordBoundary())
-        super().__init__(str(pre), escape=False)
+        pre = pre.at_least_at_most(n=n_min, m=n_max)
+        super().__init__(pre, is_extensible)
 
 
 class __Integer(_pre.Pregex):
@@ -268,6 +377,13 @@ class __Integer(_pre.Pregex):
         to the left of the integer.
     :param int start: The starting value of the range.
     :param int end: The ending value of the range.
+    :param bool is_extensible: If ``True``, then no additional assertions \
+        are imposed upon the underlying pattern, other than any necessary ones, \
+        which in turn prevents certain complications from arising whenever it \
+        serves as a building block to a larger pattern. As a general rule of thumb, \
+        set this parameter to ``True`` if you wish to extend the resulting instance's \
+        underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+        Defaults to ``False``.
 
     :raises InvalidArgumentTypeException: Either parameter ``start`` \
         or parameter ``end`` is not an integer.
@@ -275,7 +391,8 @@ class __Integer(_pre.Pregex):
         - Parameter ``start`` has a value of less than zero.
         - Parameter ``start`` has a greater value than that of parameter ``end``.
     '''
-    def __init__(self, sign: _pre.Pregex, start: int, end: int) -> _pre.Pregex:
+    def __init__(self, sign: _pre.Pregex, start: int,
+        end: int, is_extensible: bool) -> _pre.Pregex:
         '''
         Every "Integer" class inherits from this class.
 
@@ -283,6 +400,13 @@ class __Integer(_pre.Pregex):
             to the left of the integer.
         :param int start: The starting value of the range.
         :param int end: The ending value of the range.
+        :param bool is_extensible: If ``True``, then no additional assertions \
+            are imposed upon the underlying pattern, other than any necessary ones, \
+            which in turn prevents certain complications from arising whenever it \
+            serves as a building block to a larger pattern. As a general rule of thumb, \
+            set this parameter to ``True`` if you wish to extend the resulting instance's \
+            underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+            Defaults to ``False``.
 
         :raises InvalidArgumentTypeException: Either parameter ``start`` \
             or parameter ``end`` is not an integer.
@@ -302,17 +426,24 @@ class __Integer(_pre.Pregex):
         if start > end:
             message = "Parameter \"end\" must have a greater value than parameter \"start\"."
             raise _ex.InvalidArgumentValueException(message)
-        pre = sign + __class__.__integer(start, end)
+        pre = sign + __class__.__integer(start, end, is_extensible)
         super().__init__(str(pre), escape=False)
         
 
-    def __integer(start: int, end: int) -> _pre.Pregex:
+    def __integer(start: int, end: int, is_extensible: bool) -> _pre.Pregex:
         '''
-        Returns a "Pregex" instance able to match integers within the \
-            specified range.
+        Returns a ``Pregex`` instance able to match integers \
+        within the specified range.
 
         :param int start: The starting value of the range.
         :param int end: The ending value of the range.
+        :param bool is_extensible: If ``True``, then no additional assertions \
+            are imposed upon the underlying pattern, other than any necessary ones, \
+            which in turn prevents certain complications from arising whenever it \
+            serves as a building block to a larger pattern. As a general rule of thumb, \
+            set this parameter to ``True`` if you wish to extend the resulting instance's \
+            underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+            Defaults to ``False``.
         '''
 
         # Used to fill-in empty space in "start" string.
@@ -337,13 +468,16 @@ class __Integer(_pre.Pregex):
         start, end = str(start), str(end)
         start = f"{filler * (len(end) - len(start))}{start}"
 
-        p_start = _asr.WordBoundary()
-        p_end = _asr.WordBoundary()
+        integer_start = _pre.Pregex().preceded_by(_cl.AnyButDigit()) \
+            if is_extensible else _asr.WordBoundary()
 
-        pre = _asr.WordBoundary()
+        p_start = integer_start
+        p_end = integer_start
+
+        pre = integer_start
 
         for i, (d_start, d_end) in enumerate(zip(start, end)):
-            # First if will always execute for i == 0.
+            # "if" block will always execute for i == 0.
             if str(p_start) == str(p_end):
                 digit_pre = any_between(d_start, d_end, i==0)
             else:
@@ -351,20 +485,17 @@ class __Integer(_pre.Pregex):
                     any_between(d_start, '9').preceded_by(p_start),
                     any_between('0', d_end).preceded_by(p_end),
                     _asr.NotPrecededBy(
-                        _cl.AnyDigit(), p_start, p_end
+                        _cl.AnyDigit(),
+                        *[p for p in (p_start, p_end) if p._get_type() != _pre._Type.Empty]
                     )
                 )
                 if i > 1:
                     digit_pre = \
                         _asr.NotPrecededBy(
                             digit_pre,
-                            *[
-                                _asr.WordBoundary() + '0' 
-                                + (i - 2) * _cl.AnyDigit() for i in range(2, i+1)
-                            ]
+                            *[_cl.AnyButDigit() + '0' + (i - 2) * _cl.AnyDigit() for i in range(2, i+1)]
                         )
                 
-
             p_start += d_start.replace(filler, '')
             p_end += d_end
             
@@ -373,7 +504,10 @@ class __Integer(_pre.Pregex):
 
             pre += digit_pre
 
-        return pre + _asr.WordBoundary()
+        if not is_extensible:
+            pre += _asr.WordBoundary()
+
+        return pre
 
 
 class Integer(__Integer):
@@ -382,8 +516,15 @@ class Integer(__Integer):
 
     :param int start: The starting value of the range. Defaults to ``0``.
     :param int end: The ending value of the range. Defaults to ``2147483647``.
-    :param bool ignore_sign: Determines whether to ignore any existing \
-        signs or include them into the match. Defaults to ``True``.
+    :param bool include_sign: Determines whether to include any existing \
+        signs into the match, or just ignore them. Defaults to ``False``.
+    :param bool is_extensible: If ``True``, then no additional assertions \
+        are imposed upon the underlying pattern, other than any necessary ones, \
+        which in turn prevents certain complications from arising whenever it \
+        serves as a building block to a larger pattern. As a general rule of thumb, \
+        set this parameter to ``True`` if you wish to extend the resulting instance's \
+        underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+        Defaults to ``False``.
 
     :raises InvalidArgumentTypeException: Either parameter ``start`` \
         or parameter ``end`` is not an integer.
@@ -391,23 +532,38 @@ class Integer(__Integer):
         - Parameter ``start`` has a value of less than zero.
         - Parameter ``start`` has a greater value than that of parameter ``end``.
 
-    :note: Be aware that parameter ``ignore_sign`` might not only play a role in \
-        deciding the content of the matches, but their number as well. For example, \
-        setting ``ignore_sign`` to ``True`` will result in ``Integer`` matching both \
-        ``1`` and ``2`` in ``1+2``, whereas setting it to ``False`` results in just \
-        matching ``1``. That is, because in case ``ignore_sign`` is ``False``,  ``+2`` \
-        is considered an integer as a whole, and as such, it cannot match when another \
-        digit, namely ``1``, directly precedes it.
+    :note: 
+        - Be aware that parameter ``include_sign`` might not only play a role in \
+          deciding the content of the matches, but their number as well. For example, \
+          setting ``include_sign`` to ``False`` will result in ``Integer`` matching both \
+          ``1`` and ``2`` in ``1+2``, whereas setting it to ``True`` results in just \
+          matching ``1``. That is, because in case ``include_sign`` is ``True``,  ``+2`` \
+          is considered an integer as a whole, and as such, it cannot match when another \
+          digit, namely ``1``, directly precedes it.
+        - Even by setting parameter ``is_extensible`` to ``True``, there still persists \
+          an assertion that is essential to the pattern, which dictates that this pattern \
+          must not be preceded by any numeric characters. For that reason, one should avoid \
+          concatenating an instance of this class to the right of a pattern that ends in \
+          such a character.
+
+
     '''
-    def __init__(self, start: int = 0, end: int = 2147483647, ignore_sign: bool = True) \
-        -> _pre.Pregex:
+    def __init__(self, start: int = 0, end: int = 2147483647,
+        include_sign: bool = False, is_extensible: bool = False) -> _pre.Pregex:
         '''
         Matches any integer within the specified range.
 
         :param int start: The starting value of the range. Defaults to ``0``.
         :param int end: The ending value of the range. Defaults to ``2147483647``.
-        :param bool ignore_sign: Determines whether to ignore any existing \
-            signs or include them into the match. Defaults to ``True``.
+        :param bool include_sign: Determines whether to include any existing \
+            signs into the match, or just ignore them. Defaults to ``False``.
+        :param bool is_extensible: If ``True``, then no additional assertions \
+            are imposed upon the underlying pattern, other than any necessary ones, \
+            which in turn prevents certain complications from arising whenever it \
+            serves as a building block to a larger pattern. As a general rule of thumb, \
+            set this parameter to ``True`` if you wish to extend the resulting instance's \
+            underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+            Defaults to ``False``.
 
         :raises InvalidArgumentTypeException: Either parameter ``start`` \
             or parameter ``end`` is not an integer.
@@ -415,22 +571,37 @@ class Integer(__Integer):
             - Parameter ``start`` has a value of less than zero.
             - Parameter ``start`` has a greater value than that of parameter ``end``.
 
-        :note: Be aware that parameter ``ignore_sign`` might not only play a role in \
-            deciding the content of the matches, but their number as well. For example, \
-            setting ``ignore_sign`` to ``True`` will result in ``Integer`` matching both \
-            ``1`` and ``2`` in ``1+2``, whereas setting it to ``False`` results in just \
-            matching ``1``. That is, because in case ``ignore_sign`` is ``False``,  ``+2`` \
-            is considered an integer as a whole, and as such, it cannot match when another \
-            digit, namely ``1``, directly precedes it.
+        :note: 
+            - Be aware that parameter ``include_sign`` might not only play a role in \
+              deciding the content of the matches, but their number as well. For example, \
+              setting ``include_sign`` to ``False`` will result in ``Integer`` matching both \
+              ``1`` and ``2`` in ``1+2``, whereas setting it to ``True`` results in just \
+              matching ``1``. That is, because in case ``include_sign`` is ``True``,  ``+2`` \
+              is considered an integer as a whole, and as such, it cannot match when another \
+              digit, namely ``1``, directly precedes it.
+            - Even by setting parameter ``is_extensible`` to ``True``, there still persists \
+              an assertion that is essential to the pattern, which dictates that this pattern \
+              must not be preceded by any numeric characters. For that reason, one should avoid \
+              concatenating an instance of this class to the right of a pattern that ends in \
+              such a character.
         '''
-        if ignore_sign:
-            sign = _pre.Empty()
+
+        empty = _pre.Pregex()
+
+        either_sign = _op.Either('+', '-')
+
+        if include_sign:
+            if is_extensible:
+                left_most = either_sign
+            else:
+                left_most = _op.Either(
+                    _asr.NonWordBoundary() + either_sign,
+                    empty.not_preceded_by(either_sign)
+                )
         else:
-            sign = _op.Either(
-                _asr.NonWordBoundary() + _op.Either("+", "-"),
-                _pre.Empty().not_preceded_by(_op.Either("+", "-"))
-            )
-        super().__init__(sign, start, end)
+            left_most = empty
+
+        super().__init__(left_most, start, end, is_extensible)
 
 
 class PositiveInteger(__Integer):
@@ -439,31 +610,61 @@ class PositiveInteger(__Integer):
 
     :param int start: The starting value of the range. Defaults to ``0``.
     :param int end: The ending value of the range. Defaults to ``2147483647``.
+    :param bool is_extensible: If ``True``, then no additional assertions \
+        are imposed upon the underlying pattern, other than any necessary ones, \
+        which in turn prevents certain complications from arising whenever it \
+        serves as a building block to a larger pattern. As a general rule of thumb, \
+        set this parameter to ``True`` if you wish to extend the resulting instance's \
+        underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+        Defaults to ``False``.
 
     :raises InvalidArgumentTypeException: Either parameter ``start`` \
         or parameter ``end`` is not an integer.
     :raises InvalidArgumentValueException: 
         - Parameter ``start`` has a value of less than zero.
         - Parameter ``start`` has a greater value than that of parameter ``end``.
+
+    :note: Even by setting parameter ``is_extensible`` to ``True``, there still persists \
+        an assertion that is essential to the pattern, which dictates that this pattern \
+        must not be preceded by any numeric characters. For that reason, one should avoid \
+        concatenating an instance of this class to the right of a pattern that ends in such \
+        a character.
     '''
-    def __init__(self, start: int = 0, end: int = 2147483647) -> _pre.Pregex:
+    def __init__(self, start: int = 0,
+        end: int = 2147483647, is_extensible: bool = False) -> _pre.Pregex:
         '''
         Matches any strictly positive integer within the specified range.
 
         :param int start: The starting value of the range. Defaults to ``0``.
         :param int end: The ending value of the range. Defaults to ``2147483647``.
+        :param bool is_extensible: If ``True``, then no additional assertions \
+            are imposed upon the underlying pattern, other than any necessary ones, \
+            which in turn prevents certain complications from arising whenever it \
+            serves as a building block to a larger pattern. As a general rule of thumb, \
+            set this parameter to ``True`` if you wish to extend the resulting instance's \
+            underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+            Defaults to ``False``.
 
         :raises InvalidArgumentTypeException: Either parameter ``start`` \
             or parameter ``end`` is not an integer.
         :raises InvalidArgumentValueException: 
             - Parameter ``start`` has a value of less than zero.
             - Parameter ``start`` has a greater value than that of parameter ``end``.
+
+        :note: Even by setting parameter ``is_extensible`` to ``True``, there still persists \
+            an assertion that is essential to the pattern, which dictates that this pattern \
+            must not be preceded by any numeric characters. For that reason, one should avoid \
+            concatenating an instance of this class to the right of a pattern that ends in such \
+            a character.
         '''
-        sign = _op.Either(
-            _asr.NonWordBoundary() + "+",
-            _pre.Empty().not_preceded_by(_op.Either("+", "-"))
-        )
-        super().__init__(sign, start, end)
+        if is_extensible:
+            sign = _pre.Pregex('+')
+        else:
+            sign = _op.Either(
+                _asr.NonWordBoundary() + '+',
+                _pre.Pregex().not_preceded_by(_op.Either('+', '-'))
+            )
+        super().__init__(sign, start, end, is_extensible)
 
 
 class NegativeInteger(__Integer):
@@ -472,19 +673,40 @@ class NegativeInteger(__Integer):
 
     :param int start: The starting value of the range. Defaults to ``0``.
     :param int end: The ending value of the range. Defaults to ``2147483647``.
+    :param bool is_extensible: If ``True``, then no additional assertions \
+        are imposed upon the underlying pattern, other than any necessary ones, \
+        which in turn prevents certain complications from arising whenever it \
+        serves as a building block to a larger pattern. As a general rule of thumb, \
+        set this parameter to ``True`` if you wish to extend the resulting instance's \
+        underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+        Defaults to ``False``.
 
     :raises InvalidArgumentTypeException: Either parameter ``start`` \
         or parameter ``end`` is not an integer.
     :raises InvalidArgumentValueException: 
         - Parameter ``start`` has a value of less than zero.
         - Parameter ``start`` has a greater value than that of parameter ``end``.
+
+    :note: Even by setting parameter ``is_extensible`` to ``True``, there still persists \
+        an assertion that is essential to the pattern, which dictates that this pattern \
+        must not be preceded by any numeric characters. For that reason, one should avoid \
+        concatenating an instance of this class to the right of a pattern that ends in such \
+        a character.
     '''
-    def __init__(self, start: int = 0, end: int = 2147483647) -> _pre.Pregex:
+    def __init__(self, start: int = 0,
+        end: int = 2147483647, is_extensible: bool = False) -> _pre.Pregex:
         '''
         Matches any strictly negative integer within the specified range.
 
         :param int start: The starting value of the range. Defaults to ``0``.
         :param int end: The ending value of the range. Defaults to ``2147483647``.
+        :param bool is_extensible: If ``True``, then no additional assertions \
+            are imposed upon the underlying pattern, other than any necessary ones, \
+            which in turn prevents certain complications from arising whenever it \
+            serves as a building block to a larger pattern. As a general rule of thumb, \
+            set this parameter to ``True`` if you wish to extend the resulting instance's \
+            underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+            Defaults to ``False``.
 
         :raises InvalidArgumentTypeException: Either parameter ``start`` \
             or parameter ``end`` is not an integer.
@@ -492,8 +714,8 @@ class NegativeInteger(__Integer):
             - Parameter ``start`` has a value of less than zero.
             - Parameter ``start`` has a greater value than that of parameter ``end``.
         '''
-        sign = _asr.NonWordBoundary() + "-"
-        super().__init__(sign, start, end)
+        sign = (_pre.Pregex() if is_extensible else _asr.NonWordBoundary()) + "-"
+        super().__init__(sign, start, end, is_extensible)
 
 
 class UnsignedInteger(__Integer):
@@ -503,20 +725,41 @@ class UnsignedInteger(__Integer):
 
     :param int start: The starting value of the range. Defaults to ``0``.
     :param int end: The ending value of the range. Defaults to ``2147483647``.
+    :param bool is_extensible: If ``True``, then no additional assertions \
+        are imposed upon the underlying pattern, other than any necessary ones, \
+        which in turn prevents certain complications from arising whenever it \
+        serves as a building block to a larger pattern. As a general rule of thumb, \
+        set this parameter to ``True`` if you wish to extend the resulting instance's \
+        underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+        Defaults to ``False``.
 
     :raises InvalidArgumentTypeException: Either parameter ``start`` \
         or parameter ``end`` is not an integer.
     :raises InvalidArgumentValueException: 
         - Parameter ``start`` has a value of less than zero.
         - Parameter ``start`` has a greater value than that of parameter ``end``.
+
+    :note: Even by setting parameter ``is_extensible`` to ``True``, there still persists \
+        an assertion that is essential to the pattern, which dictates that this pattern \
+        must not be preceded by any numeric characters. For that reason, one should avoid \
+        concatenating an instance of this class to the right of a pattern that ends in such \
+        a character.
     '''
-    def __init__(self, start: int = 0, end: int = 2147483647) -> _pre.Pregex:
+    def __init__(self, start: int = 0,
+        end: int = 2147483647, is_extensible: bool = False) -> _pre.Pregex:
         '''
         Matches any integer within a specified range, \
         provided that it is not preceded by a sign.
 
         :param int start: The starting value of the range. Defaults to ``0``.
         :param int end: The ending value of the range. Defaults to ``2147483647``.
+        :param bool is_extensible: If ``True``, then no additional assertions \
+            are imposed upon the underlying pattern, other than any necessary ones, \
+            which in turn prevents certain complications from arising whenever it \
+            serves as a building block to a larger pattern. As a general rule of thumb, \
+            set this parameter to ``True`` if you wish to extend the resulting instance's \
+            underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+            Defaults to ``False``.
 
         :raises InvalidArgumentTypeException: Either parameter ``start`` \
             or parameter ``end`` is not an integer.
@@ -524,20 +767,20 @@ class UnsignedInteger(__Integer):
             - Parameter ``start`` has a value of less than zero.
             - Parameter ``start`` has a greater value than that of parameter ``end``.
         '''
-        sign = _pre.Empty().not_preceded_by(_op.Either("+", "-"))
-        super().__init__(sign, start, end)
+        sign = _pre.Pregex().not_preceded_by(_op.Either("+", "-"))
+        super().__init__(sign, start, end, is_extensible)
 
 
 class __Decimal(_pre.Pregex):
     '''
     Every "Decimal" class inherits from this class.
 
-    :param Pregex integer: A ``Pregex`` instance representing the integer part.
-    :param Pregex | None no_integer: A Pregex instance that, if not ``None``, \
+    :param Pregex integer_part: A ``Pregex`` instance representing the integer part.
+    :param Pregex no_integer_part: A Pregex instance that, if not ``None``, \
         is added to the pattern in order to match no integer-part numbers \
         like ``.123``.
     :param int min_decimal: The minimum number of digits within the decimal part.
-    :param int | None max_decimal: The maximum number of digits within the decimal part.
+    :param int max_decimal: The maximum number of digits within the decimal part.
 
     :raises InvalidArgumentTypeException: Either one of parameters ``start``, \
         ``end``, ``min_decimal`` or ``max_decimal`` is not an integer.
@@ -547,18 +790,17 @@ class __Decimal(_pre.Pregex):
         - Parameter ``min_decimal`` has a value of less than ``1``.
         - Parameter ``min_decimal`` has a greater value than that of parameter ``max_decimal``.
     '''
-    def __init__(self, integer: _pre.Pregex, no_integer: _pre.Pregex, min_decimal: int, max_decimal: int) \
-        -> _pre.Pregex:
+    def __init__(self, integer_part: _pre.Pregex, no_integer_part: _Optional[_pre.Pregex],
+        min_decimal: int, max_decimal: _Optional[int]) -> _pre.Pregex:
         '''
         Every "Decimal" class inherits from this class.
 
-        :param Pregex integer: A "Pregex" instance representing the integer part.
-        :param Pregex integer: A ``Pregex`` instance representing the integer part.
-        :param Pregex | None no_integer: A Pregex instance that, if not ``None``, \
+        :param Pregex integer_part: A ``Pregex`` instance representing the integer part.
+        :param Pregex no_integer_part: A Pregex instance that, if not ``None``, \
             is added to the pattern in order to match no integer-part numbers \
             like ``.123``.
         :param int min_decimal: The minimum number of digits within the decimal part.
-        :param int | None max_decimal: The maximum number of digits within the decimal part.
+        :param int max_decimal: The maximum number of digits within the decimal part.
 
         :raises InvalidArgumentTypeException: Either one of parameters ``start``, \
             ``end``, ``min_decimal`` or ``max_decimal`` is not an integer.
@@ -582,10 +824,10 @@ class __Decimal(_pre.Pregex):
             message = "The value of parameter \"max_decimal\" must be greater"
             message += "than tha of parameter \"min_decimal\"."
             raise _ex.InvalidArgumentValueException(message)
-        if no_integer is not None:
-            pre = _op.Either(integer, no_integer)
+        if no_integer_part is not None:
+            pre = _op.Either(integer_part, no_integer_part)
         else:
-            pre = integer
+            pre = integer_part
         pre += "." + Numeral(n_min=min_decimal, n_max=max_decimal)
         super().__init__(str(pre), escape=False)
 
@@ -600,10 +842,17 @@ class Decimal(__Decimal):
         Defaults to ``2147483647``.
     :param int min_decimal: The minimum number of digits within the decimal part. \
         Defaults to ``1``.
-    :param int | None max_decimal: The maximum number of digits within the decimal part. \
+    :param int max_decimal: The maximum number of digits within the decimal part. \
         Defaults to ``None``.
-    :param bool ignore_sign: Determines whether to ignore any existing \
-        signs or include them into the match. Defaults to ``True``.
+    :param bool include_sign: Determines whether to include any existing \
+        signs into the match. Defaults to ``False``.
+    :param bool is_extensible: If ``True``, then no additional assertions \
+        are imposed upon the underlying pattern, other than any necessary ones, \
+        which in turn prevents certain complications from arising whenever it \
+        serves as a building block to a larger pattern. As a general rule of thumb, \
+        set this parameter to ``True`` if you wish to extend the resulting instance's \
+        underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+        Defaults to ``False``.
 
     :raises InvalidArgumentTypeException: Either one of parameters ``start``, \
         ``end``, ``min_decimal`` or ``max_decimal`` is not an integer.
@@ -613,17 +862,23 @@ class Decimal(__Decimal):
         - Parameter ``min_decimal`` has a value of less than ``1``.
         - Parameter ``min_decimal`` has a greater value than that of parameter ``max_decimal``.
 
-    :note: Be aware that parameter ``ignore_sign`` might not only play a role in \
-        deciding the content of the matches, but their number as well. For example, \
-        setting ``ignore_sign`` to ``True`` will result in ``Integer`` matching both \
-        ``1.1`` and ``2.2`` in ``1.1+2.2``, whereas setting it to ``False`` results in \
-        just matching ``1.1``. That is, because in case ``ignore_sign`` is ``False``, \
-        ``+2.2`` is considered an integer as a whole, and as such, it cannot match when \
-        another digit, namely ``1``, directly precedes it.
+    :note: 
+        - Be aware that parameter ``include_sign`` might not only play a role in \
+          deciding the content of the matches, but their number as well. For example, \
+          setting ``include_sign`` to ``False`` will result in ``Integer`` matching both \
+          ``1.1`` and ``2.2`` in ``1.1+2.2``, whereas setting it to ``True`` results in \
+          just matching ``1.1``. That is, because in case ``include_sign`` is ``True``, \
+          ``+2.2`` is considered a decimal number as a whole, and as such, it cannot match \
+          when another digit, namely ``1``, directly precedes it.
+        - Even by setting parameter ``is_extensible`` to ``True``, there still persists \
+          an assertion that is essential to the pattern, which dictates that this pattern \
+          must not be preceded by any numeric characters. For that reason, one should avoid \
+          concatenating an instance of this class to the right of a pattern that ends in such \
+          a character.
     '''
 
-    def __init__(self, start: int = 0, end: int = 2147483647,
-        min_decimal: int = 1, max_decimal: int = None, ignore_sign: bool = True) \
+    def __init__(self, start: int = 0, end: int = 2147483647, min_decimal: int = 1,
+        max_decimal: _Optional[int] = None, include_sign: bool = False, is_extensible: bool = False) \
         -> _pre.Pregex:
         '''
         Matches any decimal number within a specified range.
@@ -634,10 +889,17 @@ class Decimal(__Decimal):
             Defaults to ``2147483647``.
         :param int min_decimal: The minimum number of digits within the decimal part. \
             Defaults to ``1``.
-        :param int | None max_decimal: The maximum number of digits within the decimal part. \
+        :param int max_decimal: The maximum number of digits within the decimal part. \
             Defaults to ``None``.
-        :param bool ignore_sign: Determines whether to ignore any existing \
-            signs or include them into the match. Defaults to ``True``.
+        :param bool include_sign: Determines whether to include any existing \
+            signs into the match. Defaults to ``False`.
+        :param bool is_extensible: If ``True``, then no additional assertions \
+            are imposed upon the underlying pattern, other than any necessary ones, \
+            which in turn prevents certain complications from arising whenever it \
+            serves as a building block to a larger pattern. As a general rule of thumb, \
+            set this parameter to ``True`` if you wish to extend the resulting instance's \
+            underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+            Defaults to ``False``.
 
         :raises InvalidArgumentTypeException: Either one of parameters ``start``, \
             ``end``, ``min_decimal`` or ``max_decimal`` is not an integer.
@@ -647,22 +909,30 @@ class Decimal(__Decimal):
             - Parameter ``min_decimal`` has a value of less than ``1``.
             - Parameter ``min_decimal`` has a greater value than that of parameter ``max_decimal``.
 
-        :note: Be aware that parameter ``ignore_sign`` might not only play a role in \
-            deciding the content of the matches, but their number as well. For example, \
-            setting ``ignore_sign`` to ``True`` will result in ``Integer`` matching both \
-            ``1.1`` and ``2.2`` in ``1.1+2.2``, whereas setting it to ``False`` results in \
-            just matching ``1.1``. That is, because in case ``ignore_sign`` is ``False``, \
-            ``+2.2`` is considered an integer as a whole, and as such, it cannot match when \
-            another digit, namely ``1``, directly precedes it.
+        :note: 
+            - Be aware that parameter ``include_sign`` might not only play a role in \
+              deciding the content of the matches, but their number as well. For example, \
+              setting ``include_sign`` to ``False`` will result in ``Integer`` matching both \
+              ``1.1`` and ``2.2`` in ``1.1+2.2``, whereas setting it to ``True`` results in \
+              just matching ``1.1``. That is, because in case ``include_sign`` is ``True``, \
+              ``+2.2`` is considered a decimal number as a whole, and as such, it cannot match \
+              when another digit, namely ``1``, directly precedes it.
+            - Even by setting parameter ``is_extensible`` to ``True``, there still persists \
+              an assertion that is essential to the pattern, which dictates that this pattern \
+              must not be preceded by any numeric characters. For that reason, one should avoid \
+              concatenating an instance of this class to the right of a pattern that ends in such \
+              a character.
         '''
-        integer = Integer(start, end, ignore_sign)
+        integer_part = Integer(start, end, include_sign, is_extensible)
+
         if start == 0:
-            no_integer = _asr.NonWordBoundary()
-            if not ignore_sign:
-                no_integer += _qu.Optional(_op.Either("+", "-"))
+            no_integer_part = _pre.Pregex().not_preceded_by(_cl.AnyDigit())
+            if include_sign:
+                no_integer_part += _qu.Optional(_op.Either("+", "-"))
         else:
-            no_integer = None
-        super().__init__(integer, no_integer, min_decimal, max_decimal)
+            no_integer_part = None
+
+        super().__init__(integer_part, no_integer_part, min_decimal, max_decimal)
 
 
 class PositiveDecimal(__Decimal):
@@ -675,8 +945,15 @@ class PositiveDecimal(__Decimal):
         Defaults to ``2147483647``.
     :param int min_decimal: The minimum number of digits within the decimal part. \
         Defaults to ``1``.
-    :param int | None max_decimal: The maximum number of digits within the decimal part. \
+    :param int max_decimal: The maximum number of digits within the decimal part. \
         Defaults to ``None``.
+    :param bool is_extensible: If ``True``, then no additional assertions \
+        are imposed upon the underlying pattern, other than any necessary ones, \
+        which in turn prevents certain complications from arising whenever it \
+        serves as a building block to a larger pattern. As a general rule of thumb, \
+        set this parameter to ``True`` if you wish to extend the resulting instance's \
+        underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+        Defaults to ``False``.
 
     :raises InvalidArgumentTypeException: Either one of parameters ``start``, \
         ``end``, ``min_decimal`` or ``max_decimal`` is not an integer.
@@ -685,10 +962,16 @@ class PositiveDecimal(__Decimal):
         - Parameter ``start`` has a greater value than that of parameter ``end``.
         - Parameter ``min_decimal`` has a value of less than ``1``.
         - Parameter ``min_decimal`` has a greater value than that of parameter ``max_decimal``.
+
+    :note: Even by setting parameter ``is_extensible`` to ``True``, there still persists \
+        an assertion that is essential to the pattern, which dictates that this pattern \
+        must not be preceded by any numeric characters. For that reason, one should avoid \
+        concatenating an instance of this class to the right of a pattern that ends in such \
+        a character.
     '''
 
-    def __init__(self, start: int = 0, end: int = 2147483647,
-        min_decimal: int = 1, max_decimal: int = None) -> _pre.Pregex:
+    def __init__(self, start: int = 0, end: int = 2147483647, min_decimal: int = 1,
+        max_decimal: _Optional[int] = None, is_extensible: bool = False) -> _pre.Pregex:
         '''
         Matches any positive decimal number within a specified range.
 
@@ -698,8 +981,15 @@ class PositiveDecimal(__Decimal):
             Defaults to ``2147483647``.
         :param int min_decimal: The minimum number of digits within the decimal part. \
             Defaults to ``1``.
-        :param int | None max_decimal: The maximum number of digits within the decimal part. \
+        :param int max_decimal: The maximum number of digits within the decimal part. \
             Defaults to ``None``.
+        :param bool is_extensible: If ``True``, then no additional assertions \
+            are imposed upon the underlying pattern, other than any necessary ones, \
+            which in turn prevents certain complications from arising whenever it \
+            serves as a building block to a larger pattern. As a general rule of thumb, \
+            set this parameter to ``True`` if you wish to extend the resulting instance's \
+            underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+            Defaults to ``False``.
 
         :raises InvalidArgumentTypeException: Either one of parameters ``start``, \
             ``end``, ``min_decimal`` or ``max_decimal`` is not an integer.
@@ -708,13 +998,23 @@ class PositiveDecimal(__Decimal):
             - Parameter ``start`` has a greater value than that of parameter ``end``.
             - Parameter ``min_decimal`` has a value of less than ``1``.
             - Parameter ``min_decimal`` has a greater value than that of parameter ``max_decimal``.
+
+        :note: Even by setting parameter ``is_extensible`` to ``True``, there still persists \
+            an assertion that is essential to the pattern, which dictates that this pattern \
+            must not be preceded by any numeric characters. For that reason, one should avoid \
+            concatenating an instance of this class to the right of a pattern that ends in such \
+            a character.
         '''
-        integer = PositiveInteger(start, end)
+        integer_part = PositiveInteger(start, end, is_extensible)
         if start == 0:
-            no_integer = _asr.NonWordBoundary() + _qu.Optional("+")
+            if is_extensible:
+                no_integer_part = _pre.Pregex().not_preceded_by(_cl.AnyDigit())
+            else:
+                no_integer_part = _asr.NonWordBoundary()
+            no_integer_part += _qu.Optional("+")
         else:
-            no_integer = None
-        super().__init__(integer, no_integer, min_decimal, max_decimal)
+            no_integer_part = None
+        super().__init__(integer_part, no_integer_part, min_decimal, max_decimal)
 
 
 class NegativeDecimal(__Decimal):
@@ -727,8 +1027,15 @@ class NegativeDecimal(__Decimal):
         Defaults to ``2147483647``.
     :param int min_decimal: The minimum number of digits within the decimal part. \
         Defaults to ``1``.
-    :param int | None max_decimal: The maximum number of digits within the decimal part. \
+    :param int max_decimal: The maximum number of digits within the decimal part. \
         Defaults to ``None``.
+    :param bool is_extensible: If ``True``, then no additional assertions \
+        are imposed upon the underlying pattern, other than any necessary ones, \
+        which in turn prevents certain complications from arising whenever it \
+        serves as a building block to a larger pattern. As a general rule of thumb, \
+        set this parameter to ``True`` if you wish to extend the resulting instance's \
+        underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+        Defaults to ``False``.
 
     :raises InvalidArgumentTypeException: Either one of parameters ``start``, \
         ``end``, ``min_decimal`` or ``max_decimal`` is not an integer.
@@ -737,10 +1044,16 @@ class NegativeDecimal(__Decimal):
         - Parameter ``start`` has a greater value than that of parameter ``end``.
         - Parameter ``min_decimal`` has a value of less than ``1``.
         - Parameter ``min_decimal`` has a greater value than that of parameter ``max_decimal``.
+
+    :note: Even by setting parameter ``is_extensible`` to ``True``, there still persists \
+        an assertion that is essential to the pattern, which dictates that this pattern \
+        must not be preceded by any numeric characters. For that reason, one should avoid \
+        concatenating an instance of this class to the right of a pattern that ends in such \
+        a character.
     '''
 
-    def __init__(self, start: int = 0, end: int = 2147483647,
-        min_decimal: int = 1, max_decimal: int = None) -> _pre.Pregex:
+    def __init__(self, start: int = 0, end: int = 2147483647, min_decimal: int = 1,
+        max_decimal: _Optional[int] = None, is_extensible: bool = False) -> _pre.Pregex:
         '''
         Matches any negative decimal number within a specified range.
 
@@ -750,8 +1063,15 @@ class NegativeDecimal(__Decimal):
             Defaults to ``2147483647``.
         :param int min_decimal: The minimum number of digits within the decimal part. \
             Defaults to ``1``.
-        :param int | None max_decimal: The maximum number of digits within the decimal part. \
+        :param int max_decimal: The maximum number of digits within the decimal part. \
             Defaults to ``None``.
+        :param bool is_extensible: If ``True``, then no additional assertions \
+            are imposed upon the underlying pattern, other than any necessary ones, \
+            which in turn prevents certain complications from arising whenever it \
+            serves as a building block to a larger pattern. As a general rule of thumb, \
+            set this parameter to ``True`` if you wish to extend the resulting instance's \
+            underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+            Defaults to ``False``.
 
         :raises InvalidArgumentTypeException: Either one of parameters ``start``, \
             ``end``, ``min_decimal`` or ``max_decimal`` is not an integer.
@@ -760,13 +1080,23 @@ class NegativeDecimal(__Decimal):
             - Parameter ``start`` has a greater value than that of parameter ``end``.
             - Parameter ``min_decimal`` has a value of less than ``1``.
             - Parameter ``min_decimal`` has a greater value than that of parameter ``max_decimal``.
+
+        :note: Even by setting parameter ``is_extensible`` to ``True``, there still persists \
+            an assertion that is essential to the pattern, which dictates that this pattern \
+            must not be preceded by any numeric characters. For that reason, one should avoid \
+            concatenating an instance of this class to the right of a pattern that ends in such \
+            a character.
         '''
-        integer = NegativeInteger(start, end)
+        integer_part = NegativeInteger(start, end, is_extensible)
         if start == 0:
-            no_integer = _asr.NonWordBoundary() + "-"
+            if is_extensible:
+                no_integer_part = _pre.Pregex().not_preceded_by(_cl.AnyDigit())
+            else:
+                no_integer_part = _asr.NonWordBoundary()
+            no_integer_part += '-'
         else:
-            no_integer = None
-        super().__init__(integer, no_integer, min_decimal, max_decimal)
+            no_integer_part = None
+        super().__init__(integer_part, no_integer_part, min_decimal, max_decimal)
 
 
 class UnsignedDecimal(__Decimal):
@@ -778,10 +1108,17 @@ class UnsignedDecimal(__Decimal):
         Defaults to ``0``.
     :param int end: The ending value of the integer part range. \
         Defaults to ``2147483647``.
-    :param int min_decimal: The minimum number of decimal places. Defaults to ``1``.
-    :param int | None max_decimal: The maximum number of decimal places. Defaults to ``None``.
-    :param bool include_sign: Determines whether to include any existing \
-        signs into the match. Defaults to ``True``.
+    :param int min_decimal: The minimum number of decimal places. \
+        Defaults to ``1``.
+    :param int max_decimal: The maximum number of decimal places. \
+        Defaults to ``None``.
+    :param bool is_extensible: If ``True``, then no additional assertions \
+        are imposed upon the underlying pattern, other than any necessary ones, \
+        which in turn prevents certain complications from arising whenever it \
+        serves as a building block to a larger pattern. As a general rule of thumb, \
+        set this parameter to ``True`` if you wish to extend the resulting instance's \
+        underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+        Defaults to ``False``.
 
     :raises InvalidArgumentTypeException: Either one of parameters ``start``, \
         ``end``, ``min_decimal`` or ``max_decimal`` is not an integer.
@@ -790,10 +1127,16 @@ class UnsignedDecimal(__Decimal):
         - Parameter ``start`` has a greater value than that of parameter ``end``.
         - Parameter ``min_decimal`` has a value of less than ``1``.
         - Parameter ``min_decimal`` has a greater value than that of parameter ``max_decimal``.
+
+    :note: Even by setting parameter ``is_extensible`` to ``True``, there still persists \
+        an assertion that is essential to the pattern, which dictates that this pattern \
+        must not be preceded by any numeric characters. For that reason, one should avoid \
+        concatenating an instance of this class to the right of a pattern that ends in such \
+        a character.
     '''
 
-    def __init__(self, start: int = 0, end: int = 2147483647,
-        min_decimal: int = 1, max_decimal: int = None) -> _pre.Pregex:
+    def __init__(self, start: int = 0, end: int = 2147483647, min_decimal: int = 1,
+        max_decimal: _Optional[int] = None, is_extensible: bool = False) -> _pre.Pregex:
         '''
         Matches any decimal number within a specified range, \
         provided that it is not preceded by a sign.
@@ -802,10 +1145,17 @@ class UnsignedDecimal(__Decimal):
             Defaults to ``0``.
         :param int end: The ending value of the integer part range. \
             Defaults to ``2147483647``.
-        :param int min_decimal: The minimum number of decimal places. Defaults to ``1``.
-        :param int | None max_decimal: The maximum number of decimal places. Defaults to ``None``.
-        :param bool include_sign: Determines whether to include any existing \
-            signs into the match. Defaults to ``True``.
+        :param int min_decimal: The minimum number of decimal places. \
+            Defaults to ``1``.
+        :param int max_decimal: The maximum number of decimal places. \
+            Defaults to ``None``.
+        :param bool is_extensible: If ``True``, then no additional assertions \
+            are imposed upon the underlying pattern, other than any necessary ones, \
+            which in turn prevents certain complications from arising whenever it \
+            serves as a building block to a larger pattern. As a general rule of thumb, \
+            set this parameter to ``True`` if you wish to extend the resulting instance's \
+            underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+            Defaults to ``False``.
 
         :raises InvalidArgumentTypeException: Either one of parameters ``start``, \
             ``end``, ``min_decimal`` or ``max_decimal`` is not an integer.
@@ -814,89 +1164,112 @@ class UnsignedDecimal(__Decimal):
             - Parameter ``start`` has a greater value than that of parameter ``end``.
             - Parameter ``min_decimal`` has a value of less than ``1``.
             - Parameter ``min_decimal`` has a greater value than that of parameter ``max_decimal``.
+
+        :note: Even by setting parameter ``is_extensible`` to ``True``, there still persists \
+            an assertion that is essential to the pattern, which dictates that this pattern \
+            must not be preceded by any numeric characters. For that reason, one should avoid \
+            concatenating an instance of this class to the right of a pattern that ends in such \
+            a character.
         '''
-        integer = UnsignedInteger(start, end)
+        integer_part = UnsignedInteger(start, end, is_extensible)
         if start == 0:
-            no_integer = _asr.NonWordBoundary() \
-                .followed_by('.') \
-                .not_preceded_by(_op.Either('+', '-'))
+            if is_extensible:
+                no_integer_part = _pre.Pregex().not_preceded_by(
+                    _op.Either('+', '-', _cl.AnyDigit()))
+            else:
+                no_integer_part = _asr.NonWordBoundary().not_preceded_by(_op.Either('+', '-'))
         else:
-            no_integer = None
-        super().__init__(integer, no_integer, min_decimal, max_decimal)
+            no_integer_part = None
+        super().__init__(integer_part, no_integer_part, min_decimal, max_decimal)
 
 
 class Date(_pre.Pregex):
     '''
     Matches any date within a range of predefined formats.
 
-    :param str \*formats: One or more strings through which it is determined \
+    :param list[str] formats: A list of string through which it is determined \
         what are the exact date formats that are to be considered possible \
         matches. A valid date format can be either one of:
 
-      - ``D<sep>M<sep>Y``
-      - ``M<sep>D<sep>Y``
-      - ``Y<sep>M<sep>D``
+        - ``D<sep>M<sep>Y``
+        - ``M<sep>D<sep>Y``
+        - ``Y<sep>M<sep>D``
 
-      where:
+        where:
 
-      - ``<sep>``: Either ``/`` or ``-``
-      - ``D``: Either one of the following:
+        - ``<sep>``: Either ``/`` or ``-``
+        - ``D``: Either one of the following:
 
-        - ``d``: one-digit day of the month for days below 10, e.g. 2
-        - ``dd``: two-digit day of the month, e.g. 02
+            - ``d``: one-digit day of the month for days below 10, e.g. 2
+            - ``dd``: two-digit day of the month, e.g. 02
 
-      - ``M``: Either one of the following:
+        - ``M``: Either one of the following:
 
-        - ``m``: one-digit month for months below 10, e.g. 3
-        - ``mm``: two-digit month, e.g. 03
+            - ``m``: one-digit month for months below 10, e.g. 3
+            - ``mm``: two-digit month, e.g. 03
 
-      - ``Y``: Either one of the following:
+        - ``Y``: Either one of the following:
 
-        - ``yy``: two-digit year, e.g. 21
-        - ``yyyy``: four-digit year, e.g. 2021
+            - ``yy``: two-digit year, e.g. 21
+            - ``yyyy``: four-digit year, e.g. 2021
 
-      For example, ``dd/mm/yyyy`` is considered a valid date format whereas \
-      ``mm/yyyy/dd`` is not. Lastly, If no arguments are provided, then all \
-      possible formats are considered.
+        For example, ``dd/mm/yyyy`` is considered a valid date format whereas \
+        ``mm/yyyy/dd`` is not. Lastly, If ``None`` is provided in place of this \
+        list, then all possible formats are considered. Defaults to ``None``.
+    :param bool is_extensible: If ``True``, then no additional assertions \
+        are imposed upon the underlying pattern, other than any necessary ones, \
+        which in turn prevents certain complications from arising whenever it \
+        serves as a building block to a larger pattern. As a general rule of thumb, \
+        set this parameter to ``True`` if you wish to extend the resulting instance's \
+        underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+        Defaults to ``False``.
 
     :raises InvalidArgumentValueException: At least one of the provided arguments \
         is not a valid date format.
     '''
+
     __date_separators: tuple[str, str] = ("-", "/")
 
-    def __init__(self, *formats: str) -> _pre.Pregex:
+    def __init__(self, formats: _Optional[list[str]] = None, is_extensible: bool = False) -> _pre.Pregex:
         '''
         Matches any date within a range of predefined formats.
 
-        :param str \*formats: One or more strings through which it is determined \
+        :param list[str] formats: A list of string through which it is determined \
             what are the exact date formats that are to be considered possible \
             matches. A valid date format can be either one of:
 
-          - ``D<sep>M<sep>Y``
-          - ``M<sep>D<sep>Y``
-          - ``Y<sep>M<sep>D``
+            - ``D<sep>M<sep>Y``
+            - ``M<sep>D<sep>Y``
+            - ``Y<sep>M<sep>D``
 
-          where:
+            where:
 
-          - ``<sep>``: Either ``/`` or ``-``
-          - ``D``: Either one of the following:
+            - ``<sep>``: Either ``/`` or ``-``
+            - ``D``: Either one of the following:
 
-              - ``d``: one-digit day of the month for days below 10, e.g. 2
-              - ``dd``: two-digit day of the month, e.g. 02
+                - ``d``: one-digit day of the month for days below 10, e.g. 2
+                - ``dd``: two-digit day of the month, e.g. 02
 
-          - ``M``: Either one of the following:
+            - ``M``: Either one of the following:
 
-              - ``m``: one-digit month for months below 10, e.g. 3
-              - ``mm``: two-digit month, e.g. 03
+                - ``m``: one-digit month for months below 10, e.g. 3
+                - ``mm``: two-digit month, e.g. 03
 
-          - ``Y``: Either one of the following:
+            - ``Y``: Either one of the following:
 
-              - ``yy``: two-digit year, e.g. 21
-              - ``yyyy``: four-digit year, e.g. 2021
+                - ``yy``: two-digit year, e.g. 21
+                - ``yyyy``: four-digit year, e.g. 2021
 
-          For example, ``dd/mm/yyyy`` is considered a valid date format whereas \
-          ``mm/yyyy/dd`` is not. Lastly, If no arguments are provided, then all \
-          possible formats are considered.
+            For example, ``dd/mm/yyyy`` is considered a valid date format whereas \
+            ``mm/yyyy/dd`` is not. Lastly, If ``None`` is provided in place of this \
+            list, then all possible formats are considered. Defaults to ``None``.
+        :param bool is_extensible: If ``True``, then no additional assertions \
+            are imposed upon the underlying pattern, other than any necessary ones, \
+            which in turn prevents certain complications from arising whenever it \
+            serves as a building block to a larger pattern. As a general rule of thumb, \
+            set this parameter to ``True`` if you wish to extend the resulting instance's \
+            underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+            Defaults to ``False``.
 
         :raises InvalidArgumentValueException: At least one of the provided arguments \
             is not a valid date format.
@@ -911,8 +1284,11 @@ class Date(_pre.Pregex):
                 raise _ex.InvalidArgumentValueException(message)
             dates.append(__class__.__date_pre(format))
 
-        pre = _op.Either(*dates) if len(dates) > 1 else dates[0]
-        pre = pre.enclose(_asr.WordBoundary())
+        pre = _op.Either(*dates)
+
+        if not is_extensible:
+            pre = pre.enclose(_asr.WordBoundary())
+
         super().__init__(str(pre), escape=False)
     
 
@@ -940,7 +1316,7 @@ class Date(_pre.Pregex):
             "yyyy": _cl.AnyDigit() * 4, 
         }
 
-        pre = _pre.Empty()
+        pre = _pre.Pregex()
         for i, value in enumerate(values):
             pre += date_to_pre[value]
             if i < len(values) - 1:
@@ -971,40 +1347,84 @@ class Date(_pre.Pregex):
 class IPv4(_pre.Pregex):
     '''
     Matches any IPv4 Address.
+
+    :param bool is_extensible: If ``True``, then no additional assertions \
+        are imposed upon the underlying pattern, other than any necessary ones, \
+        which in turn prevents certain complications from arising whenever it \
+        serves as a building block to a larger pattern. As a general rule of thumb, \
+        set this parameter to ``True`` if you wish to extend the resulting instance's \
+        underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+        Defaults to ``False``.
     '''
 
-    def __init__(self) -> _pre.Pregex:
+    def __init__(self, is_extensible: bool = False) -> _pre.Pregex:
         '''
         Matches any IPv4 Address.
+
+        :param bool is_extensible: If ``True``, then no additional assertions \
+            are imposed upon the underlying pattern, other than any necessary ones, \
+            which in turn prevents certain complications from arising whenever it \
+            serves as a building block to a larger pattern. As a general rule of thumb, \
+            set this parameter to ``True`` if you wish to extend the resulting instance's \
+            underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+            Defaults to ``False``.
         '''
         ip_octet = Integer(start=0, end=255)
+
         pre = 3 * (ip_octet + ".") + ip_octet
-        pre = pre.not_enclosed_by(_op.Either(_cl.AnyDigit(), "."))
+
+        if not is_extensible:
+            pre = pre.not_enclosed_by(_op.Either(_cl.AnyDigit(), "."))
+
         super().__init__(str(pre), escape=False)
 
 
 class IPv6(_pre.Pregex):
     '''
     Matches any IPv6 Address.
+
+    :param bool is_extensible: If ``True``, then no additional assertions \
+        are imposed upon the underlying pattern, other than any necessary ones, \
+        which in turn prevents certain complications from arising whenever it \
+        serves as a building block to a larger pattern. As a general rule of thumb, \
+        set this parameter to ``True`` if you wish to extend the resulting instance's \
+        underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+        Defaults to ``False``.
     '''
 
-    def __init__(self) -> _pre.Pregex:
+    def __init__(self, is_extensible: bool = False) -> _pre.Pregex:
         '''
         Matches any IPv6 Address.
+
+        :param bool is_extensible: If ``True``, then no additional assertions \
+            are imposed upon the underlying pattern, other than any necessary ones, \
+            which in turn prevents certain complications from arising whenever it \
+            serves as a building block to a larger pattern. As a general rule of thumb, \
+            set this parameter to ``True`` if you wish to extend the resulting instance's \
+            underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+            Defaults to ``False``.
         '''
         hex_group = Numeral(base=16, n_min=1, n_max=4)
+
         pre = 7 * (hex_group + ":") + hex_group
+
+        empty = _pre.Pregex()
+
         for i in range(9):
             pre = _op.Either(
                 pre,
-                (_qu.AtLeastAtMost(hex_group + ":", n=0, m=i-1) if i > 1 else _pre.Empty()) + \
-                (hex_group if i > 0 else _pre.Empty()) + \
+                (_qu.AtLeastAtMost(hex_group + ":", n=0, m=i-1) if i > 1 else empty) + \
+                (hex_group if i > 0 else empty) + \
                 "::" + \
-                (_qu.AtLeastAtMost(hex_group + ":", n=0, m=7-i) if i < 7 else _pre.Empty())+ \
-                (hex_group if i < 8 else _pre.Empty())
+                (_qu.AtLeastAtMost(hex_group + ":", n=0, m=7-i) if i < 7 else empty)+ \
+                (hex_group if i < 8 else empty)
             )
+
         pre = _op.Either(pre, "::")
-        pre = pre.not_enclosed_by(_op.Either(_cl.AnyDigit(), ":"))
+
+        if not is_extensible:
+            pre = pre.not_enclosed_by(_op.Either(_cl.AnyDigit(), ":"))
+
         super().__init__(str(pre), escape=False)
 
 
@@ -1018,11 +1438,19 @@ class Email(_pre.Pregex):
     :param bool capture_domain: If set to ``True``, then the domain name \
         of each email address match is separately captured as well. \
         Defaults to ``False``.
+    :param bool is_extensible: If ``True``, then no additional assertions \
+        are imposed upon the underlying pattern, other than any necessary ones, \
+        which in turn prevents certain complications from arising whenever it \
+        serves as a building block to a larger pattern. As a general rule of thumb, \
+        set this parameter to ``True`` if you wish to extend the resulting instance's \
+        underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+        Defaults to ``False``.
 
     :note: Not guaranteed to match every possible email address.
     '''
 
-    def __init__(self, capture_local_part: bool = False, capture_domain: bool = False) -> _pre.Pregex:
+    def __init__(self, capture_local_part: bool = False,
+        capture_domain: bool = False, is_extensible: bool = False) -> _pre.Pregex:
         '''
         Matches any email address.
 
@@ -1032,9 +1460,19 @@ class Email(_pre.Pregex):
         :param bool capture_domain: If set to ``True``, then the domain name \
             of each Email address match is separately captured as well. \
             Defaults to ``False``.
+        :param bool is_extensible: If ``True``, then no additional assertions \
+            are imposed upon the underlying pattern, other than any necessary ones, \
+            which in turn prevents certain complications from arising whenever it \
+            serves as a building block to a larger pattern. As a general rule of thumb, \
+            set this parameter to ``True`` if you wish to extend the resulting instance's \
+            underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+            Defaults to ``False``.
 
         :note: Not guaranteed to match every possible e-mail address.
         '''
+        word_boundary = _pre.Pregex() if is_extensible else _asr.WordBoundary()
+        non_word_boundary = _pre.Pregex() if is_extensible else _asr.NonWordBoundary()
+
         special = _cl.AnyFrom('!', '#', '$', '%', "'", '*', '+',
             '-', '/', '=', '?', '^', '_', '`', '{', '|', '}', '~')
 
@@ -1043,8 +1481,8 @@ class Email(_pre.Pregex):
         local_part_valid_char = alphanum | special
 
         left_most = _op.Either(
-            _asr.NonWordBoundary().followed_by(special),
-            _asr.WordBoundary().followed_by(alphanum)
+            non_word_boundary.followed_by(special),
+            word_boundary.followed_by(alphanum)
         ) 
 
         local_part = \
@@ -1068,7 +1506,7 @@ class Email(_pre.Pregex):
 
         tld = "." + _qu.AtLeastAtMost(_cl.AnyLowercaseLetter(), n=2, m=6)
 
-        pre = left_most + local_part + "@" + domain_name + tld + _asr.WordBoundary()
+        pre = left_most + local_part + "@" + domain_name + tld + word_boundary
         super().__init__(str(pre), escape=False)
 
 
@@ -1078,20 +1516,38 @@ class HttpUrl(_pre.Pregex):
 
     :param bool capture_domain: If set to ``True``, then the domain name \
         of each URL match is separately captured as well. Defaults to ``False``.
+    :param bool is_extensible: If ``True``, then no additional assertions \
+        are imposed upon the underlying pattern, other than any necessary ones, \
+        which in turn prevents certain complications from arising whenever it \
+        serves as a building block to a larger pattern. As a general rule of thumb, \
+        set this parameter to ``True`` if you wish to extend the resulting instance's \
+        underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+        Defaults to ``False``.
 
     :note: Not guaranteed to match every possible HTTP URL.
     '''
 
-    def __init__(self, capture_domain: bool = False) -> _pre.Pregex:
+    def __init__(self, capture_domain: bool = False, is_extensible: bool = False) -> _pre.Pregex:
         '''
         Matches any HTTP URL.
 
         :param bool capture_domain: If set to ``True``, then the domain name \
             of each URL match is separately captured as well. Defaults to ``False``.
+        :param bool is_extensible: If ``True``, then no additional assertions \
+            are imposed upon the underlying pattern, other than any necessary ones, \
+            which in turn prevents certain complications from arising whenever it \
+            serves as a building block to a larger pattern. As a general rule of thumb, \
+            set this parameter to ``True`` if you wish to extend the resulting instance's \
+            underlying pattern, or to ``False`` if you are only using it for matching purposes. \
+            Defaults to ``False``.
 
         :note: Not guaranteed to match every possible HTTP URL.
         '''
-        left_most = _asr.WordBoundary()
+
+        word_boundary = _pre.Pregex() if is_extensible else _asr.WordBoundary()
+        non_word_boundary = _pre.Pregex() if is_extensible else _asr.NonWordBoundary()
+
+        left_most = word_boundary
 
         http_protocol = _qu.Optional("http" + _qu.Optional("s") + "://")
 
@@ -1116,8 +1572,8 @@ class HttpUrl(_pre.Pregex):
         ) + _qu.Optional("/")
 
         right_most = _op.Either(
-            _asr.NonWordBoundary().preceded_by(_cl.AnyPunctuation()),
-            _asr.WordBoundary().preceded_by(_cl.AnyWordChar(is_global=True))
+            non_word_boundary.preceded_by(_cl.AnyPunctuation()),
+            word_boundary.preceded_by(_cl.AnyWordChar(is_global=True))
         )  
         if capture_domain:
             domain_name = _gr.Capture(domain_name)

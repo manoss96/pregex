@@ -1,7 +1,6 @@
 import unittest
 
 from pregex.core.assertions import *
-from pregex.core.pre import Empty
 from pregex.core.pre import Pregex, _Type
 from pregex.core.quantifiers import Exactly, Optional
 from pregex.core.exceptions import NonFixedWidthPatternException, \
@@ -161,14 +160,20 @@ class TestFollowedBy(unittest.TestCase):
     def test_followed_by(self):
         self.assertEqual(str(FollowedBy(pre1, pre2)), f"{pre1}(?={pre2})")
 
+    def test_followed_by_on_multiple_patterns(self):
+        self.assertEqual(str(FollowedBy(pre1, pre2, pre3)), f"{pre1}(?={pre2})(?={pre3})")
+
     def test_followed_by_on_type(self):
         self.assertEqual(FollowedBy("a", "b")._get_type(), _Type.Assertion)
 
     def test_followed_by_on_quantifiability(self):
         self.assertEqual(FollowedBy("a", "b")._is_repeatable(), False)
 
-    def test_followed_by_on_empty_token_as_assertion_pattern(self):
-        self.assertEqual(str(FollowedBy(pre1, Empty())), f"{pre1}")
+    def test_followed_by_on_empty_string_as_assertion_pattern(self):
+        self.assertEqual(str(FollowedBy(pre1, Pregex())), f"{pre1}")
+
+    def test_followed_by_on_not_enough_arguments_exception(self):
+        self.assertRaises(NotEnoughArgumentsException, FollowedBy, pre1)
 
 
 class TestNotFollowedBy(unittest.TestCase):
@@ -188,17 +193,20 @@ class TestNotFollowedBy(unittest.TestCase):
     def test_not_followed_by_on_not_enough_arguments_exception(self):
         self.assertRaises(NotEnoughArgumentsException, NotFollowedBy, pre1)
 
-    def test_not_followed_by_on_empty_negative_assertion_exception(self):
-        self.assertRaises(EmptyNegativeAssertionException, NotFollowedBy, pre1, Empty())
+    def test_not_followed_by_on_empty_string_negative_assertion_exception(self):
+        self.assertRaises(EmptyNegativeAssertionException, NotFollowedBy, pre1, Pregex())
 
-    def test_not_followed_by_on_multiple_patterns_empty_negative_assertion_exception(self):
-        self.assertRaises(EmptyNegativeAssertionException, NotFollowedBy, pre1, pre2, Empty())
+    def test_not_followed_by_on_multiple_patterns_empty_string_negative_assertion_exception(self):
+        self.assertRaises(EmptyNegativeAssertionException, NotFollowedBy, pre1, pre2, Pregex())
 
 
 class TestPrecededBy(unittest.TestCase):
     
     def test_preceded_by(self):
         self.assertEqual(str(PrecededBy(pre1, pre2)), f"(?<={pre2}){pre1}")
+
+    def test_preceded_by_on_multiple_patterns(self):
+        self.assertEqual(str(PrecededBy(pre1, pre2, pre3)), f"(?<={pre3})(?<={pre2}){pre1}")
 
     def test_preceded_by_on_type(self):
         self.assertEqual(PrecededBy("a", "b")._get_type(), _Type.Assertion)
@@ -211,8 +219,11 @@ class TestPrecededBy(unittest.TestCase):
         self.assertEqual(str(PrecededBy(pre1, exactly)), f"(?<={exactly}){pre1}")
         self.assertRaises(NonFixedWidthPatternException, PrecededBy, pre1, Optional(pre2))
 
-    def test_preceded_by_on_empty_token_as_assertion_pattern(self):
-        self.assertEqual(str(PrecededBy(pre1, Empty())), f"{pre1}")
+    def test_preceded_by_on_empty_string_as_assertion_pattern(self):
+        self.assertEqual(str(PrecededBy(pre1, Pregex())), f"{pre1}")
+
+    def test_preceded_by_on_not_enough_arguments_exception(self):
+        self.assertRaises(NotEnoughArgumentsException, PrecededBy, pre1)
 
 
 class TestNotPrecededBy(unittest.TestCase):
@@ -236,11 +247,11 @@ class TestNotPrecededBy(unittest.TestCase):
     def test_not_preceded_by_on_not_enough_arguments_exception(self):
         self.assertRaises(NotEnoughArgumentsException, NotPrecededBy, pre1)
 
-    def test_not_preceded_by_on_empty_negative_assertion_exception(self):
-        self.assertRaises(EmptyNegativeAssertionException, NotPrecededBy, pre1, Empty())
+    def test_not_preceded_by_on_empty_string_negative_assertion_exception(self):
+        self.assertRaises(EmptyNegativeAssertionException, NotPrecededBy, pre1, Pregex())
 
-    def test_not_preceded_by_on_multiple_patterns_empty_negative_assertion_exception(self):
-        self.assertRaises(EmptyNegativeAssertionException, NotPrecededBy, pre1, pre2, Empty())
+    def test_not_preceded_by_on_multiple_patterns_empty_string_negative_assertion_exception(self):
+        self.assertRaises(EmptyNegativeAssertionException, NotPrecededBy, pre1, pre2, Pregex())
 
     def test_not_preceded_by_on_non_fixed_width_pattern_exception(self):
         self.assertRaises(NonFixedWidthPatternException, NotPrecededBy, pre1, Optional(pre2))
@@ -254,6 +265,10 @@ class TestEnclosedBy(unittest.TestCase):
     def test_enclosed_by(self):
         self.assertEqual(str(EnclosedBy(pre1, pre2)), f"(?<={pre2}){pre1}(?={pre2})")
 
+    def test_enclosed_by_on_multiple_patterns(self):
+        self.assertEqual(str(EnclosedBy(pre1, pre2, pre3)),
+            f"(?<={pre3})(?<={pre2}){pre1}(?={pre2})(?={pre3})")
+
     def test_enclosed_by_on_type(self):
         self.assertEqual(EnclosedBy("a", "b")._get_type(), _Type.Assertion)
 
@@ -265,8 +280,11 @@ class TestEnclosedBy(unittest.TestCase):
         self.assertEqual(str(EnclosedBy(pre1, exactly)), f"(?<={exactly}){pre1}(?={exactly})")
         self.assertRaises(NonFixedWidthPatternException, EnclosedBy, pre1, Optional(pre2))
 
-    def test_enclosed_by_on_empty_token_as_assertion_pattern(self):
-        self.assertEqual(str(EnclosedBy(pre1, Empty())), f"{pre1}")
+    def test_enclosed_by_on_empty_string_as_assertion_pattern(self):
+        self.assertEqual(str(EnclosedBy(pre1, Pregex())), f"{pre1}")
+
+    def test_enclosed_by_on_not_enough_arguments_exception(self):
+        self.assertRaises(NotEnoughArgumentsException, EnclosedBy, pre1)
 
 
 class TestNotEnclosedBy(unittest.TestCase):
@@ -291,11 +309,11 @@ class TestNotEnclosedBy(unittest.TestCase):
     def test_not_enclosed_by_on_not_enough_arguments_exception(self):
         self.assertRaises(NotEnoughArgumentsException, NotEnclosedBy, pre1)
 
-    def test_not_enclosed_by_on_empty_negative_assertion_exception(self):
-        self.assertRaises(EmptyNegativeAssertionException, NotEnclosedBy, pre1, Empty())
+    def test_not_enclosed_by_on_empty_string_negative_assertion_exception(self):
+        self.assertRaises(EmptyNegativeAssertionException, NotEnclosedBy, pre1, Pregex())
 
-    def test_not_enclosed_by_on_multiple_patterns_empty_negative_assertion_exception(self):
-        self.assertRaises(EmptyNegativeAssertionException, NotEnclosedBy, pre1, pre2, Empty())
+    def test_not_enclosed_by_on_multiple_patterns_empty_string_negative_assertion_exception(self):
+        self.assertRaises(EmptyNegativeAssertionException, NotEnclosedBy, pre1, pre2, Pregex())
 
     def test_not_enclosed_by_on_non_fixed_width_pattern_exception(self):
         self.assertRaises(NonFixedWidthPatternException, NotEnclosedBy, pre1, Optional(pre2))
