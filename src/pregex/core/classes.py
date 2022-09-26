@@ -225,9 +225,9 @@ class __Class(_pre.Pregex):
         :note: Union and subtraction can only be performed on a pair of classes of the same type, \
             that is, either a pair of regular classes or a pair of negated classes.
         '''
-        super().__init__(__class__.__simplify(pattern, is_negated, simplify_word), escape=False)
         self.__is_negated = is_negated
-        self.__verbose = pattern
+        self.__verbose, pattern = __class__.__process(pattern, is_negated, simplify_word)
+        super().__init__(pattern, escape=False)
 
 
     def _get_verbose_pattern(self) -> str:
@@ -238,44 +238,51 @@ class __Class(_pre.Pregex):
 
 
     @staticmethod
-    def __simplify(pattern: str, is_negated: bool, simplify_word: bool) -> str:
+    def __process(pattern: str, is_negated: bool, simplify_word: bool) -> tuple[str, str]:
         '''
-        Converts a verbose pattern to its simplified form.
+        Performs some modifications to the provided pattern and returns \
+        it in both a verbose and a simplified form.
 
-        :param str pattern: The pattern that is to be simplified.
-        :param bool is_negated: Determines whether the patterns belongs \
-            to a negated class or a regular one.
-        :param bool simplify_word: Indicates whether `[A-Za-z0-9_]` should be simplified \
-            to `[\w]` or not.
+        :param str pattern: The pattern that is to be processed.
+        :param bool is_negated: Determines whether the patterns \
+            belongs to a negated class or a regular one.
+        :param bool simplify_word: Indicates whether `[A-Za-z0-9_]` \
+            should be simplified to `[\w]` or not.
         '''
-        if pattern == ".":
-            return pattern
+        if pattern == '.':
+            return pattern, pattern
         # Separate ranges from chars.
         ranges, chars = __class__.__extract_classes(pattern)
         # Reduce chars to any possible ranges.
-        char_ranges, chars = __class__.__chars_to_ranges(chars)
-        ranges = ranges.union(char_ranges)
+        ranges, chars = __class__.__chars_to_ranges(ranges, chars)
+        # Combine classes back together.
+        verbose_classes = ranges.union(chars)
+        verbose_pattern = ''.join(f"[{'^' if is_negated else ''}{''.join(verbose_classes)}]")
         # Use shorthand notation for any classes that support this.
-        classes = __class__.__verbose_to_shorthand(ranges.union(chars), simplify_word)
-        pattern = ''.join(f"[{'^' if is_negated else ''}{''.join(classes)}]")
+        simplified_classes = __class__.__verbose_to_shorthand(verbose_classes, simplify_word)
+        simplified_pattern = ''.join(f"[{'^' if is_negated else ''}{''.join(simplified_classes)}]")
         # Replace any one-character classes with a single (possibly escaped) character
-        pattern = _re.sub(r"\[([^\\]|\\.)\]", lambda m: str(__class__._to_pregex(m.group(1))) \
-            if len(m.group(1)) == 1 else m.group(1), pattern)
+        simplified_pattern = _re.sub(r"\[([^\\]|\\.)\]", lambda m: str(__class__._to_pregex(m.group(1))) \
+            if len(m.group(1)) == 1 else m.group(1), simplified_pattern)
         # Replace negated class shorthand-notation characters with their non-class shorthand-notation.
-        return _re.sub(r"\[\^(\\w|\\d|\\s)\]", lambda m: m.group(1).upper(), pattern)
+        return verbose_pattern, _re.sub(r"\[\^(\\w|\\d|\\s)\]", lambda m: m.group(1).upper(), simplified_pattern)
+
 
     @staticmethod    
-    def __chars_to_ranges(chars: set[str]) -> tuple[set[str], set[str]]:
+    def __chars_to_ranges(ranges: set[str], chars: set[str]) -> tuple[set[str], set[str]]:
         '''
-        Checks whether the provided set of characters can be simplified to
-        a range. If so, constructs this range and adds it to the returned
-        ``ranges`` set while at the same time removing the characters it
-        includes from the returns ``chars`` set.
-        '''
-        # Un-escape any escaped characters and convert to list.
-        chars = list(__class__.__modify_classes(chars, escape=False))
+        Checks whether the provided characters can be incorporated within ranges.
+        Returns the newly constructed ranges and characters as sets.
 
-        ranges = set()
+        :param set[str] ranges: A set containing all ranges.
+        :param set[str] chars: A set containing all characters.
+        '''
+        # 1. Un-escape any escaped characters and convert to list.
+        chars: list[str] = list(__class__.__modify_classes(chars, escape=False))
+        ranges: list[list[str]] = list(__class__.__split_range(rng) for rng in 
+            __class__.__modify_classes(ranges, escape=False))
+
+        # 2. Check whether ranges can be constructed from classes.
         i = 0
         while i < len(chars):
             for j in range(len(chars)):
@@ -297,16 +304,66 @@ class __Class(_pre.Pregex):
                         break
             i += 1
 
-        chars_set = set()
+        # Check whether these character-ranges can be incorporated into
+        # any existing ranges. If two characters are next to each other
+        # then keep them as characters.
+        if len(ranges) > 0:
+            i = 0
+            while i < len(chars):
+                j = 0
+                while j < len(ranges):
+                    c_i, r_j = chars[i], ranges[j]
+                    if len(c_i) == 1:
+                        if ord(c_i) == ord(r_j[0]) - 1:
+                            ranges[j][0] = c_i
+                            chars.pop(i)
+                            i = -1
+                            break
+                        elif ord(c_i) == ord(r_j[1]) + 1:
+                            ranges[j][1] = c_i
+                            chars.pop(i)
+                            i = -1
+                    else:
+                        if ord(c_i[1]) == ord(r_j[0]) - 1:
+                            ranges[j][0] = c_i[0]
+                            chars.pop(i)
+                            i = -1
+                            break
+                        elif ord(c_i[0]) == ord(r_j[1]) + 1:
+                            ranges[j][1] = c_i[1]
+                            chars.pop(i)
+                            i = -1
+                            break
+                        elif ord(c_i[1]) == ord(c_i[0]) + 1:
+                            chars.pop(i)
+                            chars.append(c_i[0])
+                            chars.append(c_i[1])
+                            i = -1
+                            break
+                        else:
+                            ranges.append([c_i[0], c_i[1]])
+                            chars.pop(i)
+                            i = -1
+                            break
+                    j += 1
+                i += 1
+            ranges_set = set(f"{rng[0]}-{rng[1]}" for rng in ranges)
+            chars_set = set(chars)
+        else:
+            ranges_set = set()
+            chars_set = set()
+            for c in chars:
+                if len(c) == 1:
+                    chars_set.add(c)
+                else:
+                    if ord(c[1]) == ord(c[0]) + 1:
+                        chars_set.add(c[0])
+                        chars_set.add(c[1])
+                    else:
+                        ranges_set.add(f"{c[0]}-{c[1]}")
 
-        for c in chars:
-            if len(c) > 1:
-                ranges.add(f"{c[0]}-{c[-1]}")
-            else:
-                chars_set.add(c)
-
+        ranges = __class__.__modify_classes(ranges_set, escape=True)
         chars = __class__.__modify_classes(chars_set, escape=True)
-        ranges = __class__.__modify_classes(ranges, escape=True)
 
         return ranges, chars
 
@@ -573,7 +630,11 @@ class __Class(_pre.Pregex):
                 if start == end:
                     chars.add(start)
                 else:
-                    ranges.add(f"{start}-{end}")
+                    if ord(end) == ord(start) + 1:
+                        chars.add(start)
+                        chars.add(end)
+                    else:
+                        ranges.add(f"{start}-{end}")
 
             return ranges, chars
 
@@ -615,6 +676,7 @@ class __Class(_pre.Pregex):
         return  __class__(
             f"[{'^' if pre1.__is_negated else ''}{''.join(result)}]",
             pre1.__is_negated)
+
 
     @staticmethod
     def __extract_classes(pattern: str, unescape: bool = False) -> tuple[set[str], set[str]]:

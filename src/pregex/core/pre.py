@@ -768,9 +768,16 @@ class Pregex():
         :raises InvalidArgumentTypeException: Parameter ``pre`` is neither \
             a ``Pregex`` instance nor a string.
         '''
+        pre = __class__._to_pregex(pre)
+
+        if pre._get_type() == _Type.Empty:
+            return self
+
         pattern = self._concat_conditional_group()
-        pre = __class__._to_pregex(pre)._concat_conditional_group()
+        pre = pre._concat_conditional_group()
+
         pattern = pattern + pre if on_right else pre + pattern
+
         return __class__(pattern, escape=False)
 
 

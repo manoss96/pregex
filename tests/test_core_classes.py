@@ -204,7 +204,7 @@ class TestAny(unittest.TestCase):
 class TestAnyLetter(unittest.TestCase):
 
     def test_any_letter(self):
-        self.assertEqual(AnyLetter()._get_verbose_pattern(), "[a-zA-Z]")
+        self.assertTrue(AnyLetter()._get_verbose_pattern() in get_permutations('a-z', 'A-Z'))
 
     def test_any_letter_on_type(self):
         self.assertEqual(AnyLetter()._get_type(), _Type.Class)
@@ -280,7 +280,8 @@ class TestAnyWordChar(unittest.TestCase):
 class TestAnyPunctuation(unittest.TestCase):
 
     def test_any_punctuation(self):
-        self.assertEqual(str(AnyPunctuation()._get_verbose_pattern()), '[!-\/:-@\[-`{-~]')
+        self.assertTrue(str(AnyPunctuation()._get_verbose_pattern()) in
+            get_permutations('!-\/', ':-@', '\[-`', '{-~'))
 
     def test_any_punctuation_on_type(self):
         self.assertEqual(AnyPunctuation()._get_type(), _Type.Class)
@@ -349,8 +350,8 @@ class TestAnyButLetter(unittest.TestCase):
 
     def test_any_but_letter(self):
         pattern = "[^a-zA-Z]"
-        self.assertEqual((~AnyLetter())._get_verbose_pattern(), pattern)
-        self.assertEqual(AnyButLetter()._get_verbose_pattern(), pattern)
+        self.assertTrue((~AnyLetter())._get_verbose_pattern() in get_negated_permutations('a-z', 'A-Z'))
+        self.assertTrue(AnyButLetter()._get_verbose_pattern() in get_negated_permutations('a-z', 'A-Z'))
 
     def test_any_but_letter_on_type(self):
         self.assertEqual(AnyButLetter()._get_type(), _Type.Class)

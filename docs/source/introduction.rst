@@ -131,7 +131,7 @@ right away!
 
   pre: Pregex = Either(
       HttpUrl(capture_domain=True, is_extensible=True),
-      IPv4(is_extensible=True) + ":" + port_number
+      IPv4(is_extensible=True) + ':' + port_number
   )
 
 By using classes found within the *pregex.meta* subpackage, we were able to
@@ -299,7 +299,7 @@ RegEx pattern:
 
 .. code-block::
 
-  (?=[A-Z]{,4}A)(?=[A-Z]{,4}R)(?=[A-Z]{,4}P)[S-TBV-ZE-KO-P][A-BR-TV-ZE-KO-P][A-BR-TV-ZE-KO]T[A-BR-TV-ZE-KO-P]
+  (?=[A-Z]{,4}A)(?=[A-Z]{,4}R)(?=[A-Z]{,4}P)[BE-KOPSTV-Z][ABE-KOPR-TV-Z][ABE-KOR-TV-Z]T[ABE-KOPR-TV-Z]
 
 Matching from a dictionary
 ---------------------------

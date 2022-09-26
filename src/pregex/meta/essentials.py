@@ -22,7 +22,7 @@ from typing import Optional as _Optional
 
 class __Word(_pre.Pregex):
     '''
-    This is the base class for every "Word" class.
+    This is the base class for every "Word" as well as the "Numeral" class.
 
     :param Pregex pre: A Pregex instance representing the word pattern.
     :param bool is_extensible: If ``True``, then no additional assertions \
@@ -30,8 +30,7 @@ class __Word(_pre.Pregex):
         which in turn prevents certain complications from arising whenever it \
         serves as a building block to a larger pattern. As a general rule of thumb, \
         set this parameter to ``True`` if you wish to extend the resulting instance's \
-        underlying pattern, or to ``False`` if you are only using it for matching purposes. \
-        Defaults to ``False``.
+        underlying pattern, or to ``False`` if you are only using it for matching purposes.
     '''
 
     def __init__(self, pre: _pre.Pregex, is_extensible: bool):
@@ -44,8 +43,7 @@ class __Word(_pre.Pregex):
             which in turn prevents certain complications from arising whenever it \
             serves as a building block to a larger pattern. As a general rule of thumb, \
             set this parameter to ``True`` if you wish to extend the resulting instance's \
-            underlying pattern, or to ``False`` if you are only using it for matching purposes. \
-            Defaults to ``False``.
+            underlying pattern, or to ``False`` if you are only using it for matching purposes.
         '''
         if not is_extensible:
             pre = pre.enclose(_asr.WordBoundary())
@@ -767,7 +765,7 @@ class UnsignedInteger(__Integer):
             - Parameter ``start`` has a value of less than zero.
             - Parameter ``start`` has a greater value than that of parameter ``end``.
         '''
-        sign = _pre.Pregex().not_preceded_by(_op.Either("+", "-"))
+        sign = _pre.Pregex().not_preceded_by(_op.Either('+', '-'))
         super().__init__(sign, start, end, is_extensible)
 
 
@@ -781,6 +779,12 @@ class __Decimal(_pre.Pregex):
         like ``.123``.
     :param int min_decimal: The minimum number of digits within the decimal part.
     :param int max_decimal: The maximum number of digits within the decimal part.
+    :param bool is_extensible: If ``True``, then no additional assertions \
+        are imposed upon the underlying pattern, other than any necessary ones, \
+        which in turn prevents certain complications from arising whenever it \
+        serves as a building block to a larger pattern. As a general rule of thumb, \
+        set this parameter to ``True`` if you wish to extend the resulting instance's \
+        underlying pattern, or to ``False`` if you are only using it for matching purposes.
 
     :raises InvalidArgumentTypeException: Either one of parameters ``start``, \
         ``end``, ``min_decimal`` or ``max_decimal`` is not an integer.
@@ -791,7 +795,7 @@ class __Decimal(_pre.Pregex):
         - Parameter ``min_decimal`` has a greater value than that of parameter ``max_decimal``.
     '''
     def __init__(self, integer_part: _pre.Pregex, no_integer_part: _Optional[_pre.Pregex],
-        min_decimal: int, max_decimal: _Optional[int]) -> _pre.Pregex:
+        min_decimal: int, max_decimal: _Optional[int], is_extensible: bool) -> _pre.Pregex:
         '''
         Every "Decimal" class inherits from this class.
 
@@ -801,6 +805,12 @@ class __Decimal(_pre.Pregex):
             like ``.123``.
         :param int min_decimal: The minimum number of digits within the decimal part.
         :param int max_decimal: The maximum number of digits within the decimal part.
+        :param bool is_extensible: If ``True``, then no additional assertions \
+            are imposed upon the underlying pattern, other than any necessary ones, \
+            which in turn prevents certain complications from arising whenever it \
+            serves as a building block to a larger pattern. As a general rule of thumb, \
+            set this parameter to ``True`` if you wish to extend the resulting instance's \
+            underlying pattern, or to ``False`` if you are only using it for matching purposes.
 
         :raises InvalidArgumentTypeException: Either one of parameters ``start``, \
             ``end``, ``min_decimal`` or ``max_decimal`` is not an integer.
@@ -828,7 +838,7 @@ class __Decimal(_pre.Pregex):
             pre = _op.Either(integer_part, no_integer_part)
         else:
             pre = integer_part
-        pre += "." + Numeral(n_min=min_decimal, n_max=max_decimal)
+        pre += "." + Numeral(n_min=min_decimal, n_max=max_decimal, is_extensible=is_extensible)
         super().__init__(str(pre), escape=False)
 
 
@@ -932,7 +942,7 @@ class Decimal(__Decimal):
         else:
             no_integer_part = None
 
-        super().__init__(integer_part, no_integer_part, min_decimal, max_decimal)
+        super().__init__(integer_part, no_integer_part, min_decimal, max_decimal, is_extensible)
 
 
 class PositiveDecimal(__Decimal):
@@ -1014,7 +1024,7 @@ class PositiveDecimal(__Decimal):
             no_integer_part += _qu.Optional("+")
         else:
             no_integer_part = None
-        super().__init__(integer_part, no_integer_part, min_decimal, max_decimal)
+        super().__init__(integer_part, no_integer_part, min_decimal, max_decimal, is_extensible)
 
 
 class NegativeDecimal(__Decimal):
@@ -1096,7 +1106,7 @@ class NegativeDecimal(__Decimal):
             no_integer_part += '-'
         else:
             no_integer_part = None
-        super().__init__(integer_part, no_integer_part, min_decimal, max_decimal)
+        super().__init__(integer_part, no_integer_part, min_decimal, max_decimal, is_extensible)
 
 
 class UnsignedDecimal(__Decimal):
@@ -1180,16 +1190,17 @@ class UnsignedDecimal(__Decimal):
                 no_integer_part = _asr.NonWordBoundary().not_preceded_by(_op.Either('+', '-'))
         else:
             no_integer_part = None
-        super().__init__(integer_part, no_integer_part, min_decimal, max_decimal)
+        super().__init__(integer_part, no_integer_part, min_decimal, max_decimal, is_extensible)
 
 
 class Date(_pre.Pregex):
     '''
     Matches any date within a range of predefined formats.
 
-    :param list[str] formats: A list of string through which it is determined \
-        what are the exact date formats that are to be considered possible \
-        matches. A valid date format can be either one of:
+    :param str | list[str] formats: Either a string or a list of strings \
+        through which it is determined what are the exact date formats that \
+        are to be considered possible matches. A valid date format can be \
+        either one of:
 
         - ``D<sep>M<sep>Y``
         - ``M<sep>D<sep>Y``
@@ -1230,13 +1241,14 @@ class Date(_pre.Pregex):
 
     __date_separators: tuple[str, str] = ("-", "/")
 
-    def __init__(self, formats: _Optional[list[str]] = None, is_extensible: bool = False) -> _pre.Pregex:
+    def __init__(self, formats: _Optional[_Union[str, list[str]]] = None, is_extensible: bool = False) -> _pre.Pregex:
         '''
         Matches any date within a range of predefined formats.
 
-        :param list[str] formats: A list of string through which it is determined \
-            what are the exact date formats that are to be considered possible \
-            matches. A valid date format can be either one of:
+        :param str | list[str] formats: Either a string or a list of strings \
+            through which it is determined what are the exact date formats that \
+            are to be considered possible matches. A valid date format can be \
+            either one of:
 
             - ``D<sep>M<sep>Y``
             - ``M<sep>D<sep>Y``
@@ -1275,7 +1287,10 @@ class Date(_pre.Pregex):
             is not a valid date format.
         '''
         date_formats = __class__.__date_formats()
-        formats = date_formats if not formats else formats
+        formats = date_formats if formats is None else formats
+
+        if isinstance(formats, str):
+            formats = [formats]
         
         dates: list[_pre.Pregex] = []
         for format in formats:
@@ -1307,13 +1322,25 @@ class Date(_pre.Pregex):
         
         values = format.split(separator)
 
+        any_digit_but_zero = _cl.AnyDigit() - '0'
+        either_zero_or_one = _op.Either('0', '1')
+        either_one_or_two = _op.Either('1', '2')
+
         date_to_pre: dict[str, _pre.Pregex] = {
-            "d": _cl.AnyDigit() - "0", 
-            "dd": _op.Either("0" + (_cl.AnyDigit() - "0"), Integer(10, 31)),
-            "m": _cl.AnyDigit() - "0",
-            "mm": _op.Either("0" + (_cl.AnyDigit() - "0"), Integer(10, 12)),
-            "yy": _cl.AnyDigit() * 2, 
-            "yyyy": _cl.AnyDigit() * 4, 
+            'd': any_digit_but_zero, 
+            'dd': _op.Either(
+                '0' + any_digit_but_zero,
+                either_one_or_two.either('3') + \
+                _op.Either(
+                    _cl.AnyDigit().preceded_by(either_one_or_two),
+                    either_zero_or_one.preceded_by('3')
+            )),
+            'm': any_digit_but_zero,
+            'mm': _op.Either(
+                '0' + any_digit_but_zero,
+                '1' + either_zero_or_one.either('2')),
+            'yy': _cl.AnyDigit() * 2, 
+            'yyyy': _cl.AnyDigit() * 4, 
         }
 
         pre = _pre.Pregex()
@@ -1325,6 +1352,7 @@ class Date(_pre.Pregex):
         return pre
 
 
+    @staticmethod
     def __date_formats() -> list[str]:
         '''
         Returns a list containing all possible date format combinations.
@@ -1369,7 +1397,19 @@ class IPv4(_pre.Pregex):
             underlying pattern, or to ``False`` if you are only using it for matching purposes. \
             Defaults to ``False``.
         '''
-        ip_octet = Integer(start=0, end=255)
+
+        any_digit_but_zero = _cl.AnyDigit() - '0'
+        any_digit_up_to_four = _cl.AnyBetween('0', '4')
+
+        ip_octet = _op.Either(
+            _cl.AnyDigit(),
+            any_digit_but_zero + _cl.AnyDigit(),
+            '1' + 2 * _cl.AnyDigit(),
+            '2' + _op.Either(
+                any_digit_up_to_four + _cl.AnyDigit(),
+                '5' + (any_digit_up_to_four | '5')
+            )
+        )
 
         pre = 3 * (ip_octet + ".") + ip_octet
 
@@ -1404,7 +1444,7 @@ class IPv6(_pre.Pregex):
             underlying pattern, or to ``False`` if you are only using it for matching purposes. \
             Defaults to ``False``.
         '''
-        hex_group = Numeral(base=16, n_min=1, n_max=4)
+        hex_group = Numeral(base=16, n_min=1, n_max=4, is_extensible=is_extensible)
 
         pre = 7 * (hex_group + ":") + hex_group
 
@@ -1470,8 +1510,8 @@ class Email(_pre.Pregex):
 
         :note: Not guaranteed to match every possible e-mail address.
         '''
-        word_boundary = _pre.Pregex() if is_extensible else _asr.WordBoundary()
-        non_word_boundary = _pre.Pregex() if is_extensible else _asr.NonWordBoundary()
+        potential_word_boundary = _pre.Pregex() if is_extensible else _asr.WordBoundary()
+        potential_non_word_boundary = _pre.Pregex() if is_extensible else _asr.NonWordBoundary()
 
         special = _cl.AnyFrom('!', '#', '$', '%', "'", '*', '+',
             '-', '/', '=', '?', '^', '_', '`', '{', '|', '}', '~')
@@ -1481,8 +1521,8 @@ class Email(_pre.Pregex):
         local_part_valid_char = alphanum | special
 
         left_most = _op.Either(
-            non_word_boundary.followed_by(special),
-            word_boundary.followed_by(alphanum)
+            potential_non_word_boundary.followed_by(special),
+            potential_word_boundary.followed_by(alphanum)
         ) 
 
         local_part = \
@@ -1506,7 +1546,7 @@ class Email(_pre.Pregex):
 
         tld = "." + _qu.AtLeastAtMost(_cl.AnyLowercaseLetter(), n=2, m=6)
 
-        pre = left_most + local_part + "@" + domain_name + tld + word_boundary
+        pre = left_most + local_part + "@" + domain_name + tld + potential_word_boundary
         super().__init__(str(pre), escape=False)
 
 
@@ -1544,12 +1584,12 @@ class HttpUrl(_pre.Pregex):
         :note: Not guaranteed to match every possible HTTP URL.
         '''
 
-        word_boundary = _pre.Pregex() if is_extensible else _asr.WordBoundary()
-        non_word_boundary = _pre.Pregex() if is_extensible else _asr.NonWordBoundary()
+        potential_word_boundary = _pre.Pregex() if is_extensible else _asr.WordBoundary()
+        potential_non_word_boundary = _pre.Pregex() if is_extensible else _asr.NonWordBoundary()
 
-        left_most = word_boundary
+        left_most = potential_word_boundary
 
-        http_protocol = _qu.Optional("http" + _qu.Optional("s") + "://")
+        http_protocol = _qu.Optional("http" + _qu.Optional('s') + "://")
 
         www = _qu.Optional("www.")
 
@@ -1572,9 +1612,10 @@ class HttpUrl(_pre.Pregex):
         ) + _qu.Optional("/")
 
         right_most = _op.Either(
-            non_word_boundary.preceded_by(_cl.AnyPunctuation()),
-            word_boundary.preceded_by(_cl.AnyWordChar(is_global=True))
-        )  
+            potential_non_word_boundary.preceded_by(_cl.AnyPunctuation()),
+            potential_word_boundary.preceded_by(_cl.AnyWordChar(is_global=True))
+        )
+
         if capture_domain:
             domain_name = _gr.Capture(domain_name)
 

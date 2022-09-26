@@ -118,7 +118,7 @@ port_number = (AnyDigit() - '0') + 3 * AnyDigit()
 
 pre: Pregex = Either(
     HttpUrl(capture_domain=True, is_extensible=True),
-    IPv4(is_extensible=True) + ":" + port_number
+    IPv4(is_extensible=True) + ':' + port_number
 )
 ```
 
@@ -275,7 +275,7 @@ After executing the above code, ``wordle`` will contain the following
 RegEx pattern:
 
 ```
-(?=[A-Z]{,4}A)(?=[A-Z]{,4}R)(?=[A-Z]{,4}P)[S-TBV-ZE-KO-P][A-BR-TV-ZE-KO-P][A-BR-TV-ZE-KO]T[A-BR-TV-ZE-KO-P]
+(?=[A-Z]{,4}A)(?=[A-Z]{,4}R)(?=[A-Z]{,4}P)[BE-KOPSTV-Z][ABE-KOPR-TV-Z][ABE-KOR-TV-Z]T[ABE-KOPR-TV-Z]
 ```
 
 ### Matching from a dictionary
