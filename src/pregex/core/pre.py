@@ -64,7 +64,7 @@ class Pregex():
 
 
     '''
-    The totality of active flags.
+    The totality of active RegEx flags.
     '''
     __flags: _re.RegexFlag = _re.MULTILINE | _re.DOTALL
 
@@ -100,7 +100,7 @@ class Pregex():
         '''
         Prints this instance's underlying RegEx pattern.
 
-        :param bool include_falgs: Determines whether to display the \
+        :param bool include_flags: Determines whether to display the \
             used RegEx flags along with the pattern. Defaults to ``False``.
         '''
         print(self.get_pattern(include_flags))
@@ -110,7 +110,7 @@ class Pregex():
         '''
         Returns this instance's underlying RegEx pattern as a string.
 
-        :param bool include_falgs: Determines whether to display the \
+        :param bool include_flags: Determines whether to display the \
             used RegEx flags along with the pattern. Defaults to ``False``.
 
         :note: This method is to be preferred over str() when one needs \
@@ -843,9 +843,14 @@ class Pregex():
 
         :note:
             - Creating a capturing group out of a capturing group does nothing.
-            - Creating a capturing group out of a non-capturing group converts it into a capturing group.
-            - Creating a named capturing group out of an unnamed capturing group, assigns a name to it.
-            - Creating a named capturing group out of a named capturing group, changes the group's name.
+            - Creating a capturing group out of a non-capturing group converts it \
+              into a capturing group, except if any flags have been applied to it, \
+              in which case, the non-capturing group is wrapped within a capturing \
+              group as a whole.
+            - Creating a named capturing group out of an unnamed capturing group, \
+              assigns a name to it.
+            - Creating a named capturing group out of a named capturing group, \
+              changes the group's name.
         '''
         if name is not None:
             if not isinstance(name, str):
@@ -856,7 +861,15 @@ class Pregex():
         if self.__type == _Type.Empty:
             return self
         elif self.__type == _Type.Group:
-            pattern = self.__pattern.replace('?:', '', 1) if self.__pattern.startswith('(?:') else str(self)
+            if self.__pattern.startswith('(?:'):
+                # non-capturing group.
+                pattern = self.__pattern.replace('?:', '', 1)
+            elif _re.match('\(\?[i].+', self.__pattern):
+                # non-capturing group with flag.
+                pattern = f'({str(self)})'
+            else:
+                # capturing group.
+                pattern = self.__pattern
             if name is not None:
                 if pattern.startswith('(?P'):
                     pattern = _re.sub('\(\?P<[^>]*>', f'(?P<{name}>', pattern)
@@ -867,29 +880,41 @@ class Pregex():
         return __class__(pattern, escape=False)
 
 
-    def group(self) -> 'Pregex':
+    def group(self, is_case_insensitive: bool = False) -> 'Pregex':
         '''
         Creates a non-capturing group out of this instance's underlying \
         pattern and returns the result as a ``Pregex`` instance.
 
-        :raises InvalidArgumentTypeException: Parameter ``pre`` is neither a \
-            ``Pregex`` instance nor a string.
+        :param bool is_case_insensitive: If ``True``, then the "case insensitive" \
+            flag is applied to the group so that the pattern within it ignores case \
+            when it comes to matching. Defaults to ``False``.
+
+        :raises InvalidArgumentTypeException: Parameter ``pre`` is neither \
+            a ``Pregex`` instance nor a string.
 
         :note:
-            - Creating a non-capturing group out of a non-capturing group does nothing.
-            - Creating a non-capturing group out of a capturing group converts it into a non-capturing group.
+            - Creating a non-capturing group out of a non-capturing group does nothing, \
+              except for reset its flags, e.g. ``is_case_insensitive``, if it has any.
+            - Creating a non-capturing group out of a capturing group converts it into \
+              a non-capturing group.
         '''
         if self.__type == _Type.Empty:
             return self
         elif self.__type == _Type.Group:
             if self.__pattern.startswith('(?P'):
+                # Remove name from named capturing group.
                 pattern = _re.sub('\(\?P<[^>]*>', f'(?:', str(self))
-            elif not self.__pattern.startswith('(?:'):
-                pattern = self.__pattern.replace('(', '(?:', 1)
+            elif self.__pattern.startswith('(?'):
+                # Remove any possible flags from non-capturing group.
+                pattern = _re.sub(
+                    r'\(\?[i]*:', f"(?{'i' if is_case_insensitive else ''}:",
+                    self.__pattern,
+                    count=1)
             else:
-                pattern = str(self)
+                # Else convert capturing group to non-capturing group.
+                pattern = self.__pattern.replace('(', '(?:', 1)
         else:
-            pattern = f"(?:{self})"
+            pattern = f"(?{'i' if is_case_insensitive else ''}:{self})"
         return __class__(pattern, escape=False)
 
 

@@ -28,6 +28,10 @@ class TestCapture(unittest.TestCase):
         group = Capture(TEST_STR)
         self.assertEqual(str(Capture(group)), f"{group}")
 
+    def test_capture_on_case_insensitive_group(self):
+        case_insensitive_group = Group(TEST_STR, is_case_insensitive=True)
+        self.assertEqual(str(Capture(case_insensitive_group)), f"((?i:{TEST_STR}))")
+
     def test_capture_on_concat_of_capturing_groups(self):
         pre = Capture("a") + "b" + Capture("c")
         self.assertEqual(str(Capture(pre)), f"({pre})")
@@ -73,7 +77,7 @@ class TestCapture(unittest.TestCase):
         group = Capture(TEST_STR)
         self.assertEqual(str(Capture(group, self.name)), f"(?P<{self.name}>{str(group)[1:-1]})")
 
-    def test_named_capturing_group_on_capturing_group(self):
+    def test_named_capturing_group_on_named_capturing_group(self):
         ''' Name-grouping a capturing group with name, changes the group's name. '''
         group = Capture(TEST_STR, self.name)
         new_name = "NEW_NAME"
@@ -104,17 +108,23 @@ class TestGroup(unittest.TestCase):
         self.assertEqual(Group("a")._get_type(), _Type.Group)
         self.assertNotEqual((Group("a") + Group("b"))._get_type(), _Type.Group)
 
-    def test_group_on_literal(self):
-        literal = Pregex(TEST_STR)
-        self.assertEqual(str(Group(literal)), f"(?:{literal})")
+    def test_group_on_pregex(self):
+        pregex = Pregex(TEST_STR)
+        self.assertEqual(str(Group(pregex)), f"(?:{pregex})")
+
+    def test_group_on_is_case_insensitive(self):
+        self.assertEqual(str(Group(TEST_STR, is_case_insensitive=True)), f"(?i:{TEST_STR})")
 
     def test_group_on_capturing_group(self):
-        ''' Applying 'Group' on a capturing group converts it into a non-capturing group. '''
         group = Capture(TEST_STR)
-        self.assertEqual(str(Group(group)), f"{str(group).replace('(', '(?:')}")
+        self.assertEqual(str(Group(group)), f"(?:{TEST_STR})")
+
+    def test_group_on_flag_reset(self):
+        flag_group = Group(TEST_STR, is_case_insensitive=True)
+        self.assertEqual(str(Group(flag_group)), f"(?:{TEST_STR})")
 
     def test_group_on_concat_of_capturing_groups(self):
-        pre = Capture("a") + "b" + Capture("c")
+        pre = Capture('a') + 'b' + Capture('c')
         self.assertEqual(str(Group(pre)), f"(?:{pre})")
 
     def test_group_on_backslash_group(self):
@@ -150,18 +160,18 @@ class TestGroup(unittest.TestCase):
         ''' Applying 'Group' on a non-capturing group converts it into a non-capturing group. '''
         name = "NAME"
         group = Capture(TEST_STR, name)
-        self.assertEqual(str(Group(group)), f"{str(group).replace(f'(?P<{name}>', '(?:')}")
+        self.assertEqual(str(Group(group)), f"(?:{TEST_STR})")
 
 
 class TestBackreference(unittest.TestCase):
 
-    def test_backreference(self):
-        ref = "name"
-        self.assertEqual(str(Backreference(ref)), f"(?P={ref})")
-
-    def test_backreference(self):
+    def test_backreference_int(self):
         ref = 1
         self.assertEqual(str(Backreference(ref)), f"\\{ref}")
+
+    def test_backreference_str(self):
+        ref = "name"
+        self.assertEqual(str(Backreference(ref)), f"(?P={ref})")
 
     def test_backreference_on_type(self):
         self.assertEqual(Backreference("a")._get_type(), _Type.Group)

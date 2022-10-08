@@ -282,7 +282,7 @@ class __Class(_pre.Pregex):
         ranges: list[list[str]] = list(__class__.__split_range(rng) for rng in 
             __class__.__modify_classes(ranges, escape=False))
 
-        # 2. Check whether ranges can be constructed from classes.
+        # 2. Check whether ranges can be constructed from chars.
         i = 0
         while i < len(chars):
             for j in range(len(chars)):
@@ -307,60 +307,17 @@ class __Class(_pre.Pregex):
         # Check whether these character-ranges can be incorporated into
         # any existing ranges. If two characters are next to each other
         # then keep them as characters.
-        if len(ranges) > 0:
-            i = 0
-            while i < len(chars):
-                j = 0
-                while j < len(ranges):
-                    c_i, r_j = chars[i], ranges[j]
-                    if len(c_i) == 1:
-                        if ord(c_i) == ord(r_j[0]) - 1:
-                            ranges[j][0] = c_i
-                            chars.pop(i)
-                            i = -1
-                            break
-                        elif ord(c_i) == ord(r_j[1]) + 1:
-                            ranges[j][1] = c_i
-                            chars.pop(i)
-                            i = -1
-                    else:
-                        if ord(c_i[1]) == ord(r_j[0]) - 1:
-                            ranges[j][0] = c_i[0]
-                            chars.pop(i)
-                            i = -1
-                            break
-                        elif ord(c_i[0]) == ord(r_j[1]) + 1:
-                            ranges[j][1] = c_i[1]
-                            chars.pop(i)
-                            i = -1
-                            break
-                        elif ord(c_i[1]) == ord(c_i[0]) + 1:
-                            chars.pop(i)
-                            chars.append(c_i[0])
-                            chars.append(c_i[1])
-                            i = -1
-                            break
-                        else:
-                            ranges.append([c_i[0], c_i[1]])
-                            chars.pop(i)
-                            i = -1
-                            break
-                    j += 1
-                i += 1
-            ranges_set = set(f"{rng[0]}-{rng[1]}" for rng in ranges)
-            chars_set = set(chars)
-        else:
-            ranges_set = set()
-            chars_set = set()
-            for c in chars:
-                if len(c) == 1:
-                    chars_set.add(c)
+        ranges_set = set(f"{rng[0]}-{rng[1]}" for rng in ranges)
+        chars_set = set()
+        for c in chars:
+            if len(c) == 1:
+                chars_set.add(c)
+            else:
+                if ord(c[1]) == ord(c[0]) + 1:
+                    chars_set.add(c[0])
+                    chars_set.add(c[1])
                 else:
-                    if ord(c[1]) == ord(c[0]) + 1:
-                        chars_set.add(c[0])
-                        chars_set.add(c[1])
-                    else:
-                        ranges_set.add(f"{c[0]}-{c[1]}")
+                    ranges_set.add(f"{c[0]}-{c[1]}")
 
         ranges = __class__.__modify_classes(ranges_set, escape=True)
         chars = __class__.__modify_classes(chars_set, escape=True)
@@ -624,7 +581,6 @@ class __Class(_pre.Pregex):
                             break
                 i += 1
 
-
             ranges, chars = set(), set()
             for start, end in ranges1:
                 if start == end:
@@ -659,12 +615,12 @@ class __Class(_pre.Pregex):
         # 2.b Subtract chars2 from chars1.
         chars1 = chars1.difference(chars2)
 
-        # 2.c. Subtract ranges2 from ranges1.
-        ranges1, reduced_chars = subtract_ranges(ranges1, ranges2)
+        # 2.c. Subtract any characters in chars2 from ranges1.
+        ranges1, reduced_chars = subtract_ranges(ranges1, set(f"{c}-{c}" for c in chars2))
         chars1 = chars1.union(reduced_chars)
 
-        # 2.d. Subtract any characters in chars2 from ranges1.
-        ranges1, reduced_chars = subtract_ranges(ranges1, set(f"{c}-{c}" for c in chars2))
+        # 2.d. Subtract ranges2 from ranges1.
+        ranges1, reduced_chars = subtract_ranges(ranges1, ranges2)
         chars1 = chars1.union(reduced_chars)
 
         # 3. Union ranges and chars together while escaping them.
@@ -693,9 +649,8 @@ class __Class(_pre.Pregex):
         def get_start_index(pattern: str):
             if pattern.startswith('[^'):
                 return 2
-            elif pattern.startswith('['):
+            else:
                 return 1
-            return 0
         
         # Remove brackets etc from string.
         start_index = get_start_index(pattern)
@@ -771,7 +726,7 @@ class __Class(_pre.Pregex):
 
         if count == 1:
             return pattern.split("-")
-        elif count== 2:
+        elif count == 2:
             split_fun = pattern.split if pattern[-1] == "-" else pattern.rsplit
             return split_fun("-", 1)
         else:
@@ -788,6 +743,12 @@ class Any(__Class):
         Matches any possible character, including the newline character.
         '''
         super().__init__('.', is_negated=False)
+
+    def __invert__(self) -> None:
+        '''
+        Raises a "CannotBeNegatedException".
+        '''
+        raise _ex.CannotBeNegatedException()
 
 
 class AnyLetter(__Class):

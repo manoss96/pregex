@@ -2,8 +2,8 @@ import unittest
 from pregex.core.classes import *
 from itertools import permutations
 from pregex.core.pre import Pregex, _Type
-from pregex.core.tokens import Backslash, Copyright, Newline, Registered
-from pregex.core.exceptions import GlobalWordCharSubtractionException, CannotBeUnionedException, \
+from pregex.core.tokens import Backslash, CarriageReturn, Copyright, Newline, Registered, Tab, Space
+from pregex.core.exceptions import CannotBeNegatedException, GlobalWordCharSubtractionException, CannotBeUnionedException, \
     CannotBeSubtractedException, InvalidRangeException, EmptyClassException, \
     NotEnoughArgumentsException, InvalidArgumentTypeException
 
@@ -54,6 +54,10 @@ class Test__Class(unittest.TestCase):
         self.assertEqual(str(AnyBetween('1', '5') | AnyFrom('6', '7')), "[1-7]")
         self.assertEqual(str(AnyFrom('a') | AnyBetween('b', 'e') | AnyFrom('f') | AnyBetween('g', 'h')), "[a-h]")
 
+    def test_any_class_token_char_right_bitwise_or(self):
+        self.assertEqual(str('6' | AnyBetween('1', '5')), "[1-6]")
+        self.assertEqual(str(Space() | AnyBetween(Tab(), CarriageReturn())), "\s")
+
     def test_any_class_bitwise_or_with_escaped_chars(self):
         self.assertTrue(str(AnyLowercaseLetter() | AnyFrom("^")) \
             in get_permutations("a-z", "\^"))
@@ -68,6 +72,10 @@ class Test__Class(unittest.TestCase):
         self.assertTrue(str(AnyDigit() - '5') in get_permutations("0-4", "6-9"))
         self.assertTrue(str(AnyWhitespace() - Newline()) in get_permutations(" ", "\t", "\x0b-\r"))
 
+    def test_any_class_right_subtraction_with_tokens(self):
+        self.assertRaises(EmptyClassException,  AnyDigit().__rsub__, '5')
+        self.assertRaises(EmptyClassException,  AnyWhitespace().__rsub__, Newline())
+
     def test_any_class_complex_subtraction(self):
         self.assertTrue(str(AnyWordChar() - AnyBetween('b', 'd')) in 
             get_permutations('A-Z', '\d', '_', 'a', 'e-z'))
@@ -79,14 +87,24 @@ class Test__Class(unittest.TestCase):
     def test_any_class_subtraction_with_escaped_chars(self):
         self.assertTrue(str((AnyLetter() | AnyFrom("-")) - AnyFrom("-")) \
             in get_permutations("a-z", "A-Z"))
+
+    def test_any_between_class_on_hyphen_range(self):
+        self.assertEqual(str(AnyBetween('-', 'a')), "[\--a]")
+        self.assertEqual(str(AnyBetween('+', '-')), "[+-\-]")
+
+    def test_any_between_class_on_two_char_range_subtraction(self):
+        self.assertEqual(str(AnyBetween('a', 'b') - 'b'), 'a')
+
+    def test_any_between_class_on_two_char_range_subtraction_conversion(self):
+        self.assertTrue(str(AnyBetween('a', 'b') - 'd') in get_permutations('a', 'b'))
         
     def test_any_class_bitwise_or_on_cannot_be_unioned_exception(self):
-        any_letter, any_but_digit = AnyLetter(), ~AnyDigit()
+        any_letter, any_but_digit = AnyLetter(), AnyButDigit()
         self.assertRaises(CannotBeUnionedException, any_letter.__or__, any_but_digit)
         self.assertRaises(CannotBeUnionedException, any_letter.__ror__, any_but_digit)
 
     def test_any_class_on_cannot_be_subtracted_exception(self):
-        any_letter, any_but_digit = AnyLetter(), ~AnyDigit()
+        any_letter, any_but_digit = AnyLetter(), AnyButDigit()
         self.assertRaises(CannotBeSubtractedException, any_letter.__sub__, any_but_digit)
         self.assertRaises(CannotBeSubtractedException, any_letter.__rsub__, any_but_digit)
 
@@ -127,6 +145,7 @@ class TestNegated__Class(unittest.TestCase):
     def test_any_but_class_bitwise_or_with_tokens(self):
         with self.assertRaises(CannotBeUnionedException):
             _ = AnyButDigit() | '5'
+        with self.assertRaises(CannotBeUnionedException):
             _ = AnyButWhitespace() | Newline()
 
     def test_any_but_class_complex_bitwise_or(self):
@@ -148,6 +167,7 @@ class TestNegated__Class(unittest.TestCase):
     def test_any_but_class_subtraction_with_tokens(self):
         with self.assertRaises(CannotBeSubtractedException):
             _ = AnyButDigit() - '5'
+        with self.assertRaises(CannotBeSubtractedException):
             _ = AnyButWhitespace() - Newline()
 
     def test_any_but_class_complex_subtraction(self):
@@ -166,11 +186,15 @@ class TestNegated__Class(unittest.TestCase):
         any_but_letter, any_digit = AnyButLetter(), AnyDigit()
         self.assertRaises(CannotBeUnionedException, any_but_letter.__or__, any_digit)
         self.assertRaises(CannotBeUnionedException, any_but_letter.__ror__, any_digit)
+        self.assertRaises(CannotBeUnionedException, any_but_letter.__or__, '0')
+        self.assertRaises(CannotBeUnionedException, any_but_letter.__ror__, '0')
 
     def test_any_but_class_on_cannot_be_subtracted_exception(self):
         any_but_letter, any_digit = AnyButLetter(), AnyDigit()
         self.assertRaises(CannotBeSubtractedException, any_but_letter.__sub__, any_digit)
         self.assertRaises(CannotBeSubtractedException, any_but_letter.__rsub__, any_digit)
+        self.assertRaises(CannotBeSubtractedException, any_but_letter.__sub__, '0')
+        self.assertRaises(CannotBeSubtractedException, any_but_letter.__rsub__, '0')
 
     def test_any_but_class_on_empty_class_exception(self):
         any_but_letter = AnyButLetter()
@@ -196,9 +220,13 @@ class TestAny(unittest.TestCase):
     def test_any_on_subtraction(self):
         self.assertEqual(str(Any() - AnyDigit()), "\D")
 
+    def test_any_cannot_be_negated_exception(self):
+        with self.assertRaises(CannotBeNegatedException):
+            _ = ~Any()
+
     def test_any_subtraction_on_empty_class_exception(self):
         with self.assertRaises(EmptyClassException):
-                _ = AnyDigit() - Any()
+            _ = AnyDigit() - Any()
 
 
 class TestAnyLetter(unittest.TestCase):
@@ -248,6 +276,9 @@ class TestAnyWordChar(unittest.TestCase):
     def test_any_word_char_on_type(self):
         self.assertEqual(AnyWordChar(is_global=False)._get_type(), _Type.Class)
         self.assertEqual(AnyWordChar(is_global=True)._get_type(), _Type.Class)
+
+    def test_any_word_char_is_global_invert(self):
+        self.assertEqual(str(~AnyWordChar(is_global=True)), '\W')
 
     def test_any_word_char_match_on_foreign_characters(self):
         self.assertEqual((6 * AnyWordChar(is_global=False)).get_matches("Øदάö大Б"), [])
@@ -403,9 +434,8 @@ class TestAnyButWordChar(unittest.TestCase):
         self.assertEqual(AnyButWordChar(is_global=False)._get_type(), _Type.Class)
         self.assertEqual(AnyButWordChar(is_global=True)._get_type(), _Type.Class)
 
-    def test_any_word_char_foreign_char_exception(self):
-        with self.assertRaises(GlobalWordCharSubtractionException):
-            _ = AnyButWordChar(is_global=True) - AnyButLetter()
+    def test_any_but_word_char_is_global_invert(self):
+        self.assertEqual(str(~AnyButWordChar(is_global=True)), '\w')
 
     def test_any_word_char_combine_with_subsets(self):
         self.assertTrue(str(AnyButWordChar(is_global=False) | (AnyButLetter() | AnyButDigit()))
@@ -422,6 +452,10 @@ class TestAnyButWordChar(unittest.TestCase):
         self.assertEqual(str(AnyButWordChar(is_global=True) | AnyButUppercaseLetter()), "\W")
         self.assertEqual(str(AnyButWordChar(is_global=True) | AnyButDigit()), "\W")
         self.assertEqual(str(AnyButWordChar(is_global=True) | AnyButWordChar()), "\W")
+
+    def test_any_word_char_foreign_char_exception(self):
+        with self.assertRaises(GlobalWordCharSubtractionException):
+            _ = AnyButWordChar(is_global=True) - AnyButLetter()
 
 
 class TestAnyButPunctuation(unittest.TestCase):

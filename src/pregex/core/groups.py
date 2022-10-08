@@ -16,18 +16,34 @@ deemed necessary. Consider for instance the following code snippet:
    Optional('a').print_pattern() # This prints "a?"
    Optional('aa').print_pattern() # This prints "(?:aa)?"
 
-In the first case, quantifier :class:`~pregex.core.quantifiers.Optional` is applied to the pattern
-directly, whereas in the second case the pattern is placed into a non-capturing group
-so that "aa" is quantified as a whole. Even so, one can also explicitly construct a
-non-capturing group out of any pattern if they wish to do so by making use of the
-:class:`Group` class:
+In the first case, quantifier :class:`~pregex.core.quantifiers.Optional` is applied to
+the pattern directly, whereas in the second case the pattern is placed into a non-capturing
+group so that "aa" is quantified as a whole. Be that as it may, there exists a separate class,
+namely :class:`Group`, through which one is able to explicitly wrap any pattern within
+a non-capturing group if they wish to do so:
 
 .. code-block:: python
 
    from pregex.core.groups import Group
    from pregex.core.quantifiers import Optional
 
-   Optional(Group('a')).print_pattern() # This prints "(?:a)?"
+   pre = Group(Optional('a'))
+
+   pre.print_pattern() # This prints "(?:a)?"
+
+This class can also be used so as to apply various RegEx flags, also known \
+as *modifiers*, to a pattern. As of yet, the only flag that is supported is
+the case-insensitive flag ``i``:
+
+.. code-block:: python
+
+   from pregex.core.groups import Group
+
+   pre = Group('pregex', is_case_insensitive=True)
+
+   # This statement is "True"
+   pre.is_exact_match('PRegEx')
+
 
 Capturing patterns
 -------------------------------------------
@@ -109,9 +125,14 @@ class Capture(__Group):
 
     :note:
         - Creating a capturing group out of a capturing group does nothing to it.
-        - Creating a capturing group out of a non-capturing group converts it to a capturing group.
-        - Creating a named capturing group out of an unnamed capturing group, assigns a name to it.
-        - Creating a named capturing group out of a named capturing group, changes the group's name.
+        - Creating a capturing group out of a non-capturing group converts it \
+            into a capturing group, except if any flags have been applied to it, \
+            in which case, the non-capturing group is wrapped within a capturing \
+            group as a whole.
+        - Creating a named capturing group out of an unnamed capturing group, \
+          assigns a name to it.
+        - Creating a named capturing group out of a named capturing group, \
+          changes the group's name.
     '''
 
     def __init__(self, pre: _Union[_pre.Pregex, str], name: _Optional[str] = None):
@@ -133,9 +154,14 @@ class Capture(__Group):
 
         :note:
             - Creating a capturing group out of a capturing group does nothing to.
-            - Creating a capturing group out of a non-capturing group converts it into a capturing group.
-            - Creating a named capturing group out of an unnamed capturing group, assigns a name to it.
-            - Creating a named capturing group out of a named capturing group, changes the group's name.
+            - Creating a capturing group out of a non-capturing group converts it \
+              into a capturing group, except if any flags have been applied to it, \
+              in which case, the non-capturing group is wrapped within a capturing \
+              group as a whole.
+            - Creating a named capturing group out of an unnamed capturing group, \
+              assigns a name to it.
+            - Creating a named capturing group out of a named capturing group, \
+              changes the group's name.
         '''
         super().__init__(pre, lambda pre: pre.capture(name))
 
@@ -146,29 +172,40 @@ class Group(__Group):
 
     :param Pregex | str pre: The pattern that is to be wrapped \
         within a non-capturing group.
+    :param bool is_case_insensitive: If ``True``, then the "case insensitive" \
+        flag is applied to the group so that the pattern within it ignores case \
+        when it comes to matching. Defaults to ``False``.
 
-    :raises InvalidArgumentTypeException: Parameter ``pre`` is neither a \
-        ``Pregex`` instance nor a string.
+    :raises InvalidArgumentTypeException: Parameter ``pre`` is neither \
+        a ``Pregex`` instance nor a string.
 
     :note:
-        - Creating a non-capturing group out of a non-capturing group does nothing.
-        - Creating a non-capturing group out of a capturing group converts it into a non-capturing group.
+        - Creating a non-capturing group out of a non-capturing group does nothing, \
+          except for remove its flags if it has any.
+        - Creating a non-capturing group out of a capturing group converts it into \
+          a non-capturing group.
     '''
 
-    def __init__(self, pre: _Union[_pre.Pregex, str]):
+    def __init__(self, pre: _Union[_pre.Pregex, str], is_case_insensitive: bool = False):
         '''
         Creates a non-capturing group out of the provided pattern.
 
-        :param Pregex | str pre: The expression out of which the non-capturing group is created.
+        :param Pregex | str pre: The pattern that is to be wrapped \
+            within a non-capturing group.
+        :param bool is_case_insensitive: If ``True``, then the "case insensitive" \
+            flag is applied to the group so that the pattern within it ignores case \
+            when it comes to matching. Defaults to ``False``.
 
-        :raises InvalidArgumentTypeException: Parameter ``pre`` is neither a \
-            ``Pregex`` instance nor a string.
+        :raises InvalidArgumentTypeException: Parameter ``pre`` is neither \
+            a ``Pregex`` instance nor a string.
 
         :note:
-            - Creating a non-capturing group out of a non-capturing group does nothing to it.
-            - Creating a non-capturing group out of a capturing group converts it to a non-capturing group.
+            - Creating a non-capturing group out of a non-capturing group does nothing, \
+              except for remove its flags if it has any.
+            - Creating a non-capturing group out of a capturing group converts it into \
+            a non-capturing group.
         '''
-        super().__init__(pre, lambda pre: pre.group())
+        super().__init__(pre, lambda pre: pre.group(is_case_insensitive))
 
 
 class Backreference(__Group):

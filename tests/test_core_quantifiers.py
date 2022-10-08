@@ -203,7 +203,7 @@ class TestAtLeast(unittest.TestCase):
         val = 3
         self.assertEqual(str(AtLeast(TEST_LITERAL_LEN_N, val, is_greedy=False)), f"(?:{TEST_LITERAL_LEN_N}){{{val},}}?")
 
-    def test_at_least_on_value_0(self):
+    def test_at_least_on_lazy_value_0(self):
         val = 0
         self.assertEqual(str(AtLeast(TEST_LITERAL_LEN_N, val, is_greedy=False)), f"(?:{TEST_LITERAL_LEN_N})*?")  
 
@@ -226,7 +226,7 @@ class TestAtLeast(unittest.TestCase):
 
     def test_at_least_at_on_non_repeatable_pattern(self):
         mat = MatchAtStart("a")
-        self.assertRaises(CannotBeRepeatedException, AtLeast, mat, n=1)
+        self.assertRaises(CannotBeRepeatedException, AtLeast, mat, n=5)
 
 
 class TestAtMost(unittest.TestCase):

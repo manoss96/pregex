@@ -1,5 +1,8 @@
 import re
+import io
+import sys
 import unittest
+from unittest.mock import mock_open, patch
 from pregex.core.pre import Pregex, _Type
 from pregex.core.assertions import MatchAtStart, WordBoundary, NonWordBoundary
 from pregex.core.exceptions import CannotBeRepeatedException, \
@@ -8,7 +11,7 @@ from pregex.core.exceptions import CannotBeRepeatedException, \
 
 class TestPregex(unittest.TestCase):
 
-    TEXT = "A0z aaa _9 z9z 99a B0cDDDD"
+    TEXT = "A0z aaa _9 z9z 99a B0cDDDD "
     PATTERN = "(?P<group_1>[A-Za-z_])[0-9]+(?P<group_2>[a-z]?)(?P<group_3>DDDD)?"
 
     pre1 = Pregex(PATTERN, escape=False)
@@ -85,9 +88,9 @@ class TestPregex(unittest.TestCase):
         {'group_1': ('B', 0, 1), 'group_2': ('c', 2, 3), 'group_3': ('DDDD', 3, 7)},
     ]
     
-    SPLIT_BY_MATCH = [" aaa ", " ", " 99a "]
-    SPLIT_BY_GROUP = ['0', ' aaa ', '9', ' ', '9', ' 99a ', '0']
-    SPLIT_BY_GROUP_WITHOUT_EMPTY = ['0', ' aaa ', '9 ', '9', ' 99a ', '0']
+    SPLIT_BY_MATCH = [" aaa ", " ", " 99a ", ' ']
+    SPLIT_BY_GROUP = ['0', ' aaa ', '9', ' ', '9', ' 99a ', '0', ' ']
+    SPLIT_BY_GROUP_WITHOUT_EMPTY = ['0', ' aaa ', '9 ', '9', ' 99a ', '0', ' ']
 
 
     '''
@@ -117,6 +120,13 @@ class TestPregex(unittest.TestCase):
     '''
     Test Public Methods
     '''
+    def test_pregex_on_print_pattern(self):
+        capturedOutput = io.StringIO()
+        sys.stdout = capturedOutput
+        self.pre1.print_pattern(include_flags=False)
+        sys.stdout = sys.__stdout__
+        self.assertEqual(capturedOutput.getvalue(), f"{self.PATTERN}\n")
+
     def test_pregex_on_get_pattern(self):
         self.assertEqual(self.pre1.get_pattern(include_flags=False), self.PATTERN)
         self.assertEqual(self.pre1.get_pattern(include_flags=True), f"/{self.PATTERN}/gmsu")
@@ -125,6 +135,9 @@ class TestPregex(unittest.TestCase):
         flags = re.MULTILINE | re.DOTALL
         self.assertEqual(self.pre1.get_compiled_pattern(), re.compile(self.PATTERN, flags))
 
+    def test_pregex_on_purge(self):
+        self.assertEqual(Pregex.purge(), None)
+
     def test_pregex_on_has_match(self):
         self.assertEqual(self.pre1.has_match(self.TEXT), True)
         self.assertEqual(self.pre1.has_match("ab"), False)
@@ -132,6 +145,10 @@ class TestPregex(unittest.TestCase):
     def test_pregex_on_compiled_has_match(self):
         self.assertEqual(self.pre2.has_match(self.TEXT), True)
         self.assertEqual(self.pre2.has_match("ab"), False)
+
+    @patch("builtins.open", mock_open(read_data=TEXT))
+    def test_pregex_on_has_match_is_path(self):
+        self.assertEqual(self.pre1.has_match(None, is_path=True), True)
 
     def test_pregex_on_is_exact_match(self):
         self.assertEqual(self.pre1.is_exact_match("A0a"), True)
@@ -142,6 +159,10 @@ class TestPregex(unittest.TestCase):
         self.assertEqual(self.pre2.is_exact_match("A0a"), True)
         self.assertEqual(self.pre2.is_exact_match("A0ab"), False)
         self.assertEqual(self.pre2.is_exact_match("aA0a"), False)
+
+    @patch("builtins.open", mock_open(read_data="A0a"))
+    def test_pregex_on_is_exact_match_is_path(self):
+        self.assertEqual(self.pre1.is_exact_match(None, is_path=True), True)
     
     def test_pregex_on_iterate_matches(self):
         self.assertEqual([match for match in self.pre1.iterate_matches(self.TEXT)], self.MATCHES)
@@ -149,11 +170,19 @@ class TestPregex(unittest.TestCase):
     def test_pregex_on_compiled_iterate_matches(self):
         self.assertEqual([match for match in self.pre2.iterate_matches(self.TEXT)], self.MATCHES)
 
+    @patch("builtins.open", mock_open(read_data=TEXT))
+    def test_pregex_on_iterate_matches_is_path(self):
+        self.assertEqual([match for match in self.pre1.iterate_matches(None, is_path=True)], self.MATCHES)
+
     def test_pregex_on_iterate_matches_and_pos(self):
         self.assertEqual([tup for tup in self.pre1.iterate_matches_and_pos(self.TEXT)], self.MATCHES_AND_POS)
 
     def test_pregex_on_compiled_iterated_matches_and_pos(self):
         self.assertEqual([tup for tup in self.pre2.iterate_matches_and_pos(self.TEXT)], self.MATCHES_AND_POS)
+
+    @patch("builtins.open", mock_open(read_data=TEXT))
+    def test_pregex_on_iterate_matches_and_pos_is_path(self):
+        self.assertEqual([tup for tup in self.pre1.iterate_matches_and_pos(None, is_path=True)], self.MATCHES_AND_POS)
 
     def test_pregex_on_iterate_captures(self):
         self.assertEqual([group_tup for group_tup in self.pre1.iterate_captures(self.TEXT)], self.GROUPS)
@@ -165,10 +194,14 @@ class TestPregex(unittest.TestCase):
         self.assertEqual([group_tup for group_tup in self.pre1.iterate_captures(self.TEXT, include_empty=False)],
             self.GROUPS_WITHOUT_EMPTY)
 
+    @patch("builtins.open", mock_open(read_data=TEXT))
+    def test_pregex_on_iterate_captures_is_path(self):
+        self.assertEqual([group_tup for group_tup in self.pre1.iterate_captures(None, is_path=True)], self.GROUPS)
+
     def test_pregex_on_iterate_captures_and_pos(self):
         self.assertEqual([group_list for group_list in self.pre1.iterate_captures_and_pos(self.TEXT)], self.GROUPS_AND_POS)
 
-    def test_pregex_on_compiled_iterate_captures_and_post(self):
+    def test_pregex_on_compiled_iterate_captures_and_pos(self):
         self.assertEqual([group_list for group_list in self.pre2.iterate_captures_and_pos(self.TEXT)], self.GROUPS_AND_POS)
 
     def test_pregex_on_iterate_captures_and_pos_without_empty(self):
@@ -183,6 +216,11 @@ class TestPregex(unittest.TestCase):
         self.assertEqual([group_list for group_list in self.pre1.iterate_captures_and_pos(self.TEXT,
             include_empty=False, relative_to_match=True)], self.GROUPS_AND_RELATIVE_POS_WITHOUT_EMPTY)
 
+    @patch("builtins.open", mock_open(read_data=TEXT))
+    def test_pregex_on_iterate_captures_and_pos_is_path(self):
+        self.assertEqual([group_tup for group_tup in self.pre1.iterate_captures_and_pos(None, is_path=True)],
+            self.GROUPS_AND_POS)
+
     def test_pregex_on_iterate_named_captures(self):
         self.assertEqual([group_dict for group_dict in self.pre1.iterate_named_captures(self.TEXT)], self.GROUPS_AS_DICTS)
 
@@ -192,6 +230,11 @@ class TestPregex(unittest.TestCase):
     def test_pregex_on_iterate_named_captures_without_empty(self):
         self.assertEqual([group_dict for group_dict in self.pre1.iterate_named_captures(self.TEXT, include_empty=False)],
             self.GROUPS_AS_DICTS_WITHOUT_EMPTY)
+
+    @patch("builtins.open", mock_open(read_data=TEXT))
+    def test_pregex_on_iterate_named_captures_is_path(self):
+        self.assertEqual([group_dict for group_dict in self.pre1.iterate_named_captures(None, is_path=True)],
+            self.GROUPS_AS_DICTS)
 
     def test_pregex_on_iterate_named_captures_and_pos(self):
         self.assertEqual([group_dict for group_dict in self.pre1.iterate_named_captures_and_pos(self.TEXT)],
@@ -213,6 +256,11 @@ class TestPregex(unittest.TestCase):
         self.assertEqual([group_dict for group_dict in self.pre1.iterate_named_captures_and_pos(
             self.TEXT, include_empty=False, relative_to_match=True)],
             self.GROUPS_AND_RELATIVE_POS_AS_DICTS_WITHOUT_EMPTY)
+
+    @patch("builtins.open", mock_open(read_data=TEXT))
+    def test_pregex_on_iterate_named_captures_and_pos_is_path(self):
+        self.assertEqual([group_dict for group_dict in self.pre1.iterate_named_captures_and_pos(None, is_path=True)],
+            self.GROUPS_AND_POS_AS_DICTS)
 
     def test_pregex_on_get_matches(self):
         self.assertEqual(self.pre1.get_matches(self.TEXT), self.MATCHES)
@@ -254,7 +302,7 @@ class TestPregex(unittest.TestCase):
     def test_pregex_on_get_named_captures(self):
         self.assertEqual(self.pre1.get_named_captures(self.TEXT), self.GROUPS_AS_DICTS)
     
-    def test_pregex_on_compiled_get_captures(self):
+    def test_pregex_on_compiled_get_named_captures(self):
         self.assertEqual(self.pre2.get_named_captures(self.TEXT), self.GROUPS_AS_DICTS)
 
     def test_pregex_on_get_named_captures_without_empty(self):
@@ -281,13 +329,18 @@ class TestPregex(unittest.TestCase):
 
     def test_pregex_on_replace(self):
         repl = "bb"
-        self.assertEqual(self.pre1.replace(self.TEXT, repl), "bb aaa bb bb 99a bb")
-        self.assertEqual(self.pre1.replace(self.TEXT, repl, count=1), "bb aaa _9 z9z 99a B0cDDDD")
+        self.assertEqual(self.pre1.replace(self.TEXT, repl), "bb aaa bb bb 99a bb ")
+        self.assertEqual(self.pre1.replace(self.TEXT, repl, count=1), "bb aaa _9 z9z 99a B0cDDDD ")
 
     def test_pregex_on_compiled_replace(self):
         repl = "bb"
-        self.assertEqual(self.pre2.replace(self.TEXT, repl), "bb aaa bb bb 99a bb")
-        self.assertEqual(self.pre1.replace(self.TEXT, repl, count=1), "bb aaa _9 z9z 99a B0cDDDD")
+        self.assertEqual(self.pre2.replace(self.TEXT, repl), "bb aaa bb bb 99a bb ")
+        self.assertEqual(self.pre1.replace(self.TEXT, repl, count=1), "bb aaa _9 z9z 99a B0cDDDD ")
+
+    @patch("builtins.open", mock_open(read_data=TEXT))
+    def test_pregex_on_replace_is_path(self):
+        repl = "bb"
+        self.assertEqual(self.pre1.replace(None, repl, is_path=True), "bb aaa bb bb 99a bb ")
 
     def test_pregex_on_replace_invalid_argument_value_exception(self):
         repl = "bb"
@@ -299,6 +352,10 @@ class TestPregex(unittest.TestCase):
     def test_pregex_on_compiled_split_by_match(self):
         self.assertEqual(self.pre2.split_by_match(self.TEXT), self.SPLIT_BY_MATCH)
 
+    @patch("builtins.open", mock_open(read_data=TEXT))
+    def test_pregex_on_split_by_match_is_path(self):
+        self.assertEqual(self.pre1.split_by_match(None, is_path=True), self.SPLIT_BY_MATCH)
+
     def test_pregex_on_split_by_capture(self):
         self.assertEqual(self.pre1.split_by_capture(self.TEXT, include_empty=True), self.SPLIT_BY_GROUP)
 
@@ -307,6 +364,10 @@ class TestPregex(unittest.TestCase):
 
     def test_pregex_on_split_by_capture_without_empty(self):
         self.assertEqual(self.pre1.split_by_capture(self.TEXT, include_empty=False), self.SPLIT_BY_GROUP_WITHOUT_EMPTY)
+
+    @patch("builtins.open", mock_open(read_data=TEXT))
+    def test_pregex_on_split_by_capture_is_path(self):
+        self.assertEqual(self.pre1.split_by_capture(None, is_path=True), self.SPLIT_BY_GROUP)
 
     def test_pregex_on_quantifiers(self):
         pre = Pregex('a')
@@ -322,9 +383,10 @@ class TestPregex(unittest.TestCase):
         pre = Pregex('a')
         self.assertEqual(str(pre.capture()), f"({pre})")
         self.assertEqual(str(pre.group()), f"(?:{pre})")
+        self.assertEqual(str(pre.group(is_case_insensitive=True)), f"(?i:{pre})")
 
     def test_pregex_on_operators(self):
-        pre, other_pre, other_str = Pregex('a'), Pregex("abc"), "abc"
+        pre, other_pre = Pregex('a'), Pregex("abc")
         self.assertEqual(str(pre.concat(other_pre)), f"{pre}{other_pre}")
         self.assertEqual(str(pre.concat(other_pre, on_right=False)), f"{other_pre}{pre}")
         self.assertEqual(str(pre.either(other_pre)), f"{pre}|{other_pre}")
@@ -372,6 +434,9 @@ class TestPregex(unittest.TestCase):
         self.assertEqual(str(Pregex(l1) + Pregex(l2)), l1 + l2)
         l1, l2 = "|", "?"
         self.assertEqual(str(Pregex(l1) + Pregex(l2)), f"\\{l1}\\{l2}")
+
+    def test_pregex_on__to_pregex_invalid_argument_type_exception(self):
+        self.assertRaises(InvalidArgumentTypeException, Pregex._to_pregex, True)
 
 
     '''

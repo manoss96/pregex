@@ -2,9 +2,9 @@
 Covering the Basics
 ###################
 
-In this section you will learn about the :class:`~pregex.core.pre.Pregex` class,
-and how instances of this class can be effectively combined together in order
-to construct complex RegEx patterns.
+In this section you will be learning about the :class:`~pregex.core.pre.Pregex`
+class, and how instances of this class can be effectively combined together in
+order to construct complex RegEx patterns.
 
 The Pregex class
 ============================================
@@ -36,10 +36,10 @@ all other classes inherit.
 
    # These are both Pregex instances.
    digit: Pregex = AnyDigit()
-   a_or_b: Pregex = Either('a', 'b')
+   either_a_or_b: Pregex = Either('a', 'b')
 
    # This is a Pregex instance as well!
-   digit_followed_by_either_a_or_b: Pregex = FollowedBy(digit, a_or_b)
+   digit_followed_by_either_a_or_b: Pregex = FollowedBy(digit, either_a_or_b)
 
 Being wrapped within instances of the same type allows for these Pregex
 patterns to be easily combined together into even more complex patterns.

@@ -20,6 +20,74 @@ from typing import Union as _Union
 from typing import Optional as _Optional
 
 
+class Text(_pre.Pregex):
+    '''
+    Matches any string of text of arbitrary length.
+
+    :param bool is_optional: Determines whether this pattern is optional \
+        or not. Defaults to ``False``.
+    '''
+
+    def __init__(self, is_optional: bool = False) -> _pre.Pregex:
+        '''
+        Matches any string of text of arbitrary length.
+
+        :param bool is_optional: Determines whether this pattern is optional \
+            or not. Defaults to ``False``.
+        '''
+        if is_optional:
+            pre = _qu.Indefinite(_cl.Any())
+        else:
+            pre = _qu.OneOrMore(_cl.Any())
+        super().__init__(str(pre), escape=False)
+
+
+class NonWhitespace(_pre.Pregex):
+    '''
+    Matches any string of text of arbitrary length that does not contain \
+    any whitespace characters.
+
+    :param bool is_optional: Determines whether this pattern is optional \
+        or not. Defaults to ``False``.
+    '''
+
+    def __init__(self, is_optional: bool = False) -> _pre.Pregex:
+        '''
+        Matches any string of text of arbitrary length that does not contain \
+        any whitespace characters.
+
+        :param bool is_optional: Determines whether this pattern is optional \
+            or not. Defaults to ``False``.
+        '''
+        if is_optional:
+            pre = _qu.Indefinite(_cl.AnyButWhitespace())
+        else:
+            pre = _qu.OneOrMore(_cl.AnyButWhitespace())
+        super().__init__(str(pre), escape=False)
+
+
+class Whitespace(_pre.Pregex):
+    '''
+    Matches any string of whitespace characters of arbitrary length.
+
+    :param bool is_optional: Determines whether this pattern is optional \
+        or not. Defaults to ``False``.
+    '''
+
+    def __init__(self, is_optional: bool = False) -> _pre.Pregex:
+        '''
+        Matches any string of whitespace characters of arbitrary length.
+
+        :param bool is_optional: Determines whether this pattern is optional \
+            or not. Defaults to ``False``.
+        '''
+        if is_optional:
+            pre = _qu.Indefinite(_cl.AnyWhitespace())
+        else:
+            pre = _qu.OneOrMore(_cl.AnyWhitespace())
+        super().__init__(str(pre), escape=False)
+
+
 class __Word(_pre.Pregex):
     '''
     This is the base class for every "Word" as well as the "Numeral" class.
@@ -33,7 +101,7 @@ class __Word(_pre.Pregex):
         underlying pattern, or to ``False`` if you are only using it for matching purposes.
     '''
 
-    def __init__(self, pre: _pre.Pregex, is_extensible: bool):
+    def __init__(self, pre: _pre.Pregex, is_extensible: bool) -> _pre.Pregex:
         '''
         This is the base class for every "Word" class.
 

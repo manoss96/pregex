@@ -208,8 +208,8 @@ Having initialized ``wordle`` as a ``Pregex`` instance, we can simply simply do
 ``wordle.followed_by(some_pattern)`` so as to indicate that any potential match
 with ``wordle`` must be followed by ``some_pattern``. Recall that ``wordle`` merely
 represents the empty string, so we are not really matching anything at this point.
-Applying an assertion to the empty string pattern is just a neat little trick that
-one can use in order to validate something about their pattern before they even begin
+Applying an assertion to the empty string pattern is just a neat little trick one
+can use in order to validate something about their pattern before they even begin
 to build it.
 
 Now it's just a matter of figuring out what the value of ``some_pattern`` is.
@@ -246,16 +246,18 @@ represents the following RegEx pattern:
 
 After we have made sure that our pattern will reject any words that do not contain
 all the yellow letters, we can finally start building the part of the pattern that
-will handle the actual matching. This can easily be achived by performing five iterations,
-one for each letter of the word, where at each iteration ``i`` we construct a new character
-class, that is then appended to our pattern based on the following logic:
+will handle the actual matching. This can easily be achived by performing five
+iterations, one for each letter of the word, where at each iteration ``i`` we
+construct a new character class, which is then appended to our pattern based
+on the following logic:
 
 * If the letter that corresponds to the word's i-th position is known, then
   make it so that the pattern only matches that letter at that position.
 
 * If the letter that corresponds to the word's i-th position is not known,
   then make it so that the pattern matches any letter except for gray letters,
-  as well as any yellow letters that may have been ruled out for that position.
+  green letters, as well as any yellow letters that may have been ruled out for
+  that exact position.
 
 The following code snippet does just that:
 
@@ -266,7 +268,7 @@ for i in range(1, 6):
     if i in green:
         wordle += green[i]
     else:
-        invalid_chars_at_pos_i = list(gray)
+        invalid_chars_at_pos_i = gray + list(green.values())
         if i in yellow:
             invalid_chars_at_pos_i += yellow[i]
         wordle += AnyUppercaseLetter() - AnyFrom(*invalid_chars_at_pos_i)
@@ -276,7 +278,7 @@ After executing the above code, ``wordle`` will contain the following
 RegEx pattern:
 
 ```
-(?=[A-Z]{,4}A)(?=[A-Z]{,4}R)(?=[A-Z]{,4}P)[BE-KOPSTV-Z][ABE-KOPR-TV-Z][ABE-KOR-TV-Z]T[ABE-KOPR-TV-Z]
+(?=[A-Z]{,4}A)(?=[A-Z]{,4}R)(?=[A-Z]{,4}P)[BE-KOPSV-Z][ABE-KOPRSV-Z][ABE-KORSV-Z]T[ABE-KOPRSV-Z]
 ```
 
 ### Matching from a dictionary
@@ -318,7 +320,7 @@ def wordle_solver(green: dict[int, str], yellow: dict[int, list[str]], gray: lis
         if i in green:
             wordle += green[i]
         else:
-            invalid_chars_at_pos_i = list(gray)
+            invalid_chars_at_pos_i = gray + list(green.values())
             if i in yellow:
                 invalid_chars_at_pos_i += yellow[i]
             wordle += AnyUppercaseLetter() - AnyFrom(*invalid_chars_at_pos_i)

@@ -1,7 +1,6 @@
 import unittest
-from pregex.meta.essentials import *
-from pregex.core.pre import _Type
 from itertools import permutations
+from pregex.meta.essentials import *
 from pregex.core.exceptions import InvalidArgumentTypeException, \
     InvalidArgumentValueException
 
@@ -11,6 +10,67 @@ TEXT = "Hey there! How are you on this fine evening?"
 
 def get_permutations(*classes: str):
     return set(f"[{''.join(p)}]" for p in permutations(classes))
+
+
+class TestText(unittest.TestCase):
+
+    pre = Text()
+    optional_pre = Text(is_optional=True)
+
+    def test_text_on_pattern(self):
+        self.assertEqual(str(self.pre), ".+")
+
+    def test_text_is_optional_on_pattern(self):
+        self.assertEqual(str(self.optional_pre), ".*")
+
+    def test_text_on_matches(self):
+        self.assertEqual(self.pre.get_matches(TEXT), ["Hey there! How are you on this fine evening?"])
+
+    def test_text_is_optional_on_matches(self):
+        self.assertEqual(self.optional_pre.get_matches(TEXT),
+            ["Hey there! How are you on this fine evening?", ''])
+
+
+class TestNonWhitespace(unittest.TestCase):
+
+    pre = NonWhitespace()
+    optional_pre = NonWhitespace(is_optional=True)
+
+    def test_non_whitespace_on_pattern(self):
+        self.assertEqual(str(self.pre), "\S+")
+
+    def test_non_whitespace_is_optional_on_pattern(self):
+        self.assertEqual(str(self.optional_pre), "\S*")
+
+    def test_non_whitespace_on_matches(self):
+        self.assertEqual(self.pre.get_matches(TEXT),
+        ["Hey", "there!", "How", "are", "you", "on", "this", "fine", "evening?"])
+
+    def test_non_whitespace_is_optional_on_matches(self):
+        self.assertEqual(self.optional_pre.get_matches(TEXT),
+            ["Hey", '', "there!", '', "How", '', "are", '', "you",
+            '', "on", '', "this", '', "fine", '', "evening?", ''])
+
+
+class TestWhitespace(unittest.TestCase):
+
+    pre = Whitespace()
+    optional_pre = Whitespace(is_optional=True)
+
+    def test_whitespace_on_pattern(self):
+        self.assertEqual(str(self.pre), "\s+")
+
+    def test_whitespace_is_optional_on_pattern(self):
+        self.assertEqual(str(self.optional_pre), "\s*")
+
+    def test_whitespace_on_matches(self):
+        self.assertEqual(self.pre.get_matches(TEXT),
+        [" ", " ", " ", " ", " ", " ", " ", " "])
+
+    def test_whitespace_is_optional_on_matches(self):
+        TEXT = "HEY \n\tTHERE"
+        self.assertEqual(self.optional_pre.get_matches(TEXT),
+            ['', '', '', ' \n\t', '', '', '', '', '', ''])
 
 
 class TestWord(unittest.TestCase):
@@ -191,6 +251,7 @@ class TestNumeral(unittest.TestCase):
         self.assertRaises(InvalidArgumentValueException, Numeral, base=1)
         self.assertRaises(InvalidArgumentValueException, Numeral, base=17)
         self.assertRaises(InvalidArgumentValueException, Numeral, n_min=-1)
+        self.assertRaises(InvalidArgumentValueException, Numeral, n_max=-1)
         self.assertRaises(InvalidArgumentValueException, Numeral, n_min=2, n_max=1)
 
 
@@ -577,12 +638,15 @@ class TestDate(unittest.TestCase):
         ])
 
     def test_date_on_specified_matches(self):
-        self.assertEqual(Date(formats=["dd/mm/yyyy"]).get_matches(self.text),
+        self.assertEqual(Date(formats="dd/mm/yyyy").get_matches(self.text),
             ["24/11/2001"])
 
     def test_date_on_extensibility(self):
         pre = 'a' + Date(is_extensible=True)
         self.assertEqual(pre.get_matches(self.text), ["a1998/10/21"])
+
+    def test_date_on_invalid_argument_value_exception(self):
+        self.assertRaises(InvalidArgumentValueException, Date, "dd/xx/yyyy")
 
 
 class TestIPv4(unittest.TestCase):
