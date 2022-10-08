@@ -346,8 +346,8 @@ You can learn more about PRegEx by visiting the [PRegEx Documentation Page][docs
 <!-- MARKDOWN LINKS & IMAGES -->
 [python-shield]: https://img.shields.io/badge/python-3.9+-blue
 [python-url]: https://www.python.org/downloads/release/python-390/
-[license-shield]: https://img.shields.io/badge/license-MIT-brightgreen
-[license-url]: https://github.com/werden-wissen/pregex/blob/master/LICENSE.txt
+[license-shield]: https://img.shields.io/badge/license-MIT-red
+[license-url]: https://github.com/werden-wissen/pregex/blob/main/LICENSE.txt
 [coverage-shield]: https://coveralls.io/repos/github/manoss96/pregex/badge.svg?branch=main&service=github
 [coverage-url]: https://coveralls.io/github/manoss96/pregex?branch=main
 [docs-url]: https://pregex.readthedocs.io/en/latest/
