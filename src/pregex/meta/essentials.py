@@ -1609,12 +1609,15 @@ class Email(_pre.Pregex):
             _qu.AtMost(alphanum | "-", n=61) + \
             alphanum
 
+        subdomains = _qu.Indefinite(domain_name + ".")
+
         if capture_domain:
             domain_name = _gr.Capture(domain_name)
 
         tld = "." + _qu.AtLeastAtMost(_cl.AnyLowercaseLetter(), n=2, m=6)
 
-        pre = left_most + local_part + "@" + domain_name + tld + potential_word_boundary
+        pre = left_most + local_part + '@' + subdomains + domain_name \
+            + tld + potential_word_boundary
         super().__init__(str(pre), escape=False)
 
 

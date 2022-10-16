@@ -2,8 +2,8 @@ import re
 import io
 import sys
 import unittest
-from unittest.mock import mock_open, patch
 from pregex.core.pre import Pregex, _Type
+from unittest.mock import mock_open, patch
 from pregex.core.assertions import MatchAtStart, WordBoundary, NonWordBoundary
 from pregex.core.exceptions import CannotBeRepeatedException, \
     InvalidArgumentValueException, InvalidArgumentTypeException
@@ -21,6 +21,7 @@ class TestPregex(unittest.TestCase):
 
     MATCHES = ["A0z", "_9", "z9z", "B0cDDDD"]
     MATCHES_AND_POS = [("A0z", 0, 3), ("_9", 8, 10), ("z9z", 11, 14), ("B0cDDDD", 19, 26)]
+    MATCHES_WITH_CONTEXT = ["A0z ", " _9 ", " z9z ", " B0cDDDD "]
 
     GROUPS = [("A", "z", None), ("_", "", None), ("z", "z", None), ("B", "c", 'DDDD')]
     GROUPS_AND_POS = [
@@ -184,6 +185,10 @@ class TestPregex(unittest.TestCase):
     def test_pregex_on_iterate_matches_and_pos_is_path(self):
         self.assertEqual([tup for tup in self.pre1.iterate_matches_and_pos(None, is_path=True)], self.MATCHES_AND_POS)
 
+    def test_pregex_on_iterate_matches_with_context(self):
+        self.assertEqual([match for match in self.pre1.iterate_matches_with_context(self.TEXT, n_left=1, n_right=1)],
+            self.MATCHES_WITH_CONTEXT)
+
     def test_pregex_on_iterate_captures(self):
         self.assertEqual([group_tup for group_tup in self.pre1.iterate_captures(self.TEXT)], self.GROUPS)
 
@@ -273,6 +278,18 @@ class TestPregex(unittest.TestCase):
 
     def test_pregex_on_compiled_get_matches_and_pos(self):    
         self.assertEqual(self.pre2.get_matches_and_pos(self.TEXT), self.MATCHES_AND_POS)
+
+    def test_pregex_on_get_matches_with_context(self):
+        self.assertEqual([match for match in self.pre1.get_matches_with_context(self.TEXT, n_left=1, n_right=1)],
+            self.MATCHES_WITH_CONTEXT)
+
+    def test_pregex_on_get_matches_with_context_invalid_argument_type_exception(self):
+        self.assertRaises(InvalidArgumentTypeException, self.pre1.get_matches_with_context, self.TEXT, '1')
+        self.assertRaises(InvalidArgumentTypeException, self.pre1.get_matches_with_context, source=self.TEXT, n_right='1')
+
+    def test_pregex_on_get_matches_with_context_invalid_argument_value_exception(self):
+        self.assertRaises(InvalidArgumentValueException, self.pre1.get_matches_with_context, source=self.TEXT, n_left=-1)
+        self.assertRaises(InvalidArgumentValueException, self.pre1.get_matches_with_context, source=self.TEXT, n_right=-1)
 
     def test_pregex_on_get_captures(self):
         self.assertEqual(self.pre1.get_captures(self.TEXT), self.GROUPS)

@@ -714,6 +714,7 @@ class TestEmail(unittest.TestCase):
     abc.def@mail-archive.com
     abc!def@mail-archive1.org
     abc^def@mail-archive2.com
+    abcdef@mail1.mail2.com
 
     Invalid
     -------
@@ -724,7 +725,7 @@ class TestEmail(unittest.TestCase):
     abc.def@mail.c
     abc.def@mail#archive.com
     abc.def@mail	
-    abc.def@mail..com`	
+    abc.def@mail..com
     '''
 
     def test_email_on_matches(self):
@@ -733,7 +734,8 @@ class TestEmail(unittest.TestCase):
             "abc-def@mail1.cc",
             "abc.def@mail-archive.com",
             "abc!def@mail-archive1.org",
-            "abc^def@mail-archive2.com"
+            "abc^def@mail-archive2.com",
+            "abcdef@mail1.mail2.com"
         ])
 
     def test_email_on_capture_local_part(self):
@@ -742,7 +744,8 @@ class TestEmail(unittest.TestCase):
             ("abc-def",),
             ("abc.def",),
             ("abc!def",),
-            ("abc^def",)
+            ("abc^def",),
+            ("abcdef",)
         ])
 
     def test_email_on_capture_domain(self):
@@ -751,12 +754,14 @@ class TestEmail(unittest.TestCase):
             ("mail1",),
             ("mail-archive",),
             ("mail-archive1",),
-            ("mail-archive2",)
+            ("mail-archive2",),
+            ("mail2",)
         ])
 
     def test_email_on_extensibility(self):
-        pre = 'abcd' + Email(is_extensible=True)
-        self.assertEqual(pre.get_matches(self.text), ["abcdef@mail.com"])
+        text = '123abcdef@mail.com abcdef@mail.com'
+        pre = '123' + Email(is_extensible=True)
+        self.assertEqual(pre.get_matches(text), ["123abcdef@mail.com"])
 
 
 class TestHttpUrl(unittest.TestCase):

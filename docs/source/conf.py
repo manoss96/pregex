@@ -22,7 +22,7 @@ copyright = '2022, Manos Stoumpos'
 author = 'Manos Stoumpos'
 
 # The full version, including alpha/beta/rc tags
-release = '2.3.0'
+release = '2.3.1'
 
 
 # -- General configuration ---------------------------------------------------

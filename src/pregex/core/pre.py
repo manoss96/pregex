@@ -211,6 +211,44 @@ class Pregex():
             yield (match.group(0), *match.span())
 
 
+    def iterate_matches_with_context(self, source: str, n_left: int = 5,
+        n_right: int = 5, is_path: bool = False) -> _Iterator[str]:
+        '''
+        Generates any possible matches found within the provided text, \
+        along with any of its surrounding context, the exact length of \
+        which can be configured through this method's parameters.
+
+        :param str source: The text that is to be examined.
+        :param int n_left: The number of characters representing the context \
+            on the left side of the match. Defaults to ``5``.
+        :param int n_right: The number of characters representing the context \
+            on the right side of the match. Defaults to ``5``.
+        :param bool is_path: If set to ``True``, then parameter ``source`` \
+            is considered to be a local path pointing to the file from which \
+            the text is to be read. Defaults to ``False``.
+
+        :raises InvalidArgumentTypeException: Either parameter ``n_left`` or \
+            ``n_right`` is not an integer. 
+        :raises InvalidArgumentValueException: Either parameter ``n_left`` or \
+            ``n_right`` has a value of less than zero.
+        '''
+        if not isinstance(n_left, int) or isinstance(n_left, bool):
+            message = "Provided argument \"n_left\" is not an integer."
+            raise _ex.InvalidArgumentTypeException(message)
+        if not isinstance(n_right, int) or isinstance(n_right, bool):
+            message = "Provided argument \"n_right\" is not an integer."
+            raise _ex.InvalidArgumentTypeException(message)
+        if n_left < 0:
+            message = "Parameter \"n_left\" can't be negative."
+            raise _ex.InvalidArgumentValueException(message)
+        if n_right < 0:
+            message = "Parameter \"n_right\" can't be negative."
+            raise _ex.InvalidArgumentValueException(message)
+
+        for _, start, end in self.get_matches_and_pos(source, is_path):
+            yield source[max(start - n_left, 0):min(end + n_right, len(source))]
+
+
     def iterate_captures(self, source: str, include_empty: bool = True,
         is_path: bool = False) -> _Iterator[tuple[str]]:
         '''
@@ -338,7 +376,7 @@ class Pregex():
         return list(match for match in self.iterate_matches(source, is_path))
 
 
-    def get_matches_and_pos(self, source: str, is_flag: bool = False) -> list[tuple[str, int, int]]:
+    def get_matches_and_pos(self, source: str, is_path: bool = False) -> list[tuple[str, int, int]]:
         '''
         Returns a list containing any possible matches found within the \
         provided text along with their exact position.
@@ -348,7 +386,32 @@ class Pregex():
             is considered to be a local path pointing to the file from which \
             the text is to be read. Defaults to ``False``.
         '''
-        return list(match for match in self.iterate_matches_and_pos(source, is_flag))
+        return list(match for match in self.iterate_matches_and_pos(source, is_path))
+
+
+    def get_matches_with_context(self, source: str, n_left: int = 5, n_right: int = 5,
+        is_path: bool = False) -> list[str]:
+        '''
+        Returns a list containing any possible matches found within the \
+        provided text, along with any of its surrounding context, the exact \
+        length of which can be configured through this method's parameters.
+
+        :param str source: The text that is to be examined.
+        :param int n_left: The number of characters representing the context \
+            on the left side of the match. Defaults to ``5``.
+        :param int n_right: The number of characters representing the context \
+            on the right side of the match. Defaults to ``5``.
+        :param bool is_path: If set to ``True``, then parameter ``source`` \
+            is considered to be a local path pointing to the file from which \
+            the text is to be read. Defaults to ``False``.
+
+        :raises InvalidArgumentTypeException: Either parameter ``n_left`` or \
+            ``n_right`` is not an integer. 
+        :raises InvalidArgumentValueException: Either parameter ``n_left`` or \
+            ``n_right`` has a value of less than zero.
+        '''
+        return list(match for match in self.iterate_matches_with_context(
+            source, n_left, n_right, is_path))
 
 
     def get_captures(self, source: str, include_empty: bool = True, is_path: bool = False) -> list[tuple[str]]:
