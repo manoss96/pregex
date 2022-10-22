@@ -3,7 +3,7 @@ PRegEx - Programmable Regular Expressions
 ******************************************
 
 Welcome to pregex's documentation page! You can start by going through the
-`Introduction <introduction.html>`_ section in order to get a first look at the
+`Introduction <introduction.rst>`_ section in order to get a first look at the
 pregex package, as well as receive instructions on how to install it. After that,
 you are free to explore the `Documentation <documentation/covering-the-basics.html>`_
 section so that you learn more about building RegEx patterns with pregex,
