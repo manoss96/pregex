@@ -722,15 +722,7 @@ class __Class(_pre.Pregex):
         :note: Provided characters within the range MUST NOT be escaped.
         '''
 
-        count = pattern.count("-")
-
-        if count == 1:
-            return pattern.split("-")
-        elif count == 2:
-            split_fun = pattern.split if pattern[-1] == "-" else pattern.rsplit
-            return split_fun("-", 1)
-        else:
-            return ("-", "-")
+        return (pattern[0], pattern[2])
 
 
 class Any(__Class):
