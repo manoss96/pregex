@@ -712,17 +712,26 @@ class __Class(_pre.Pregex):
 
 
     @staticmethod
-    def __split_range(pattern: str) -> tuple[str, str]:
+    def __split_range(pattern: str) -> list[str]:
         '''
-        Splits the provided range pattern and returns result as a tuple \
-        containing the range's beginning and end.
+        Splits the provided range pattern and returns result as a list \
+        of length two where the first element is the range's beginning \
+        and the second element is the range's end. 
 
         :param str pattern: The pattern that is to be split.
 
-        :note: Provided characters within the range MUST NOT be escaped.
+        :note: The provided range pattern must be in the form of \
+            \\?.-\\?. where "\\?" specifies the option to escape the \
+            character within the range, and "." includes newlines.
         '''
 
-        return (pattern[0], pattern[2])
+        count = pattern.count("-")
+
+        if count == 1:
+            return pattern.split("-")
+        if count == 2:
+            return pattern.split("-", 1) if pattern[-1] == "-" else pattern.rsplit("-", 1)
+        return list("-", "-")
 
 
 class Any(__Class):
