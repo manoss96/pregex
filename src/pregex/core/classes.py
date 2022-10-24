@@ -731,7 +731,7 @@ class __Class(_pre.Pregex):
             return pattern.split("-")
         if count == 2:
             return pattern.split("-", 1) if pattern[-1] == "-" else pattern.rsplit("-", 1)
-        return list("-", "-")
+        return ["-", "-"]
 
 
 class Any(__Class):
