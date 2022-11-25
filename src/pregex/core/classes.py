@@ -716,10 +716,10 @@ class __Class(_pre.Pregex):
         '''
         Splits the provided range pattern and returns result as a list \
         of length two where the first element is the range's beginning \
-        and the second element is the range's end. 
+        and the second element is the range's end.
 
         :param str pattern: The pattern that is to be split.
-
+        
         :note: The provided range pattern must be in the form of \
             \\?.-\\?. where "\\?" specifies the option to escape the \
             character within the range, and "." includes newlines.

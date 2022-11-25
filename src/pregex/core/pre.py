@@ -245,7 +245,7 @@ class Pregex():
             message = "Parameter \"n_right\" can't be negative."
             raise _ex.InvalidArgumentValueException(message)
 
-        for _, start, end in self.get_matches_and_pos(source, is_path):
+        for _, start, end in self.iterate_matches_and_pos(source, is_path):
             yield source[max(start - n_left, 0):min(end + n_right, len(source))]
 
 
@@ -1083,9 +1083,11 @@ class Pregex():
         pre = __class__._to_pregex(pre)
         if pre._get_type() == _Type.Empty:
             return self
-        if pre._get_type() == _Type.Quantifier \
-            and (_re.search("\\{\d+\\}$", str(pre)) is None):
-            raise _ex.NonFixedWidthPatternException(self, pre)
+        if _re.search(_re.sub(r"\s", "", r"""
+            (?<!\\)(?:\\\\)*(?<!\()(?:\?|\*|\+|\{,\d+\}|\{\d+,\}|\{\d+,\d+\})|
+            (?<!\\)(?:\\\\)*\\\((?:\?|\*|\+|\{,\d+\}|\{\d+,\}|\{\d+,\d+\})
+        """), str(pre)) is not None:
+            raise _ex.NonFixedWidthPatternException(pre)
         return __class__(
             f"(?<={pre}){self._assert_conditional_group()}",
             escape=False)
@@ -1112,9 +1114,11 @@ class Pregex():
         pre = __class__._to_pregex(pre)
         if pre._get_type() == _Type.Empty:
             return self
-        if pre._get_type() == _Type.Quantifier \
-            and (_re.search("\\{\d+\\}$", str(pre)) is None):
-            raise _ex.NonFixedWidthPatternException(self, pre)
+        if _re.search(_re.sub(r"\s", "", r"""
+            (?<!\\)(?:\\\\)*(?<!\()(?:\?|\*|\+|\{,\d+\}|\{\d+,\}|\{\d+,\d+\})|
+            (?<!\\)(?:\\\\)*\\\((?:\?|\*|\+|\{,\d+\}|\{\d+,\}|\{\d+,\d+\})
+        """), str(pre)) is not None:
+            raise _ex.NonFixedWidthPatternException(pre)
         return __class__(
             f"(?<={pre}){self._assert_conditional_group()}(?={pre})",
             escape=False)
@@ -1160,9 +1164,11 @@ class Pregex():
         pre = __class__._to_pregex(pre)
         if pre._get_type() == _Type.Empty:
             raise _ex.EmptyNegativeAssertionException()
-        if pre._get_type() == _Type.Quantifier \
-            and (_re.search("\\{\d+\\}$", str(pre)) is None):
-            raise _ex.NonFixedWidthPatternException(self, pre)
+        if _re.search(_re.sub(r"\s", "", r"""
+            (?<!\\)(?:\\\\)*(?<!\()(?:\?|\*|\+|\{,\d+\}|\{\d+,\}|\{\d+,\d+\})|
+            (?<!\\)(?:\\\\)*\\\((?:\?|\*|\+|\{,\d+\}|\{\d+,\}|\{\d+,\d+\})
+        """), str(pre)) is not None:
+            raise _ex.NonFixedWidthPatternException(pre)
         pattern = f"(?<!{pre}){self._assert_conditional_group()}"
         return __class__(pattern, escape=False)
 
@@ -1187,9 +1193,11 @@ class Pregex():
         pre = __class__._to_pregex(pre)
         if pre._get_type() == _Type.Empty:
             raise _ex.EmptyNegativeAssertionException()
-        if pre._get_type() == _Type.Quantifier \
-            and (_re.search("\\{\d+\\}$", str(pre)) is None):
-            raise _ex.NonFixedWidthPatternException(self, pre)
+        if _re.search(_re.sub(r"\s", "", r"""
+            (?<!\\)(?:\\\\)*(?<!\()(?:\?|\*|\+|\{,\d+\}|\{\d+,\}|\{\d+,\d+\})|
+            (?<!\\)(?:\\\\)*\\\((?:\?|\*|\+|\{,\d+\}|\{\d+,\}|\{\d+,\d+\})
+        """), str(pre)) is not None:
+            raise _ex.NonFixedWidthPatternException(pre)
         pattern = f"(?<!{pre}){self._assert_conditional_group()}(?!{pre})"
         return __class__(pattern, escape=False)
 

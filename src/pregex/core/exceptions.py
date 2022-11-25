@@ -222,17 +222,15 @@ class NonFixedWidthPatternException(Exception):
     :param Pregex pre: The ``Pregex`` instance because of which this exception was thrown.
     '''
 
-    def __init__(self, lookbehind, pre):
+    def __init__(self, lookbehind):
         '''
         This exception is thrown whenever a non-fixed-width pattern is being
         provided as lookbehind-pattern to either ``PrecededBy`` or ``NotPrecededBy``.
 
         :param __Lookaround lookbehind: The ``__Lookaround`` instance because of which this exception was thrown.
-        :param Pregex pre: The ``Pregex`` instance because of which this exception was thrown.
         '''
-        m = f"Instances of class \"{type(lookbehind).__name__}\" cannot receive an instance of "
-        m += f"class \"{type(pre).__name__}\" in place of a lookbehind-restriction-pattern as the"
-        m += " latter represents a pattern whose width is not fixed."
+        m = f"Pattern '{lookbehind.get_pattern()}' cannot be used as a lookbehind"
+        m += f" assertion pattern due to its variable length."
         super().__init__(m)
 
 
