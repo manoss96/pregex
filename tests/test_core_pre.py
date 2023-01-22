@@ -89,9 +89,9 @@ class TestPregex(unittest.TestCase):
         {'group_1': ('B', 0, 1), 'group_2': ('c', 2, 3), 'group_3': ('DDDD', 3, 7)},
     ]
     
-    SPLIT_BY_MATCH = [" aaa ", " ", " 99a ", ' ']
-    SPLIT_BY_GROUP = ['0', ' aaa ', '9', ' ', '9', ' 99a ', '0', ' ']
-    SPLIT_BY_GROUP_WITHOUT_EMPTY = ['0', ' aaa ', '9 ', '9', ' 99a ', '0', ' ']
+    SPLIT_BY_MATCH = ['', ' aaa ', ' ', ' 99a ', ' ']
+    SPLIT_BY_GROUP = ['', '0', ' aaa ', '9', ' ', '9', ' 99a ', '0', '', ' ']
+    SPLIT_BY_GROUP_WITHOUT_EMPTY = ['', '0', ' aaa ', '9 ', '9', ' 99a ', '0', '', ' ']
 
 
     '''

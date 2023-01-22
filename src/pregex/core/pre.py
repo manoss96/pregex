@@ -165,8 +165,8 @@ class Pregex():
         '''
         if is_path:
             source = self.__extract_text(source)
-        return bool(_re.search(self.__pattern, source) if self.__compiled is None \
-            else self.__compiled.search(source))
+        return bool(_re.search(self.__pattern, source, flags=self.__flags) \
+            if self.__compiled is None else self.__compiled.search(source))
 
 
     def is_exact_match(self, source: str, is_path: bool = False) -> bool:
@@ -549,11 +549,9 @@ class Pregex():
             source = self.__extract_text(source)
         split_list, index = list(), 0
         for _, start, end in self.iterate_matches_and_pos(source):
-            if index != start:
-                split_list.append(source[index:start])
+            split_list.append(source[index:start])
             index = end
-        if index != len(source):
-            split_list.append(source[index:])
+        split_list.append(source[index:])
         return split_list
 
 
@@ -577,11 +575,9 @@ class Pregex():
             for group, start, end in groups:
                 if group is None:
                     continue
-                if index != start:
-                    split_list.append(source[index:start])
+                split_list.append(source[index:start])
                 index = end
-        if index != len(source):
-            split_list.append(source[index:])
+        split_list.append(source[index:])
         return split_list
 
 

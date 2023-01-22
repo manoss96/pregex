@@ -1272,6 +1272,38 @@ class AnyButCJK(__Class):
         super().__init__('[^\u4e00-\u9fd5]', is_negated=True)
 
 
+class AnyHebrewLetter(__Class):
+    '''
+    Matches any character that is defined within the \
+    `Hebrew <https://en.wikipedia.org/wiki/Hebrew_(Unicode_block)>`_ \
+    Unicode block.
+    '''
+
+    def __init__(self) -> 'AnyHebrewLetter':
+        '''
+        Matches any character that is defined within the \
+        `Hebrew <https://en.wikipedia.org/wiki/Hebrew_(Unicode_block)>`_ \
+        Unicode block.
+        '''
+        super().__init__('[\u0590-\u05ff]', is_negated=False)
+
+
+class AnyButHebrewLetter(__Class):
+    '''
+    Matches any character excpet for those defined within the \
+    `Hebrew <https://en.wikipedia.org/wiki/Hebrew_(Unicode_block)>`_ \
+    Unicode block.
+    '''
+
+    def __init__(self) -> 'AnyButHebrewLetter':
+        '''
+        Matches any character except for those defined within the \
+        `Hebrew <https://en.wikipedia.org/wiki/Hebrew_(Unicode_block)>`_ \
+        Unicode block.
+        '''
+        super().__init__('[^\u0590-\u05ff]', is_negated=True)
+
+
 class AnyKoreanLetter(__Class):
     '''
     Matches any character from the Korean alphabet.

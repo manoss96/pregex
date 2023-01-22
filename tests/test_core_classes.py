@@ -639,6 +639,30 @@ class TestAnyButCJK(unittest.TestCase):
         self.assertEqual((AnyButCJK()).get_matches("你好"), [])
 
 
+class TestAnyHebrewLetter(unittest.TestCase):
+
+    def test_any_hebrew_letter(self):
+        self.assertTrue(str(AnyHebrewLetter()) in get_permutations("\u0590-\u05ff"))
+
+    def test_any_hebrew_letter_on_type(self):
+        self.assertEqual(AnyHebrewLetter()._get_type(), _Type.Class)
+
+    def test_any_hebrew_letter_on_matches(self):
+        self.assertEqual((4 * AnyHebrewLetter()).get_matches("שלום"), ["שלום"])
+
+
+class TestAnyButHebrewLetter(unittest.TestCase):
+
+    def test_any_but_hebrew_letter(self):
+        self.assertTrue(str(AnyButHebrewLetter()) in get_negated_permutations("\u0590-\u05ff"))
+
+    def test_any_but_hebrew_letter_on_type(self):
+        self.assertEqual(AnyButHebrewLetter()._get_type(), _Type.Class)
+
+    def test_any_but_hebrew_letter_on_matches(self):
+        self.assertEqual((AnyButHebrewLetter()).get_matches("שלום"), [])
+
+
 class TestAnyKoreanLetter(unittest.TestCase):
 
     def test_any_korean_letter(self):
