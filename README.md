@@ -3,6 +3,8 @@
 [![MIT License][license-shield]][license-url]
 [![Coverage][coverage-shield]][coverage-url]
 
+![PRegEx Logo](docs/source/logo.png)
+
 <!-- What is PRegEx? -->
 ## What is PRegEx?
 
