@@ -1209,7 +1209,8 @@ class AnyCyrillicLetter(__Class):
         super().__init__('[Ѐ-ӿ]', is_negated=False)
 
 
-class AnyRusCyrillicLetter():
+class AnyRusCyrillicLetter(__Class):
+
     '''
         Matches any character from the Cyrillic alphabet.
         '''
