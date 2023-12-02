@@ -795,6 +795,18 @@ class AnyUppercaseLetter(__Class):
         super().__init__('[A-Z]', is_negated=False)
 
 
+class AnyRusCyrillicUppercaseLetter(__Class):
+    '''
+    Matches any uppercase character from the Latin alphabet.
+    '''
+
+    def __init__(self) -> 'AnyRusCyrillicUppercaseLetter':
+        '''
+        Matches any uppercase character from the Latin alphabet.
+        '''
+        super().__init__('[А-ЯЁ]', is_negated=False)
+
+
 class AnyButUppercaseLetter(__Class):
     '''
     Matches any character except for uppercase characters in the Latin alphabet.
