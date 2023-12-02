@@ -166,7 +166,6 @@ Below are listed all classes within :py:mod:`pregex.core.classes`
 along with any possible methods they may possess.
 """
 
-
 import re as _re
 import pregex.core.pre as _pre
 import pregex.core.exceptions as _ex
@@ -196,12 +195,10 @@ class __Class(_pre.Pregex):
         that is, either a pair of regular classes or a pair of negated classes.
     '''
 
-
     '''
     A set containing characters that must be escaped when used within a class.
     '''
     _to_escape = ('\\', '^', '[', ']', '-', '/')
-
 
     def __init__(self, pattern: str, is_negated: bool, simplify_word: bool = False) -> '__Class':
         '''
@@ -229,13 +226,11 @@ class __Class(_pre.Pregex):
         self.__verbose, pattern = __class__.__process(pattern, is_negated, simplify_word)
         super().__init__(pattern, escape=False)
 
-
     def _get_verbose_pattern(self) -> str:
         '''
         Returns a verbose representation of this class's pattern.
         '''
         return self.__verbose
-
 
     @staticmethod
     def __process(pattern: str, is_negated: bool, simplify_word: bool) -> tuple[str, str]:
@@ -267,8 +262,7 @@ class __Class(_pre.Pregex):
         # Replace negated class shorthand-notation characters with their non-class shorthand-notation.
         return verbose_pattern, _re.sub(r"\[\^(\\w|\\d|\\s)\]", lambda m: m.group(1).upper(), simplified_pattern)
 
-
-    @staticmethod    
+    @staticmethod
     def __chars_to_ranges(ranges: set[str], chars: set[str]) -> tuple[set[str], set[str]]:
         '''
         Checks whether the provided characters can be incorporated within ranges.
@@ -279,8 +273,8 @@ class __Class(_pre.Pregex):
         '''
         # 1. Un-escape any escaped characters and convert to list.
         chars: list[str] = list(__class__.__modify_classes(chars, escape=False))
-        ranges: list[list[str]] = list(__class__.__split_range(rng) for rng in 
-            __class__.__modify_classes(ranges, escape=False))
+        ranges: list[list[str]] = list(__class__.__split_range(rng) for rng in
+                                       __class__.__modify_classes(ranges, escape=False))
 
         # 2. Check whether ranges can be constructed from chars.
         i = 0
@@ -324,7 +318,6 @@ class __Class(_pre.Pregex):
 
         return ranges, chars
 
-
     @staticmethod
     def __verbose_to_shorthand(classes: set[str], simplify_word: bool) -> set[str]:
         '''
@@ -336,7 +329,7 @@ class __Class(_pre.Pregex):
         :param bool simplify_word: Indicates whether `[A-Za-z0-9_]` should be simplified \
             to `[\w]` or not.
         '''
-        
+
         word_set = {'a-z', 'A-Z', '0-9', '_'}
         digit_set = {'0-9'}
         whitespace_set = {' ', '\t-\r'}
@@ -348,7 +341,6 @@ class __Class(_pre.Pregex):
             classes = classes.difference(whitespace_set).union({'\s'})
         return classes
 
-
     def __invert__(self) -> '__Class':
         '''
         If this instance is a regular class, then converts it to its negated counterpart. \
@@ -356,7 +348,6 @@ class __Class(_pre.Pregex):
         '''
         s, rs = '' if self.__is_negated else '^', '^' if self.__is_negated else ''
         return __class__(f"[{s}{self.__verbose.lstrip('[' + rs).rstrip(']')}]", not self.__is_negated)
-
 
     def __or__(self, pre: '__Class' or str) -> '__Class':
         '''
@@ -375,7 +366,6 @@ class __Class(_pre.Pregex):
             raise _ex.CannotBeUnionedException(pre, False)
         return __class__.__or(self, pre)
 
-
     def __ror__(self, pre: '__Class' or str) -> '__Class':
         '''
         Returns a `__Class` instance representing the union of the provided classes.
@@ -393,7 +383,6 @@ class __Class(_pre.Pregex):
             raise _ex.CannotBeUnionedException(pre, False)
         return __class__.__or(pre, self)
 
-
     def __or(pre1: '__Class', pre2: '__Class') -> '__Class':
         '''
         Returns a `__Class` instance representing the union of the provided classes.
@@ -402,7 +391,7 @@ class __Class(_pre.Pregex):
 
         :raises CannotBeUnionedException: `pre1` is a different type of class than `pre2`.
         '''
-        if  pre1.__is_negated != pre2.__is_negated:
+        if pre1.__is_negated != pre2.__is_negated:
             raise _ex.CannotBeUnionedException(pre2, True)
         if isinstance(pre1, Any) or isinstance(pre2, Any):
             return Any()
@@ -412,7 +401,7 @@ class __Class(_pre.Pregex):
             simplify_word = simplify_word or pre1._is_global()
         if isinstance(pre2, (AnyWordChar, AnyButWordChar)):
             simplify_word = simplify_word or pre2._is_global()
-            
+
         ranges1, chars1 = __class__.__extract_classes(pre1.__verbose, unescape=True)
         ranges2, chars2 = __class__.__extract_classes(pre2.__verbose, unescape=True)
 
@@ -427,7 +416,7 @@ class __Class(_pre.Pregex):
             '''
             if len(ranges) < 2:
                 return set(ranges)
-            
+
             ranges = [__class__.__split_range(rng) for rng in ranges]
 
             i = 0
@@ -478,18 +467,17 @@ class __Class(_pre.Pregex):
                         break
                 i += 1
 
-            return set(f"{rng[0]}-{rng[1]}" for rng in ranges), set(chars)        
+            return set(f"{rng[0]}-{rng[1]}" for rng in ranges), set(chars)
 
         ranges = reduce_ranges(ranges)
 
         ranges, chars = reduce_chars(list(ranges), list(chars))
 
-        result =  __class__.__modify_classes(ranges.union(chars), escape=True)
+        result = __class__.__modify_classes(ranges.union(chars), escape=True)
 
-        return  __class__(
+        return __class__(
             f"[{'^' if pre1.__is_negated else ''}{''.join(result)}]",
             pre1.__is_negated, simplify_word)
-
 
     def __sub__(self, pre: '__Class' or str) -> '__Class':
         '''
@@ -508,7 +496,6 @@ class __Class(_pre.Pregex):
             raise _ex.CannotBeSubtractedException(pre, False)
         return __class__.__sub(self, pre)
 
-
     def __rsub__(self, pre: '__Class' or str) -> '__Class':
         '''
         Returns a `__Class` instance representing the difference of the provided classes.
@@ -526,7 +513,6 @@ class __Class(_pre.Pregex):
             raise _ex.CannotBeSubtractedException(pre, False)
         return __class__.__sub(pre, self)
 
-
     def __sub(pre1: '__Class', pre2: '__Class') -> '__Class':
         '''
         Returns a `__Class` instance representing the difference of the provided classes.
@@ -536,7 +522,7 @@ class __Class(_pre.Pregex):
         :raises CannotBeSubtractedException: `pre` is neither a `__Class` instance nor a token.
         :raises EmptyClassException: `pre2` is an instance of class "Any".
         '''
-        if  pre1.__is_negated != pre2.__is_negated:
+        if pre1.__is_negated != pre2.__is_negated:
             raise _ex.CannotBeSubtractedException(pre2, True)
         if isinstance(pre2, Any):
             raise _ex.EmptyClassException(pre1, pre2)
@@ -625,14 +611,13 @@ class __Class(_pre.Pregex):
 
         # 3. Union ranges and chars together while escaping them.
         result = __class__.__modify_classes(ranges1.union(chars1), escape=True)
-        
+
         if len(result) == 0:
             raise _ex.EmptyClassException(pre1, pre2)
 
-        return  __class__(
+        return __class__(
             f"[{'^' if pre1.__is_negated else ''}{''.join(result)}]",
             pre1.__is_negated)
-
 
     @staticmethod
     def __extract_classes(pattern: str, unescape: bool = False) -> tuple[set[str], set[str]]:
@@ -651,7 +636,7 @@ class __Class(_pre.Pregex):
                 return 2
             else:
                 return 1
-        
+
         # Remove brackets etc from string.
         start_index = get_start_index(pattern)
         classes = pattern[start_index:-1]
@@ -665,7 +650,6 @@ class __Class(_pre.Pregex):
             chars = __class__.__modify_classes(chars, escape=False)
         # Return classes.
         return ranges, chars
-
 
     @staticmethod
     def __separate_classes(classes: 'str') -> tuple[set[str], set[str]]:
@@ -682,7 +666,6 @@ class __Class(_pre.Pregex):
         classes = _re.sub(pattern=range_pattern, repl="", string=classes)
         return (ranges, set(_re.findall(r"\\?.", classes, flags=_re.DOTALL)))
 
-    
     @staticmethod
     def __modify_classes(classes: set[str], escape: bool) -> set[str]:
         '''
@@ -694,6 +677,7 @@ class __Class(_pre.Pregex):
 
         def escape_char(c):
             return "\\" + c if c in __class__._to_escape else c
+
         def unescape_char(c):
             return c.replace("\\", "", 1) if len(c) > 1 and c[1] in __class__._to_escape else c
 
@@ -701,15 +685,14 @@ class __Class(_pre.Pregex):
         modified_classes = set()
 
         for c in classes:
-            if len(c) >= 3: # classes: [.-.], [\.-.], [\.-\.]
+            if len(c) >= 3:  # classes: [.-.], [\.-.], [\.-\.]
                 start, end = tuple(map(fun, __class__.__split_range(c)))
                 modified_c = start + "-" + end
-            else: # characters: [.]
+            else:  # characters: [.]
                 modified_c = fun(c)
             modified_classes.add(modified_c)
 
         return modified_classes
-
 
     @staticmethod
     def __split_range(pattern: str) -> list[str]:
@@ -799,7 +782,7 @@ class AnyButLowercaseLetter(__Class):
         '''
         super().__init__('[^a-z]', is_negated=True)
 
-    
+
 class AnyUppercaseLetter(__Class):
     '''
     Matches any uppercase character from the Latin alphabet.
@@ -874,14 +857,12 @@ class AnyWordChar(__Class):
         super().__init__('[a-zA-Z0-9_]', is_negated=False, simplify_word=is_global)
         self.__is_global = is_global
 
-
     def _is_global(self) -> bool:
         '''
         Returns ``True`` if this instance supports matching foreign alphabetic \
         characters, else returns ``False``.
         '''
         return self.__is_global
-
 
     def __invert__(self) -> '__Class':
         '''
@@ -919,14 +900,12 @@ class AnyButWordChar(__Class):
         super().__init__('[^a-zA-Z0-9_]', is_negated=True, simplify_word=is_global)
         self.__is_global = is_global
 
-
     def _is_global(self) -> bool:
         '''
         Returns ``True`` if this instance also excludes foreign alphabetic \
         characters from matching, else returns ``False``.
         '''
         return self.__is_global
-
 
     def __invert__(self) -> '__Class':
         '''
@@ -1066,7 +1045,7 @@ class AnyButBetween(__Class):
         '''
         for c in (start, end):
             if isinstance(c, (str, _pre.Pregex)):
-                if len(str(c).replace("\\", "", 1)) > 1: 
+                if len(str(c).replace("\\", "", 1)) > 1:
                     message = f"Argument \"{c}\" is neither a string nor a token."
                     raise _ex.InvalidArgumentTypeException(message)
             else:
@@ -1077,7 +1056,7 @@ class AnyButBetween(__Class):
             raise _ex.InvalidRangeException(start, end)
         start = f"\\{start}" if start in __class__._to_escape else start
         end = f"\\{end}" if end in __class__._to_escape else end
-        super().__init__(f"[^{start}-{end}]", is_negated=True)      
+        super().__init__(f"[^{start}-{end}]", is_negated=True)
 
 
 class AnyFrom(__Class):
@@ -1112,14 +1091,14 @@ class AnyFrom(__Class):
             raise _ex.NotEnoughArgumentsException(message)
         for c in chars:
             if isinstance(c, (str, _pre.Pregex)):
-                if len(str(c).replace("\\", "", 1)) > 1: 
+                if len(str(c).replace("\\", "", 1)) > 1:
                     message = f"Argument \"{c}\" is neither a string nor a token."
                     raise _ex.InvalidArgumentTypeException(message)
             else:
                 message = f"Argument \"{c}\" is neither a string nor a token."
                 raise _ex.InvalidArgumentTypeException(message)
         chars = tuple((f"\\{c}" if c in __class__._to_escape else c) \
-            if isinstance(c, str) else str(c) for c in chars)
+                          if isinstance(c, str) else str(c) for c in chars)
         super().__init__(f"[{''.join(chars)}]", is_negated=False)
 
 
@@ -1155,14 +1134,14 @@ class AnyButFrom(__Class):
             raise _ex.NotEnoughArgumentsException(message)
         for c in chars:
             if isinstance(c, (str, _pre.Pregex)):
-                if len(str(c).replace("\\", "", 1)) > 1: 
+                if len(str(c).replace("\\", "", 1)) > 1:
                     message = f"Argument \"{c}\" is neither a string nor a token."
                     raise _ex.InvalidArgumentTypeException(message)
             else:
                 message = f"Argument \"{c}\" is neither a string nor a token."
                 raise _ex.InvalidArgumentTypeException(message)
         chars = tuple((f"\{c}" if c in __class__._to_escape else c)
-            if isinstance(c, str) else str(c) for c in chars)
+                      if isinstance(c, str) else str(c) for c in chars)
         super().__init__(f"[^{''.join(chars)}]", is_negated=True)
 
 
@@ -1229,7 +1208,19 @@ class AnyCyrillicLetter(__Class):
         '''
         super().__init__('[Ѐ-ӿ]', is_negated=False)
 
-    
+
+class AnyRusCyrillicLetter(__Class):
+    '''
+        Matches any character from the Cyrillic alphabet.
+        '''
+
+    def __init__(self) -> 'AnyRusCyrillicLetter':
+        '''
+        Matches any character from the Cyrillic alphabet.
+        '''
+        super().__init__('[а-яА-ЯЁё]', is_negated=False)
+
+
 class AnyButCyrillicLetter(__Class):
     '''
     Matches any character except for characters in the Cyrillic alphabet.
@@ -1248,6 +1239,7 @@ class AnyCJK(__Class):
     `CJK Unified Ideographs <https://en.wikipedia.org/wiki/CJK_Unified_Ideographs_(Unicode_block)>`_ \
     Unicode block.
     '''
+
     def __init__(self) -> 'AnyCJK':
         '''
         Matches any character that is defined within the \
@@ -1256,13 +1248,14 @@ class AnyCJK(__Class):
         '''
         super().__init__('[\u4e00-\u9fd5]', is_negated=False)
 
-    
+
 class AnyButCJK(__Class):
     '''
     Matches any character except for those defined within the \
     `CJK Unified Ideographs <https://en.wikipedia.org/wiki/CJK_Unified_Ideographs_(Unicode_block)>`_ \
     Unicode block.
     '''
+
     def __init__(self) -> 'AnyButCJK':
         '''
         Matches any character except for those defined within the \
@@ -1308,6 +1301,7 @@ class AnyKoreanLetter(__Class):
     '''
     Matches any character from the Korean alphabet.
     '''
+
     def __init__(self) -> 'AnyKoreanLetter':
         '''
         Matches any character from the Korean alphabet.
@@ -1319,6 +1313,7 @@ class AnyButKoreanLetter(__Class):
     '''
     Matches any character except for characters in the Korean alphabet.
     '''
+
     def __init__(self) -> 'AnyButKoreanLetter':
         '''
         Matches any character except for characters in the Korean alphabet.
