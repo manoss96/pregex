@@ -1210,6 +1210,7 @@ class AnyCyrillicLetter(__Class):
 
 
 class AnyRusCyrillicLetter(__Class):
+
     '''
         Matches any character from the Cyrillic alphabet.
         '''
